@@ -1,28 +1,29 @@
 {
-    "compilerOptions": {
-        "baseUrl": ".",
-        "rootDir": ".",
-        "paths" : {
-            "src/*": ["./src/*"]
-        },
-        "outDir": "./dist",
-
-        "sourceMap": true,
-        "target": "es2016",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "esModuleInterop": true,
-        "declaration": true,
-        "strict": true,
-        "allowJs": true
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": ".",
+    "paths": {
+      "src/*": [
+        "./src/*"
+      ]
     },
-    "include": [
-        "src/",
-        "index.ts"
-    ],
-    "exclude": [
-        "node_modules",
-        "**/__tests__/*",
-        "dist"
-    ]
+    "outDir": "./dist",
+    "sourceMap": true,
+    "target": "es2016",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "declaration": true,
+    "strict": true,
+    "allowJs": true
+  },
+  "include": [
+    "src/",
+    "index.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/__tests__/*",
+    "dist"
+  ]
 }
