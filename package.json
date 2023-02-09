@@ -15,6 +15,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/pluralize": "0.0.29",
+    "@types/pouchdb": "^6.4.0",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
     "eslint": "^8.33.0",
@@ -29,6 +30,9 @@
   },
   "dependencies": {
     "moment": "^2.29.1",
-    "pluralize": "^8.0.0"
+    "pluralize": "^8.0.0",
+    "pouchdb": "^8.0.0",
+    "pouchdb-adapter-memory": "^8.0.0",
+    "pouchdb-find": "^8.0.0"
   }
 }
