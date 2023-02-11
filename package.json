@@ -18,6 +18,7 @@
   "author": "Kent Ng",
   "license": "ISC",
   "devDependencies": {
+    "@types/jasmine": "^4.3.1",
     "@types/pluralize": "0.0.29",
     "@types/pouchdb": "^6.4.0",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
