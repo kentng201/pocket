@@ -5,8 +5,8 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json && npx javascript-obfuscator dist-raw --output dist && npm pack",
-    "lint": "tslint -p tsconfig.json",
+    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json && npm pack",
+    "lint": "eslint src/**/*.ts",
     "repl": "ts-node -r tsconfig-paths/register"
   },
   "keywords": [
@@ -27,6 +27,9 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^15.6.1",
     "eslint-plugin-promise": "^6.1.1",
+    "jasmine": "^4.5.0",
+    "nyc": "^15.1.0",
+    "ts-node": "^10.9.1",
     "tsc-alias": "^1.1.1",
     "typescript": "^4.9.5"
   },
@@ -34,9 +37,11 @@
     "eslint": "^8.33.0",
     "eslint-config-prettier": "^8.6.0",
     "moment": "^2.29.1",
+    "nodemon": "^2.0.20",
     "pluralize": "^8.0.0",
     "pouchdb": "^8.0.0",
     "pouchdb-adapter-memory": "^8.0.0",
-    "pouchdb-find": "^8.0.0"
+    "pouchdb-find": "^8.0.0",
+    "tsconfig-paths": "^4.1.2"
   }
 }
