@@ -1,0 +1,12 @@
+diff --git a/node_modules/@types/node/buffer.d.ts b/node_modules/@types/node/buffer.d.ts
+index 5ec326d..bf9e290 100755
+--- a/node_modules/@types/node/buffer.d.ts
++++ b/node_modules/@types/node/buffer.d.ts
+@@ -95,7 +95,6 @@ declare module 'buffer' {
+      * @param id A `'blob:nodedata:...` URL string returned by a prior call to `URL.createObjectURL()`.
+      */
+     export function resolveObjectURL(id: string): Blob | undefined;
+-    export { Buffer };
+     /**
+      * @experimental
+      */

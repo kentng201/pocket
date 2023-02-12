@@ -11,6 +11,7 @@
         "test": "ts-node -r tsconfig-paths/register node_modules/jasmine/bin/jasmine --config=jasmine.json",
         "coverage": "nyc -r text -e .ts -x \"tests/*.test.ts\" npm run test"
     },
+    "postinstall": "patch-package",
     "keywords": [
         "Pouch DB",
         "Model",
@@ -32,6 +33,7 @@
         "eslint-plugin-promise": "^6.1.1",
         "jasmine": "^4.5.0",
         "nyc": "^15.1.0",
+        "patch-package": "^6.5.1",
         "ts-node": "^10.9.1",
         "tsc-alias": "^1.1.1",
         "typescript": "^4.9.5"
