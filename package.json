@@ -7,7 +7,9 @@
     "scripts": {
         "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json && npm pack",
         "lint": "eslint src/**/*.ts",
-        "repl": "ts-node -r tsconfig-paths/register"
+        "repl": "ts-node -r tsconfig-paths/register",
+        "test": "ts-node -r tsconfig-paths/register node_modules/jasmine/bin/jasmine --config=jasmine.json",
+        "coverage": "nyc -r text -e .ts -x \"tests/*.test.ts\" npm run test"
     },
     "keywords": [
         "Pouch DB",
@@ -40,7 +42,7 @@
         "moment": "^2.29.1",
         "nodemon": "^2.0.20",
         "pluralize": "^8.0.0",
-        "pouchdb": "^8.0.0",
+        "pouchdb": "^8.0.1",
         "pouchdb-adapter-memory": "^8.0.0",
         "pouchdb-find": "^8.0.0",
         "tsconfig-paths": "^4.1.2"
