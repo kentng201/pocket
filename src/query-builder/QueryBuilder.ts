@@ -27,7 +27,6 @@ function toMangoOperator(operator: Operator): string {
     case 'between': return '$gte';
     case 'like': return '$regex';
     }
-    return '';
 }
 
 export default class QueryBuilder<T extends Model> {
@@ -35,11 +34,11 @@ export default class QueryBuilder<T extends Model> {
 
     private lastWhere?: ModelKey<T> | '$or';
     private isOne?: boolean;
-    private modelClass: Model;
+    private modelClass: T;
     private dbName?: string;
     private relationships: ModelKey<T>[];
 
-    constructor(modelClass: Model, relationships?: ModelKey<T>[], dbName?: string, isOne?: boolean) {
+    constructor(modelClass: T, relationships?: ModelKey<T>[], dbName?: string, isOne?: boolean) {
         if (modelClass.cName === undefined) {
             throw new Error('QueryBuilder create error: collectionName not found');
         }
@@ -58,11 +57,11 @@ export default class QueryBuilder<T extends Model> {
         }
     }
 
-    static query<T extends Model>(modelClass: Model, relationships?: ModelKey<T>[], dbName?: string) {
+    static query<T extends Model>(modelClass: T, relationships?: ModelKey<T>[], dbName?: string) {
         return new this(modelClass, relationships, dbName, false) as QueryBuilder<T>;
     }
 
-    static where<T extends Model>(field: ModelKey<T>, operator: Operator, value: any, modelClass: Model) {
+    static where<T extends Model, O extends Operator>(field: ModelKey<T>, operator: O, value: OperatorValue<T, ModelKey<T>, O>, modelClass: T) {
         const builder = this.query<T>(modelClass);
         return builder.where(field, operator, value);
     }
@@ -115,14 +114,20 @@ export default class QueryBuilder<T extends Model> {
         const lastQueryIndex = queries.length - 1;
         const lastQuery = queries[lastQueryIndex];
         this.queries.selector.$and = this.queries.selector.$and?.filter((query, i) => i !== lastQueryIndex);
-        const newQuery: PouchDB.Find.Selector = {};
-            
+
         if (args.length === 3) {
-            this.appendWhere(args[0] as ModelKey<T>, args[1] as Operator, args[2] as any, '$or');
+            let newQuery: PouchDB.Find.Selector = {};
+            const [field, operator, value] = args as [ModelKey<T>, O, OperatorValue<T, Key, O>];
+            if (value instanceof Array) {
+                newQuery = { [field] : { $gte: value[0], $lte: value[1] } };
+            } else {
+                newQuery = { [field] : { [toMangoOperator(operator)]: value } };
+            }
             if (lastWhere === '$or') {
                 lastQuery.$or?.push(newQuery);
                 this.queries.selector.$and?.push(lastQuery);
             } else {
+                console.log('goes here?');
                 this.queries.selector.$and?.push({ $or: [
                     lastQuery,
                     newQuery,
