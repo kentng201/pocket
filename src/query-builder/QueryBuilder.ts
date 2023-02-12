@@ -76,14 +76,6 @@ export default class QueryBuilder<T extends Model> {
         this.isOne = isOne;
     }
 
-    private appendWhere<Key extends ModelKey<T>, O extends Operator>(field: Key, operator: O, value: OperatorValue<T, Key, O>, type: '$and' | '$or'): void {
-        if (value instanceof Array) {
-            this.queries.selector[type]?.push({ [field] : { $gte: (value as any)[0], $lte: (value as any)[1] } });
-        } else {
-            this.queries.selector[type]?.push({ [field] : { [toMangoOperator(operator)]: value } });
-        }
-    }
-
     static query<T extends Model>(modelClass: T, relationships?: ModelKey<T>[], dbName?: string) {
         return new this(modelClass, relationships, dbName, false) as QueryBuilder<T>;
     }
@@ -105,7 +97,8 @@ export default class QueryBuilder<T extends Model> {
         if (args.length === 2) args = [args[0], '=', args[1]];
             
         if (args.length === 3) {
-            this.appendWhere(args[0] as ModelKey<T>, args[1] as Operator, args[2] as any, '$and');
+            const query = toMangoQuery(args[0] as any, args[1] as any, args[2] as any);
+            this.queries.selector.$and.push(query);
             this.lastWhere = args[0] as ModelKey<T>;
             return this;
         } else {
@@ -177,7 +170,7 @@ export default class QueryBuilder<T extends Model> {
         if (typeof condition === 'function') {
             const newQueryBuilder = new QueryBuilder<T>(this.modelClass, []);
             (condition as QueryBuilderFunction<T>)(newQueryBuilder);
-            this.queries.selector.$and = this.queries.selector.$and?.concat(newQueryBuilder.queries.selector.$and || []);
+            this.queries.selector.$and = this.queries.selector.$and.concat(newQueryBuilder.queries.selector.$and || []);
         } else if (typeof condition === 'object') {
             Object.entries(condition).forEach(([key, value]) => {
                 let operator: Operator, objectValue: any;
@@ -194,9 +187,9 @@ export default class QueryBuilder<T extends Model> {
                 } else {
                     this.orWhere(key as ModelKey<T>, operator, objectValue);
                 }
+                this.lastWhere = key as ModelKey<T>;
             });
         }
-        this.lastWhere = undefined;
         return this;
     }
 
