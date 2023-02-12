@@ -18,5 +18,6 @@ module.exports = {
         quotes: ['error', 'single'],
         semi: ['error', 'always'],
         '@typescript-eslint/no-inferrable-types': 'off',
+        '@typescript-eslint/ban-ts-comment': 'off',
     },
 };
