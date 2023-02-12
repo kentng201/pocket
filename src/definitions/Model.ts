@@ -1,7 +1,7 @@
 // reference from: https://medium.com/dailyjs/typescript-create-a-condition-based-subset-types-9d902cea5b8c
 export type ReservedFieldForSelect = 'cName' | 'needTimestamp' | 'relationships' | '_dirty' | 'formatResponse';
 export type FunctionlessModel<T> = Omit<Omit<T, {
-    [Key in keyof T]: T[Key] extends () => Promise<object> | object | void ? Key : never;
+    [Key in keyof T]: T[Key] extends Function ? Key : never;
 }[keyof T]>, ReservedFieldForSelect>;
 
 export type ModelStatic<T extends object> = {
@@ -17,6 +17,6 @@ export type ModelType<T extends object> = FunctionlessModel<T> & {
     _dirty?: { [key: string]: boolean };
 };
 export type ModelKey<T extends object> = keyof FunctionlessModel<T> | '_id';
-export type ModelValue<T extends object, Key extends ModelKey<T>> = T[Key];
+export type ModelValue<T extends object, Key extends keyof T> = T[Key];
 
 
