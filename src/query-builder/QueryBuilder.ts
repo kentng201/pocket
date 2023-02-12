@@ -10,7 +10,7 @@ export type OperatorValue<T extends Model, Key extends keyof T, O extends Operat
     : O extends 'like' ? string
     : ModelValue<T, Key>
 export type QueryableModel<T extends Model> = {
-    [Key in ModelKey<T>]?: [Operator, OperatorValue<T, Key, Operator>];
+    [Key in ModelKey<T>]: OperatorValue<T, Key, Operator> | [Operator, OperatorValue<T, Key, Operator>];
 };
 export type QueryBuilderFunction<T extends Model> = (query: QueryBuilder<T>) => any;
 
@@ -29,8 +29,35 @@ function toMangoOperator(operator: Operator): string {
     }
 }
 
+function toMangoQuery<T extends Model, Key extends ModelKey<T>, O extends Operator>(field: Key, operator: O, value: OperatorValue<T, Key, O>): PouchDB.Find.Selector {
+    if (['=', '!=', '>', '>=', '<', '<='].includes(operator)) {
+        return { [field]: { [toMangoOperator(operator)]: value } };
+    }
+    if (['in', 'not in'].includes(operator)) {
+        return { [field]: { [toMangoOperator(operator)]: value } };
+    }
+    if (operator === 'between') {
+        const [fromValue, toValue] = value as [ModelValue<T, Key>, ModelValue<T, Key>];
+        return { [field]: { $gte: fromValue, $lte: toValue } };
+    }
+    if (operator === 'like') {
+        return { [field]: { $regex: value } };
+    }
+
+    return {};
+}
+
+function queryableValueToValue<T extends Model, Key extends ModelKey<T>, O extends Operator>(field: Key, value: any): PouchDB.Find.Selector {
+    if (value instanceof Array && operators.includes(value[0])) {
+        return toMangoQuery(field as any, value[0], value[1] as any);
+    } else {
+        return toMangoQuery(field as any, '=', value as any);
+    }
+}
+
+
 export default class QueryBuilder<T extends Model> {
-    private queries: PouchDB.Find.FindRequest<T>;
+    private queries: PouchDB.Find.FindRequest<T> & { selector: { $and: PouchDB.Find.Selector[] } };
 
     private lastWhere?: ModelKey<T> | '$or';
     private isOne?: boolean;
@@ -71,8 +98,7 @@ export default class QueryBuilder<T extends Model> {
     }
 
     where(condition: (query: QueryBuilder<T>) => void): this;
-    where(condition: Partial<ModelType<T>>): this;
-    where<O extends Operator>(queryableModel: QueryableModel<T>): this;
+    where(queryableModel: Partial<QueryableModel<T>>): this;
     where<Key extends ModelKey<T>>(field: Key, value: OperatorValue<T, Key, '='>): this;
     where<Key extends ModelKey<T>, O extends Operator>(field: Key, operator: O, value: OperatorValue<T, Key, O>): this;
     where<Key extends ModelKey<T>, O extends Operator>(...args: (ModelKey<T> | Operator | OperatorValue<T, Key, O>)[]) {
@@ -83,89 +109,90 @@ export default class QueryBuilder<T extends Model> {
             this.lastWhere = args[0] as ModelKey<T>;
             return this;
         } else {
-            if (typeof args[0] === 'function') {
-                this.whereCondition(args[0] as QueryBuilderFunction<T>);
-                return this;
-            }
             if (typeof args[0] === 'object') {
                 Object.entries(args[0] as object).forEach(([key, value]) => {
-                    if (value instanceof Array && operators.includes(value[0])) {
-                        const [operator, objectValue] = value;
-                        this.where(key as ModelKey<T>, operator, objectValue);
-                    } else {
-                        this.where(key as ModelKey<T>, value);
-                    }
+                    const query = queryableValueToValue(key as any, value);
+                    this.queries.selector.$and.push(query);
                 });
+                return this;
+            }
+            if (typeof args[0] === 'function') {
+                this.whereCondition(args[0] as QueryBuilderFunction<T>, '$and');
                 return this;
             }
         }
     }
 
     orWhere(condition: (query: QueryBuilder<T>) => void): this;
-    orWhere(condition: Partial<ModelType<T>>): this;
+    orWhere(queryableModel: Partial<QueryableModel<T>>): this;
     orWhere<Key extends ModelKey<T>>(field: Key, value: OperatorValue<T, Key, '='>): this;
     orWhere<Key extends ModelKey<T>, O extends Operator>(field: Key, operator: Operator, value: OperatorValue<T, Key, O>): this;
-    orWhere(queryableModel: QueryableModel<T>): this;
-    orWhere<Key extends ModelKey<T>, O extends Operator>(...args: (ModelKey<T> | Operator | OperatorValue<T, Key, O>)[]) {
+    orWhere<Key extends ModelKey<T>, O extends Operator>(...args: (ModelKey<T> | Operator | OperatorValue<T, Key, O> | ModelType<T> | QueryableModel<T>)[]) {
         if (args.length === 2) args = [args[0], '=', args[1]];
 
-        const { lastWhere } = this;
-        const queries = this.queries.selector.$and || [];
+        const queries = this.queries.selector.$and;
         const lastQueryIndex = queries.length - 1;
         const lastQuery = queries[lastQueryIndex];
-        this.queries.selector.$and = this.queries.selector.$and?.filter((query, i) => i !== lastQueryIndex);
+        this.queries.selector.$and = this.queries.selector.$and.filter((_, i) => i !== lastQueryIndex);
 
         if (args.length === 3) {
-            let newQuery: PouchDB.Find.Selector = {};
             const [field, operator, value] = args as [ModelKey<T>, O, OperatorValue<T, Key, O>];
-            if (value instanceof Array) {
-                newQuery = { [field] : { $gte: value[0], $lte: value[1] } };
+            const newQuery = toMangoQuery(field, operator, value);
+            if (this.lastWhere === '$or') {
+                if (!lastQuery.$or) lastQuery.$or = [];
+                lastQuery.$or.push(newQuery);
+                this.queries.selector.$and.push(lastQuery);
             } else {
-                newQuery = { [field] : { [toMangoOperator(operator)]: value } };
-            }
-            if (lastWhere === '$or') {
-                lastQuery.$or?.push(newQuery);
-                this.queries.selector.$and?.push(lastQuery);
-            } else {
-                console.log('goes here?');
-                this.queries.selector.$and?.push({ $or: [
-                    lastQuery,
-                    newQuery,
-                ]});
+                if (!lastQuery) {
+                    this.queries.selector.$and.push({ $or: [newQuery] });
+                } else {
+                    this.queries.selector.$and.push({ $or: [lastQuery, newQuery] });
+                }
             }
             this.lastWhere = '$or';
             return this;
         } else {
-            if (typeof args[0] === 'function') {
-                this.whereCondition(args[0] as QueryBuilderFunction<T>);
-                return this;
-            }
             if (typeof args[0] === 'object') {
                 Object.entries(args[0] as object).forEach(([key, value]) => {
+                    let operator: Operator, objectValue: any;
                     if (value instanceof Array && operators.includes(value[0])) {
-                        const [operator, objectValue] = value;
-                        this.orWhere(key as ModelKey<T>, operator, objectValue);
+                        operator = value[0];
+                        objectValue = value[1];
                     } else {
-                        this.orWhere(key as ModelKey<T>, value);
+                        operator = '=';
+                        objectValue = value;
                     }
+                    this.orWhere(key as ModelKey<T>, operator, objectValue);
                 });
+                return this;
+            }
+            if (typeof args[0] === 'function') {
+                this.whereCondition(args[0] as QueryBuilderFunction<T>, '$or');
                 return this;
             }
         }
     }
 
-    whereCondition(condition: QueryBuilderFunction<T> | Partial<ModelType<T>>): this {
+    whereCondition(condition: QueryBuilderFunction<T> | Partial<ModelType<T>>, type: '$and' | '$or'): this {
         if (typeof condition === 'function') {
             const newQueryBuilder = new QueryBuilder<T>(this.modelClass, []);
             (condition as QueryBuilderFunction<T>)(newQueryBuilder);
             this.queries.selector.$and = this.queries.selector.$and?.concat(newQueryBuilder.queries.selector.$and || []);
         } else if (typeof condition === 'object') {
-            Object.entries(condition).forEach(([field, value]) => {
-                const [operator, objectValue] = value;
-                if (objectValue instanceof Array) {
-                    this.queries.selector.$and?.push({ [field] : { $gte: value[0], $lte: value[1] } });
+            Object.entries(condition).forEach(([key, value]) => {
+                let operator: Operator, objectValue: any;
+                if (value instanceof Array && operators.includes(value[0])) {
+                    operator = value[0];
+                    objectValue = value[1];
                 } else {
-                    this.queries.selector.$and?.push({ [field] : { [toMangoOperator(operator)]: value } });
+                    operator = '=';
+                    objectValue = value;
+                }
+
+                if (type == '$and') {
+                    this.where(key as ModelKey<T>, operator, objectValue);
+                } else {
+                    this.orWhere(key as ModelKey<T>, operator, objectValue);
                 }
             });
         }
