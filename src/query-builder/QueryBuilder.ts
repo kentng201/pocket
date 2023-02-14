@@ -1,4 +1,5 @@
 import { ModelKey, ModelType, ModelValue } from 'src/definitions/Model';
+import DatabaseManager from 'src/manager/DatabaseManager';
 import Model from 'src/model/Model';
 
 const operators = ['=', '>', '>=', '<', '<=', '!=', 'in', 'not in', 'between', 'like'] as const;
@@ -57,13 +58,14 @@ function queryableValueToValue<T extends Model, Key extends ModelKey<T>, O exten
 
 
 export default class QueryBuilder<T extends Model> {
-    private queries: PouchDB.Find.FindRequest<T> & { selector: { $and: PouchDB.Find.Selector[] } };
+    protected queries: PouchDB.Find.FindRequest<T> & { selector: { $and: PouchDB.Find.Selector[] } };
 
-    private lastWhere?: ModelKey<T> | '$or';
-    private isOne?: boolean;
-    private modelClass: T;
-    private dbName?: string;
-    private relationships: ModelKey<T>[];
+    protected lastWhere?: ModelKey<T> | '$or';
+    protected isOne?: boolean;
+    protected modelClass: T;
+    protected dbName?: string;
+    protected relationships: ModelKey<T>[];
+    protected db: PouchDB.Database;
 
     constructor(modelClass: T, relationships?: ModelKey<T>[], dbName?: string, isOne?: boolean) {
         if (modelClass.cName === undefined) {
@@ -74,6 +76,7 @@ export default class QueryBuilder<T extends Model> {
         this.relationships = relationships || [];
         this.queries = {selector: {$and: []}};
         this.isOne = isOne;
+        this.db = DatabaseManager.get(this.dbName) as PouchDB.Database<T>;
     }
 
     static query<T extends Model>(modelClass: T, relationships?: ModelKey<T>[], dbName?: string) {
@@ -209,7 +212,7 @@ export default class QueryBuilder<T extends Model> {
         return this.queries;
     }
 
-    private async bindRelationship(model: T) {
+    protected async bindRelationship(model: T) {
         if (this.relationships && model.relationships) {
             for (const r of this.relationships) {
                 try {
@@ -227,7 +230,7 @@ export default class QueryBuilder<T extends Model> {
         return model;
     }
 
-    private async cast(item?: T) {
+    protected async cast(item?: T) {
         if (!item) return;
         let model;
         const modelClass = this.modelClass;
@@ -239,7 +242,13 @@ export default class QueryBuilder<T extends Model> {
     }
 
     async get(): Promise<T[]> {
-        return [];
+        const data = await DatabaseManager.get(this.dbName).find(this.queries);
+        const result = [] as T[];
+        for (const item of data.docs) {
+            const model = await this.cast(item as unknown as T);
+            if (model) result.push(model);
+        }
+        return result;
     }
 
     async first(): Promise<T | undefined> {
@@ -250,20 +259,5 @@ export default class QueryBuilder<T extends Model> {
     async count() {
         // todo: count
         return 0;
-    }
-
-    async create<T>(attributes: Partial<T>): Promise<T> {
-        // todo: create
-        return new Model() as T;
-    }
-
-    async update<T>(attributes: Partial<T>): Promise<T> {
-        // todo: update
-        return new Model() as T;
-    }
-
-    async delete(): Promise<boolean> {
-        // todo: delete
-        return false;
     }
 }
