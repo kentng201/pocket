@@ -17,9 +17,6 @@ describe('Repo', () => {
         await DatabaseManager.connect('test-repo-listen-change', 'repo-listen-change');
         repo = RepoManager.get(new User);
     });
-    afterAll(async () => {
-        await DatabaseManager.get('test-repo-listen-change').destroy();
-    });
 
     it('should listen to change event and update the variable', async () => {
         repo.raw().changes({

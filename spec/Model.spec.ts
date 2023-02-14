@@ -12,9 +12,6 @@ describe('Model', () => {
     beforeEach(async () => {
         await DatabaseManager.connect('test-model', 'test-model');
     });
-    afterAll(async () => {
-        await DatabaseManager.get('test-model').destroy();
-    });
 
     xit('should be able to create a new model', async () => {
         const user = await User.create({

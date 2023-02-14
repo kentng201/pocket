@@ -12,10 +12,6 @@ describe('QueryBuilder Basic', () => {
         await DatabaseManager.connect('test', 'test');
     });
 
-    afterAll(async () => {
-        await DatabaseManager.get('database-manager').destroy();
-    });
-
     it('should create a query builder', () => {
         const queryBuilder = new QueryBuilder(new User, undefined, 'test');
         expect(queryBuilder).toBeTruthy();

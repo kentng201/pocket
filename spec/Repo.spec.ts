@@ -17,9 +17,6 @@ describe('Repo', () => {
         await DatabaseManager.connect('repo', 'repo');
         repo = RepoManager.get(new User);
     });
-    afterAll(async () => {
-        await DatabaseManager.get('repo').destroy();
-    });
 
     it('should be able to create document via repo', async () => {
         const result = await repo.create({
