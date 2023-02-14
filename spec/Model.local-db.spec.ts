@@ -3,7 +3,7 @@ import Model from '../src/model/Model';
 
 describe('Model Local DB', () => {
     class User extends Model {
-        static dbName = 'test-model';
+        static dbName = 'local';
 
         name!: string;
         password?: string;
@@ -18,9 +18,7 @@ describe('Model Local DB', () => {
             name: 'new-user2',
         });
 
-        const userFromMangoQuery = await User.query().where('name', '=', createdUser.name as string).first();
-        const user = await User.find(createdUser._id as string);
-        console.log('user: ', user);
+        const userFromMangoQuery = await User.query().where('_id', '=', createdUser._id as string).first();
         expect(userFromMangoQuery).toBeTruthy();
         expect(userFromMangoQuery).toEqual(jasmine.objectContaining({
             _id: createdUser._id,

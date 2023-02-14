@@ -31,9 +31,6 @@ describe('Model', () => {
 
         const user = await User.find(createdUser._id as string);
 
-        const result = await User.query().where('_id', '=', createdUser._id as string).get();
-        console.log('result: ', result);
-
         expect(user).toBeTruthy();
         expect(user).toEqual(jasmine.objectContaining({
             _id: createdUser._id,
