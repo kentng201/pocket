@@ -5,6 +5,8 @@ import Repo from 'src/repo/Repo';
 
 describe('Repo', () => {
     class User extends Model {
+        static dbName = 'repo';
+
         name!: string;
         password?: string;
     }
@@ -12,8 +14,11 @@ describe('Repo', () => {
     let repo: Repo<User>;
 
     beforeEach(async () => {
-        await DatabaseManager.connect('test');
+        await DatabaseManager.connect('repo', 'repo');
         repo = RepoManager.get(new User);
+    });
+    afterAll(async () => {
+        await DatabaseManager.get('repo').destroy();
     });
 
     it('should be able to create document via repo', async () => {

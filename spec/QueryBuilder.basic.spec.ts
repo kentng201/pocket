@@ -1,11 +1,20 @@
 import QueryBuilder from '../src/query-builder/QueryBuilder';
 import Model from '../src/model/Model';
+import DatabaseManager from 'src/manager/DatabaseManager';
 
 describe('QueryBuilder Basic', () => {
     class User extends Model {
         name!: string;
         password!: string;
     }
+
+    beforeEach(async () => {
+        await DatabaseManager.connect('test', 'test');
+    });
+
+    afterAll(async () => {
+        await DatabaseManager.get('database-manager').destroy();
+    });
 
     it('should create a query builder', () => {
         const queryBuilder = new QueryBuilder(new User, undefined, 'test');
