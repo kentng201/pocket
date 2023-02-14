@@ -246,7 +246,6 @@ export default class QueryBuilder<T extends Model> {
     }
 
     async get(): Promise<T[]> {
-        console.log('this.queries: ', JSON.stringify(this.queries, null, 2));
         const data = await DatabaseManager.get(this.dbName).find(this.queries);
         const result = [] as T[];
         for (const item of data.docs) {

@@ -106,7 +106,7 @@ export default class Model {
 
     static async find<T extends Model>(primaryKey: string | string): Promise<T | undefined> {
         // @ts-ignore
-        const item = await (this as unknown as typeof Model).query<T>().where('_id', primaryKey).first();
+        const item = await (this as unknown as typeof Model).repo<T>().getDoc(primaryKey);
         if (!item) return undefined;
         return new this(item) as T;
     }

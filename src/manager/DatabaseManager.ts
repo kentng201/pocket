@@ -8,14 +8,17 @@ PouchDB.plugin(PouchDBAdapterMemory);
 export default class DatabaseManager {
     private static databases: { [dbName: string]: PouchDB.Database };
 
-    public static connect(url: string, dbName: string = 'default') {
+    public static connect(url: string, dbName: string = 'default', adapter?: string, silentConnect = true) {
         return new Promise((resolve, reject) => {
             try {
-                const pouchDb = new PouchDB<{adapter: string;}>(url, { adapter: 'memory' }) as unknown as PouchDB.Database & {adapter: string};
+                const pouchDb = new PouchDB<{adapter: string;}>(url, {adapter}) as unknown as PouchDB.Database & {adapter: string};
                 if (!this.databases) this.databases = {};
                 this.databases[dbName] = pouchDb;
-                console.log(`- Connected to PouchDB/CouchDB "${dbName}": ${url}`);
-                console.log(`- Adapter: ${pouchDb.adapter}`);
+                
+                if (!silentConnect) {
+                    console.log(`- Connected to PouchDB/CouchDB "${dbName}": ${url}`);
+                    console.log(`- Adapter: ${pouchDb.adapter}`);
+                }
                 resolve(true);
             } catch (error) {
                 reject(error);
