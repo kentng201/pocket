@@ -13,7 +13,7 @@ describe('Model', () => {
         await DatabaseManager.connect('test-model', 'test-model', 'memory');
     });
 
-    xit('should be able to create a new model', async () => {
+    it('should be able to create a new model', async () => {
         const user = await User.create({
             name: 'new-user',
         });
@@ -31,7 +31,7 @@ describe('Model', () => {
 
         const user = await User.find(createdUser._id as string);
 
-        const result = await User.query().where('name', '=', createdUser.name as string).get();
+        const result = await User.query().where('_id', '=', createdUser._id as string).get();
         console.log('result: ', result);
 
         expect(user).toBeTruthy();
