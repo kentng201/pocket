@@ -257,7 +257,8 @@ export default class QueryBuilder<T extends Model> {
 
     async first(): Promise<T | undefined> {
         this.isOne = true;
-        return (await this.get())[0];
+        const result = await this.get();
+        return result[0];
     }
 
     async count() {

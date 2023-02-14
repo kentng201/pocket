@@ -11,7 +11,13 @@ export default class DatabaseManager {
     public static connect(url: string, dbName: string = 'default', adapter?: string, silentConnect = true) {
         return new Promise((resolve, reject) => {
             try {
-                const pouchDb = new PouchDB<{adapter: string;}>(url, {adapter}) as unknown as PouchDB.Database & {adapter: string};
+                let config;
+                if (adapter) {
+                    config = {adapter};
+                } else {
+                    config = undefined;
+                }
+                const pouchDb = new PouchDB<{adapter: string;}>(url, config) as unknown as PouchDB.Database & {adapter: string};
                 if (!this.databases) this.databases = {};
                 this.databases[dbName] = pouchDb;
                 
