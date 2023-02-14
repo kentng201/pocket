@@ -6,7 +6,7 @@ PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBAdapterMemory);
 
 export default class DatabaseManager {
-    private static databases: { [dbName: string]: PouchDB.Database & {adapter: string;} };
+    private static databases: { [dbName: string]: PouchDB.Database };
 
     public static connect(url: string, dbName: string = 'default') {
         return new Promise((resolve, reject) => {

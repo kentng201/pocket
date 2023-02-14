@@ -47,6 +47,7 @@
         "pouchdb": "^8.0.1",
         "pouchdb-adapter-memory": "^8.0.0",
         "pouchdb-find": "^8.0.0",
+        "snowflake-uuid": "^1.0.0",
         "tsconfig-paths": "^4.1.2"
     }
 }
