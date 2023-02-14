@@ -1,4 +1,6 @@
 import QueryBuilder, { Operator, OperatorValue, QueryableModel } from 'src/query-builder/QueryBuilder';
+import Repo from 'src/repo/Repo';
+import RepoManager from 'src/manager/RepoManager';
 
 // import { belongsTo } from 'src/relationships/BelongsTo';
 // import { hasOne } from 'src/relationships/hasOne';
@@ -7,8 +9,7 @@ import QueryBuilder, { Operator, OperatorValue, QueryableModel } from 'src/query
 
 import moment from 'moment';
 import pluralize from 'pluralize';
-import { ModelKey, ModelStatic, ModelType } from 'src/definitions/Model';
-
+import { ModelKey, ModelStatic, ModelType, NewModelType } from 'src/definitions/Model';
 export default class Model {
     static collectionName?: string;
     static dbName: string = 'default';
@@ -44,9 +45,9 @@ export default class Model {
     }
 
     relationships?: { [relationshipName: string]: () => QueryBuilder<any> };
-    _id?: string;
-    createdAt?: string;
-    updatedAt?: string;
+    public _id?: string;
+    public createdAt?: string;
+    public updatedAt?: string;
 
     // start of object construction
     public fill(attributes: Partial<ModelType<this>>): void {
@@ -80,6 +81,9 @@ export default class Model {
     // end of object construction
 
     // start of CRUD operation
+    static repo<T extends Model>(this: ModelStatic<T>): Repo<T> {
+        return RepoManager.get(new this()) as Repo<T>;
+    }
     static first<T extends Model>(this: ModelStatic<T>): Promise<T | undefined> {
         // @ts-ignore
         return (this as unknown as typeof Model).query<T>().first();
@@ -105,7 +109,7 @@ export default class Model {
         if (!item) return undefined;
         return new this(item) as T;
     }
-    static async create<T extends Model>(this: ModelStatic<T>, attributes: ModelType<T>): Promise<T> {
+    static async create<T extends Model>(this: ModelStatic<T>, attributes: NewModelType<T>): Promise<T> {
         const model = new this(attributes) as T;
         if (model.needTimestamp) {
             attributes.createdAt = moment().toISOString();
@@ -114,9 +118,9 @@ export default class Model {
         delete attributes.relationships;
         delete attributes._dirty;
         // @ts-ignore
-        const result = await (this as unknown as typeof Model).query<T>().create(attributes);
-        model._id = result._id;
-        model.fill(attributes);
+        const result = await (this as unknown as typeof Model).repo<T>().create({...attributes, _id: model._id});
+        model._id = result.id;
+        model.fill(attributes as ModelType<T>);
         return model;
     }
     async touch() {
@@ -139,7 +143,7 @@ export default class Model {
         }
 
         // @ts-ignore
-        await (this.constructor as typeof Model).query<this>().update(updateAttributes);
+        await (this.constructor as typeof Model).repo<this>().update(updateAttributes);
         await this.touch();
         return this;
     }
@@ -164,8 +168,7 @@ export default class Model {
         if (!this._id) {
             if (this.needTimestamp) newAttributes.createdAt = now;
             // @ts-ignore
-            const result = await (this.constructor as unknown as typeof Model).query<this>().create(newAttributes);
-            this.fill(result);
+            await (this.constructor as unknown as typeof Model).repo<this>().create(newAttributes);
         } else {
             const guarded = (this.constructor as typeof Model).readonlyFields;
             // remove guarded fields
@@ -175,9 +178,11 @@ export default class Model {
                 }
             }
             // @ts-ignore
-            const result = await (this.constructor as typeof Model).query<this>().update(newAttributes);
-            this.fill(result);
+            await (this.constructor as typeof Model).repo<this>().update(newAttributes);
         }
+        // @ts-ignore
+        const doc = await (this.constructor as unknown as typeof Model).repo<this>().getDoc(this._id as string);
+        this.fill(doc as unknown as Partial<ModelType<this>>);
         await this.touch();
         return this;
     }
