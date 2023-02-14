@@ -10,17 +10,15 @@ describe('Model', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect('test-model', 'test-model');
+        await DatabaseManager.connect('test-model', 'test-model', 'memory');
     });
 
     xit('should be able to create a new model', async () => {
         const user = await User.create({
-            _id: 'new-user',
             name: 'new-user',
         });
         expect(user).toBeTruthy();
         expect(user).toEqual(jasmine.objectContaining({
-            _id: 'Users.new-user',
             _rev: jasmine.stringMatching('1-'),
             name: 'new-user',
         }));
@@ -28,11 +26,14 @@ describe('Model', () => {
 
     it('should be able to find a model', async () => {
         const createdUser = await User.create({
-            _id: 'new-user2',
             name: 'new-user2',
         });
 
-        const user = await User.find('Users.new-user2');
+        const user = await User.find(createdUser._id as string);
+
+        const result = await User.query().where('name', '=', createdUser.name as string).get();
+        console.log('result: ', result);
+
         expect(user).toBeTruthy();
         expect(user).toEqual(jasmine.objectContaining({
             _id: createdUser._id,
