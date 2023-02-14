@@ -230,22 +230,27 @@ export default class QueryBuilder<T extends Model> {
         return model;
     }
 
-    protected async cast(item?: T) {
+    protected async cast(item?: ModelType<T>): Promise<T | undefined> {
         if (!item) return;
         let model;
-        const modelClass = this.modelClass;
-        const modelClassConstructor = modelClass.constructor;
-        model  = modelClassConstructor();
+        try {
+            // @ts-ignore
+            model  = new this.modelClass() as T;
+        } catch (error) {
+            // @ts-ignore
+            model  = new this.modelClass.constructor() as T;
+        }
         model.fill(item);
         model = await this.bindRelationship(model);
         return model;
     }
 
     async get(): Promise<T[]> {
+        console.log('this.queries: ', JSON.stringify(this.queries, null, 2));
         const data = await DatabaseManager.get(this.dbName).find(this.queries);
         const result = [] as T[];
         for (const item of data.docs) {
-            const model = await this.cast(item as unknown as T);
+            const model = await this.cast(item as unknown as ModelType<T>);
             if (model) result.push(model);
         }
         return result;

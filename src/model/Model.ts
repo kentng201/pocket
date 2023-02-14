@@ -46,12 +46,13 @@ export default class Model {
 
     relationships?: { [relationshipName: string]: () => QueryBuilder<any> };
     public _id?: string;
+    public _rev?: string;
     public createdAt?: string;
     public updatedAt?: string;
 
     // start of object construction
     public fill(attributes: Partial<ModelType<this>>): void {
-        Object.assign(attributes, this);
+        Object.assign(this, attributes);
     }
     constructor(attributes?: any) {
         if (attributes) this.fill(attributes as ModelType<this>);
@@ -61,10 +62,10 @@ export default class Model {
         const handler = {
             set: (target: any, key: string, value: any) => {
                 // prevent update reserved fields
-                const RESERVED_FIELDS = ['_id', 'createdAt', 'updatedAt', 'relationships', '_dirty'];
-                if (RESERVED_FIELDS.includes(key)) {
-                    throw new Error(`Cannot update reserved field ${key}`);
-                }
+                // const RESERVED_FIELDS = ['_id', 'createdAt', 'updatedAt', 'relationships', '_dirty'];
+                // if (RESERVED_FIELDS.includes(key) && target[key]) {
+                //     throw new Error(`Cannot update reserved field ${key}`);
+                // }
 
                 target[key] = value;
                 this._dirty[key] = true;
@@ -118,8 +119,10 @@ export default class Model {
         delete attributes.relationships;
         delete attributes._dirty;
         // @ts-ignore
-        const result = await (this as unknown as typeof Model).repo<T>().create({...attributes, _id: model._id});
+        const result = await (this as unknown as typeof Model).repo<T>().create(attributes);
+        console.log('result: ', result);
         model._id = result.id;
+        model._rev = result.rev;
         model.fill(attributes as ModelType<T>);
         return model;
     }
@@ -131,6 +134,8 @@ export default class Model {
     async update(attributes: Partial<ModelType<this>>): Promise<this> {
         const guarded = (this.constructor as typeof Model).readonlyFields;
         attributes._id = this._id;
+        delete attributes.relationships;
+        delete attributes._dirty;
         if (this.needTimestamp) attributes.updatedAt = moment().toISOString();
         let updateAttributes: Partial<ModelType<this>> = {};
         if (this._dirty) {

@@ -23,22 +23,22 @@ export default class Repo<T extends Model> extends QueryBuilder<T> {
             attributes._id = String(generator.nextId());
         }
         attributes._id = `${this.modelClass.cName}.${attributes._id}`;
-        return this.db.post(attributes);
+        return await this.db.post(attributes);
     }
 
     async update(attributes: Partial<ModelType<T>>): Promise<PouchDB.Core.Response> {
         const doc = await this.getDoc(attributes._id as string);
-        return this.db.put({...doc, ...attributes}, {
+        return await this.db.put({...doc, ...attributes}, {
             force: false,
         });
     }
 
     async delete(_id: string): Promise<PouchDB.Core.Response> {
         const doc = await this.getDoc(_id);
-        return this.db.remove(doc);
+        return await this.db.remove(doc);
     }
 
-    async raw() {
+    raw() {
         return this.db;
     }
 }
