@@ -120,7 +120,6 @@ export default class Model {
         delete attributes._dirty;
         // @ts-ignore
         const result = await (this as unknown as typeof Model).repo<T>().create(attributes);
-        console.log('result: ', result);
         model._id = result.id;
         model._rev = result.rev;
         model.fill(attributes as ModelType<T>);
