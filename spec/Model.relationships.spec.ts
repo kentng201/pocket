@@ -7,7 +7,7 @@ const dbName = 'relationships-test';
 
 describe('Model Relationships', () => {
     class UserRelationship extends Model {
-        static dbName = 'relationships-test';
+        static dbName = dbName;
 
         name!: string;
         password?: string;
@@ -22,7 +22,7 @@ describe('Model Relationships', () => {
     }
 
     class Post extends Model {
-        static dbName = 'relationships-test';
+        static dbName = dbName;
 
         title!: string;
         userId!: string;
@@ -35,7 +35,7 @@ describe('Model Relationships', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect('relationships-test', 'relationships-test', 'memory');
+        await DatabaseManager.connect(dbName, dbName, 'memory');
     });
     
     it('should be able to save without relationships', async () => {
