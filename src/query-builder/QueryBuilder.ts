@@ -246,6 +246,7 @@ export default class QueryBuilder<T extends Model> {
             model  = new this.modelClass.constructor() as T;
         }
         model.fill(item);
+        model._dirty = {};
         model = await this.bindRelationship(model);
         return model;
     }

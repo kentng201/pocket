@@ -67,6 +67,10 @@ export default class Model {
                 //     throw new Error(`Cannot update reserved field ${key}`);
                 // }
 
+                if (key === '_dirty') {
+                    target[key] = value;
+                    return true;
+                }
                 target[key] = value;
                 this._dirty[key] = true;
                 return true;
