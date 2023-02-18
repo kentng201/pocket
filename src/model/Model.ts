@@ -146,7 +146,6 @@ export default class Model {
     }
     async save(): Promise<this> {
         const newAttributes: Partial<this> = {};
-        // const classHasAttribute = (key: string) => Object.keys(new (this.constructor as typeof Model)()).includes(key);
         for (const field in this) {
             if (typeof field === 'function') continue;
             if (field === '_dirty') continue;
@@ -156,22 +155,20 @@ export default class Model {
             if (field === 'modelName') continue;
             if (this._dirty && !this._dirty[field]) continue;
             if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
-            // if (!classHasAttribute(field)) continue;
             newAttributes[field] = this[field];
         }
         const now = moment().toISOString();
+        let updatedResult;
 
         // @ts-ignore
         const hasDocumentInDb = await (this.constructor as unknown as typeof Model).repo<this>().getDoc(this._id);
         if (this.needTimestamp) newAttributes.updatedAt = now;
         if (!hasDocumentInDb) {
             if (this.needTimestamp) newAttributes.createdAt = now;
+            if (this.needTimestamp) newAttributes.updatedAt = now;
             // @ts-ignore
-            const result = await (this.constructor as unknown as typeof Model).repo<this>().create(newAttributes);
-            this.fill({
-                _id: result.id,
-                _rev: result.rev
-            } as any);
+            updatedResult = await (this.constructor as unknown as typeof Model).repo<this>().create(newAttributes);
+            this.fill({ _id: updatedResult.id } as Partial<ModelType<this>>);
         } else {
             const guarded = (this.constructor as typeof Model).readonlyFields;
             // remove guarded fields
@@ -180,14 +177,14 @@ export default class Model {
                     delete newAttributes[field as ModelKey<this>];
                 }
             }
+            if (this.needTimestamp) newAttributes.updatedAt = now;
+            newAttributes._id = this._id;
             // @ts-ignore
-            const result = await (this.constructor as typeof Model).repo<this>().update(newAttributes);
-            this.fill({
-                _id: result.id,
-                _rev: result.rev
-            } as any);
+            updatedResult = await (this.constructor as typeof Model).repo<this>().update(newAttributes);
+            this.fill({ _rev: updatedResult.rev } as Partial<ModelType<this>>);
         }
-        await this.touch();
+        this.fill({...newAttributes, _rev: updatedResult.rev} as Partial<ModelType<this>>);
+        this._dirty = {};
         return this;
     }
     async delete(): Promise<void> {
