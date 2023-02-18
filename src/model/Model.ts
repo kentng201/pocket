@@ -111,18 +111,13 @@ export default class Model {
         return new this(item) as T;
     }
     static async create<T extends Model>(this: ModelStatic<T>, attributes: NewModelType<T>): Promise<T> {
-        const model = new this(attributes) as T;
+        const model = new this() as T;
         if (model.needTimestamp) {
             attributes.createdAt = moment().toISOString();
             attributes.updatedAt = moment().toISOString();
         }
-        delete attributes.relationships;
-        delete attributes._dirty;
-        // @ts-ignore
-        const result = await (this as unknown as typeof Model).repo<T>().create(attributes);
-        model._id = result.id;
-        model._rev = result.rev;
         model.fill(attributes as ModelType<T>);
+        await model.save();
         return model;
     }
     async touch() {
@@ -145,10 +140,8 @@ export default class Model {
                 }
             }
         }
-
-        // @ts-ignore
-        await (this.constructor as typeof Model).repo<this>().update(updateAttributes);
-        await this.touch();
+        this.fill(updateAttributes);
+        await this.save();
         return this;
     }
     async save(): Promise<this> {
@@ -167,12 +160,18 @@ export default class Model {
             newAttributes[field] = this[field];
         }
         const now = moment().toISOString();
+
+        // @ts-ignore
+        const hasDocumentInDb = await (this.constructor as unknown as typeof Model).repo<this>().getDoc(this._id);
         if (this.needTimestamp) newAttributes.updatedAt = now;
-        if (!this._id) {
+        if (!hasDocumentInDb) {
             if (this.needTimestamp) newAttributes.createdAt = now;
             // @ts-ignore
             const result = await (this.constructor as unknown as typeof Model).repo<this>().create(newAttributes);
-            this._id = result.id;
+            this.fill({
+                _id: result.id,
+                _rev: result.rev
+            } as any);
         } else {
             const guarded = (this.constructor as typeof Model).readonlyFields;
             // remove guarded fields
@@ -183,7 +182,10 @@ export default class Model {
             }
             // @ts-ignore
             const result = await (this.constructor as typeof Model).repo<this>().update(newAttributes);
-            this._id = result.id;
+            this.fill({
+                _id: result.id,
+                _rev: result.rev
+            } as any);
         }
         await this.touch();
         return this;
@@ -206,8 +208,9 @@ export default class Model {
     static where<T extends Model, Key extends ModelKey<T>>(this: ModelStatic<T>, field: Key, value: OperatorValue<T, Key, '='>): QueryBuilder<T>;
     static where<T extends Model, Key extends ModelKey<T>, O extends Operator>(this: ModelStatic<T>, field: Key, operator: O, value: OperatorValue<T, Key, O>): QueryBuilder<T>
     static where<T extends Model, Key extends ModelKey<T>, O extends Operator>(...args: (ModelKey<T> | O | OperatorValue<T, Key, O>)[]): QueryBuilder<T> {
+        const query = new QueryBuilder(new this, undefined, (this as unknown as typeof Model).dbName);
         // @ts-ignore
-        return (this as unknown as typeof Model).query<T>().where.apply(null, args);
+        return query.where(...args);
     }
     // end of query builder
 
@@ -217,10 +220,14 @@ export default class Model {
         return new QueryBuilder(model, relationships);
     }
     async load(...relationships: ModelKey<this>[]): Promise<this> {
-        const builder = new QueryBuilder(this, relationships, this.dName);
+        // @ts-ignore
+        const newInstance = new this.constructor() as this;
+        const builder = new QueryBuilder(newInstance, relationships, this.dName);
+        builder.where('_id', '=', this._id);
+        // @ts-ignore
         const loadedModel = await builder.first() as this;
         for (const relationship of relationships) {
-            this[relationship as keyof this] = loadedModel[relationship] as any;
+            this[relationship as keyof this] = loadedModel[relationship];
         }
         return this;
     }

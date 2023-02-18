@@ -9,6 +9,7 @@ export type ModelStatic<T extends object> = {
 };
 export type ModelType<T extends object> = FunctionlessModel<T> & {
     _id: string;
+    _rev: string;
     createdAt?: string;
     updatedAt?: string;
     cName?: unknown;
@@ -19,6 +20,7 @@ export type ModelType<T extends object> = FunctionlessModel<T> & {
 };
 export type NewModelType<T extends object> = FunctionlessModel<T> & {
     _id?: string;
+    _rev?: string;
     createdAt?: string;
     updatedAt?: string;
     cName?: unknown;
