@@ -1,4 +1,4 @@
-import DatabaseManager from 'src/manager/DatabaseManager';
+import { DatabaseManager } from 'src/manager/DatabaseManager';
 
 describe('Database Manager', () => {
     it('should be able to connect to database', async () => {

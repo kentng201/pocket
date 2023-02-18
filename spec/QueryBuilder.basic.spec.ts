@@ -1,6 +1,6 @@
-import QueryBuilder from '../src/query-builder/QueryBuilder';
-import Model from '../src/model/Model';
-import DatabaseManager from 'src/manager/DatabaseManager';
+import { QueryBuilder } from '../src/query-builder/QueryBuilder';
+import { Model } from '../src/model/Model';
+import { DatabaseManager } from 'src/manager/DatabaseManager';
 
 describe('QueryBuilder Basic', () => {
     class User extends Model {

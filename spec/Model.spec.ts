@@ -1,6 +1,6 @@
-import DatabaseManager from 'src/manager/DatabaseManager';
-import RepoManager from 'src/manager/RepoManager';
-import Model from '../src/model/Model';
+import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { RepoManager } from 'src/manager/RepoManager';
+import { Model } from '../src/model/Model';
 
 describe('Model', () => {
     class User extends Model {

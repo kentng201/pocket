@@ -1,5 +1,5 @@
-import DatabaseManager from 'src/manager/DatabaseManager';
-import Model from '../src/model/Model';
+import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { Model } from '../src/model/Model';
 
 describe('Model Local DB', () => {
     class User extends Model {
