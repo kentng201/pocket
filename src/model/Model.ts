@@ -153,7 +153,7 @@ export default class Model {
     }
     async save(): Promise<this> {
         const newAttributes: Partial<this> = {};
-        // const classHasAttribute = (key: string) => Object.keys(new (this.constructor as typeof Model)()).includes(key)
+        // const classHasAttribute = (key: string) => Object.keys(new (this.constructor as typeof Model)()).includes(key);
         for (const field in this) {
             if (typeof field === 'function') continue;
             if (field === '_dirty') continue;
@@ -163,9 +163,7 @@ export default class Model {
             if (field === 'modelName') continue;
             if (this._dirty && !this._dirty[field]) continue;
             if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
-            // if (!classHasAttribute(field)) {
-            //     throw new Error(`Class "${(this.constructor as typeof Model).name}" does not have attribute "${field}" `);
-            // }
+            // if (!classHasAttribute(field)) continue;
             newAttributes[field] = this[field];
         }
         const now = moment().toISOString();
@@ -173,7 +171,8 @@ export default class Model {
         if (!this._id) {
             if (this.needTimestamp) newAttributes.createdAt = now;
             // @ts-ignore
-            await (this.constructor as unknown as typeof Model).repo<this>().create(newAttributes);
+            const result = await (this.constructor as unknown as typeof Model).repo<this>().create(newAttributes);
+            this._id = result.id;
         } else {
             const guarded = (this.constructor as typeof Model).readonlyFields;
             // remove guarded fields
@@ -183,11 +182,9 @@ export default class Model {
                 }
             }
             // @ts-ignore
-            await (this.constructor as typeof Model).repo<this>().update(newAttributes);
+            const result = await (this.constructor as typeof Model).repo<this>().update(newAttributes);
+            this._id = result.id;
         }
-        // @ts-ignore
-        const doc = await (this.constructor as unknown as typeof Model).repo<this>().getDoc(this._id as string);
-        this.fill(doc as unknown as Partial<ModelType<this>>);
         await this.touch();
         return this;
     }
@@ -220,7 +217,7 @@ export default class Model {
         return new QueryBuilder(model, relationships);
     }
     async load(...relationships: ModelKey<this>[]): Promise<this> {
-        const builder = new QueryBuilder(this, relationships);
+        const builder = new QueryBuilder(this, relationships, this.dName);
         const loadedModel = await builder.first() as this;
         for (const relationship of relationships) {
             this[relationship as keyof this] = loadedModel[relationship] as any;
