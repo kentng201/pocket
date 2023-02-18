@@ -39,7 +39,7 @@ export default class DatabaseManager {
                 return this.databases[Object.keys(this.databases)[0]];
             }
             throw new Error(
-                `PouchDB/CouchDB ${dbName} has not been initialized yet.`
+                'There is more than one database connected. Please specify the database name.'
             );
         }
         return this.databases[dbName];
