@@ -5,8 +5,8 @@ export default class RepoManager {
     private static repos: {[collectionName: string]: Repo<any>} = {};
 
     static get<T extends Model>(model: T): Repo<T> {
-        const dbName = (model.constructor as typeof Model).dName;
-        const collectionName = (model.constructor as typeof Model).cName;
+        const dbName = model.dName;
+        const collectionName = model.cName;
         if (!this.repos[collectionName]) {
             this.repos[collectionName] = new Repo<T>(model, [], dbName);
         }
