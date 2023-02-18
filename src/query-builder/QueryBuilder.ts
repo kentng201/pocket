@@ -1,6 +1,6 @@
 import { ModelKey, ModelType, ModelValue } from 'src/definitions/Model';
-import DatabaseManager from 'src/manager/DatabaseManager';
-import Model from 'src/model/Model';
+import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { Model } from 'src/model/Model';
 
 const operators = ['=', '>', '>=', '<', '<=', '!=', 'in', 'not in', 'between', 'like'] as const;
 export type Operator = typeof operators[number];
@@ -57,7 +57,7 @@ function queryableValueToValue<T extends Model, Key extends ModelKey<T>, O exten
 }
 
 
-export default class QueryBuilder<T extends Model> {
+export class QueryBuilder<T extends Model> {
     protected queries: PouchDB.Find.FindRequest<T> & { selector: { $and: PouchDB.Find.Selector[] } };
 
     protected lastWhere?: ModelKey<T> | '$or';

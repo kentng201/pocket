@@ -5,7 +5,7 @@ import PouchDBAdapterMemory from 'pouchdb-adapter-memory';
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBAdapterMemory);
 
-export default class DatabaseManager {
+export class DatabaseManager {
     private static databases: { [dbName: string]: PouchDB.Database };
 
     public static connect(url: string, dbName: string = 'default', adapter?: string, silentConnect = true) {

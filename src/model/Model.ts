@@ -1,6 +1,6 @@
-import QueryBuilder, { Operator, OperatorValue, QueryableModel } from 'src/query-builder/QueryBuilder';
-import Repo from 'src/repo/Repo';
-import RepoManager from 'src/manager/RepoManager';
+import { QueryBuilder, Operator, OperatorValue, QueryableModel } from 'src/query-builder/QueryBuilder';
+import { Repo } from 'src/repo/Repo';
+import { RepoManager } from 'src/manager/RepoManager';
 
 import { belongsTo } from 'src/relationships/BelongsTo';
 import { hasOne } from 'src/relationships/hasOne';
@@ -10,7 +10,7 @@ import { belongsToMany } from 'src/relationships/BelongsToMany';
 import moment from 'moment';
 import pluralize from 'pluralize';
 import { ModelKey, ModelStatic, ModelType, NewModelType } from 'src/definitions/Model';
-export default class Model {
+export class Model {
     static collectionName?: string;
     static dbName: string = 'default';
     static readonlyFields?: string[];

@@ -1,15 +1,15 @@
-import { Worker } from 'snowflake-uuid';
-const generator = new Worker(0, 1, {
-    workerIdBits: 5,
-    datacenterIdBits: 5,
-    sequenceBits: 12,
-});
+// import { Worker } from 'snowflake-uuid';
+// const generator = new Worker(0, 1, {
+//     workerIdBits: 5,
+//     datacenterIdBits: 5,
+//     sequenceBits: 12,
+// });
 
 import { ModelKey, ModelType, NewModelType } from 'src/definitions/Model';
-import Model from 'src/model/Model';
-import QueryBuilder from 'src/query-builder/QueryBuilder';
+import { Model } from 'src/model/Model';
+import { QueryBuilder } from 'src/query-builder/QueryBuilder';
 
-export default class Repo<T extends Model> extends QueryBuilder<T> {
+export class Repo<T extends Model> extends QueryBuilder<T> {
     constructor(modelClass: T, relationships?: ModelKey<T>[], dbName?: string, isOne?: boolean) {
         super(modelClass, relationships, dbName, isOne);
     }
@@ -25,7 +25,7 @@ export default class Repo<T extends Model> extends QueryBuilder<T> {
 
     async create(attributes: NewModelType<T>): Promise<PouchDB.Core.Response> {
         if (!attributes._id) {
-            attributes._id = String(generator.nextId());
+            attributes._id = String(Math.random() * 10000000000);
         }
         attributes._id = `${this.modelClass.cName}.${attributes._id}`;
         return await this.db.post(attributes);

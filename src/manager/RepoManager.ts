@@ -1,7 +1,7 @@
-import Model from 'src/model/Model';
-import Repo from 'src/repo/Repo';
+import { Model } from 'src/model/Model';
+import { Repo } from 'src/repo/Repo';
 
-export default class RepoManager {
+export class RepoManager {
     private static repos: {[collectionName: string]: Repo<any>} = {};
 
     static get<T extends Model>(model: T): Repo<T> {
