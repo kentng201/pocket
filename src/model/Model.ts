@@ -45,7 +45,7 @@ export default class Model {
     }
 
     relationships?: { [relationshipName: string]: () => QueryBuilder<any> };
-    public _id?: string;
+    public _id: string = '';
     public _rev?: string;
     public createdAt?: string;
     public updatedAt?: string;
