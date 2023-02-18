@@ -220,7 +220,7 @@ export default class Model {
     // start of relationship
     static with<T extends Model>(this: ModelStatic<T>, ...relationships: ModelKey<T>[]): QueryBuilder<T> {
         const model = new this;
-        return new QueryBuilder(model, relationships);
+        return new QueryBuilder(model, relationships, (this as unknown as typeof Model).dbName);
     }
     async load(...relationships: ModelKey<this>[]): Promise<this> {
         // @ts-ignore
