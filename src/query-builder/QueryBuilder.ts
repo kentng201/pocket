@@ -92,6 +92,11 @@ export default class QueryBuilder<T extends Model> {
         return {};
     }
 
+    async find(_id: string): Promise<T | undefined> {
+        const doc = await this.db.get(_id);
+        return this.cast(doc as ModelType<T>);
+    }
+
     where(condition: (query: QueryBuilder<T>) => void): this;
     where(queryableModel: Partial<QueryableModel<T>>): this;
     where<Key extends ModelKey<T>>(field: Key, value: OperatorValue<T, Key, '='>): this;
