@@ -8,6 +8,10 @@ describe('Model', () => {
 
         name!: string;
         password?: string;
+
+        getRandomPassword() {
+            return Math.random().toString();
+        }
     }
 
     beforeEach(async () => {
@@ -63,5 +67,6 @@ describe('Model', () => {
         expect(doc).toBeTruthy();
         expect(doc._dirty).not.toBeDefined();
         expect(doc.relationships).not.toBeDefined();
+        expect(doc.getRandomPassword).not.toBeDefined();
     });
 });
