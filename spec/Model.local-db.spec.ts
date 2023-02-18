@@ -3,14 +3,14 @@ import Model from '../src/model/Model';
 
 describe('Model Local DB', () => {
     class User extends Model {
-        static dbName = 'local';
+        static dbName = 'model';
 
         name!: string;
         password?: string;
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect('local', 'local', 'memory');
+        await DatabaseManager.connect('model', 'model', 'memory');
     });
 
     it('should be able to find a model using query builder', async () => {
@@ -20,12 +20,6 @@ describe('Model Local DB', () => {
 
         const userFromMangoQuery = await User.query().where('_id', '=', createdUser._id as string).first();
         expect(userFromMangoQuery).toBeTruthy();
-        expect(userFromMangoQuery).toEqual(jasmine.objectContaining({
-            _id: createdUser._id,
-            _rev: createdUser._rev,
-            name: createdUser.name,
-            createdAt: createdUser.createdAt,
-            updatedAt: createdUser.updatedAt,
-        }));
+        expect(userFromMangoQuery).toEqual(createdUser);
     });
 });

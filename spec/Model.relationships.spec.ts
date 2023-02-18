@@ -3,10 +3,10 @@ import RepoManager from 'src/manager/RepoManager';
 import QueryBuilder from 'src/query-builder/QueryBuilder';
 import Model from '../src/model/Model';
 
-const dbName = 'relationships-test';
+const dbName = 'model';
 
 describe('Model Relationships', () => {
-    class UserRelationship extends Model {
+    class User extends Model {
         static dbName = dbName;
 
         name!: string;
@@ -28,9 +28,9 @@ describe('Model Relationships', () => {
         userId!: string;
         content?: string;
         relationships = {
-            user: () => this.belongsTo(UserRelationship),
+            user: () => this.belongsTo(User),
         } as {
-            user: () => QueryBuilder<UserRelationship>;
+            user: () => QueryBuilder<User>;
         };
     }
 
@@ -39,10 +39,10 @@ describe('Model Relationships', () => {
     });
     
     it('should be able to save without relationships', async () => {
-        const user = await UserRelationship.create({
+        const user = await User.create({
             name: 'John',
         });
-        expect(user).toBeInstanceOf(UserRelationship);
+        expect(user).toBeInstanceOf(User);
 
         const post1 = await Post.create({ title: 'hello world', userId: user._id });
         const post2 = await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id });
@@ -58,25 +58,31 @@ describe('Model Relationships', () => {
         const dbPost1Index = user.posts?.findIndex((p) => p._id === post1._id) as number;
         expect(user.posts?.[dbPost1Index]).toEqual(jasmine.objectContaining({
             _id: post1._id,
+            _rev: post1._rev,
             title: post1.title,
+            createdAt: post1.createdAt,
+            updatedAt: post1.updatedAt,
         }));
 
         const dbPost2Index = user.posts?.findIndex((p) => p._id === post2._id) as number;
         expect(user.posts?.[dbPost2Index]).toEqual(jasmine.objectContaining({
             _id: post2._id,
+            _rev: post2._rev,
             title: post2.title,
+            createdAt: post2.createdAt,
+            updatedAt: post2.updatedAt,
         }));
     });
 
     it('should not save relationship detail within the model', async () => {
-        const user = await UserRelationship.create({ name: 'Jane' });
+        const user = await User.create({ name: 'Jane' });
         await Post.create({ title: 'hello world', userId: user._id });
         await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id });
         await user.load('posts');
         user.name = 'John';
         await user.save();
 
-        const userCreated = await RepoManager.get(new UserRelationship).getDoc(user._id) as any;
+        const userCreated = await RepoManager.get(new User).getDoc(user._id) as any;
         expect(userCreated).toEqual(jasmine.objectContaining({
             _id: user._id,
             _rev: user._rev,
@@ -86,7 +92,7 @@ describe('Model Relationships', () => {
     });
 
     it('should able to save sub-relationship', async () => {
-        const user = await UserRelationship.create({ name: 'Jane' });
+        const user = await User.create({ name: 'Jane' });
         await Post.create({ title: 'hello world', userId: user._id });
         await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id });
         await user.load('posts');
@@ -104,10 +110,10 @@ describe('Model Relationships', () => {
     });
 
     it('should able to load sub-relationship', async () => {
-        const user = await UserRelationship.create({ name: 'Jane' });
+        const user = await User.create({ name: 'Jane' });
         await Post.create({ title: 'hello world', userId: user._id });
         await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id });
-        const dbUser = await UserRelationship.with('posts').find(user._id);
+        const dbUser = await User.with('posts').find(user._id);
 
         expect(dbUser?.posts?.length).toBe(2);
         expect(dbUser).toEqual(jasmine.objectContaining({
