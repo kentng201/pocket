@@ -160,8 +160,14 @@ export default class Model {
         const now = moment().toISOString();
         let updatedResult;
 
+        let hasDocumentInDb;
+        if (!this._id) {
+            hasDocumentInDb = false;
+        } else {
         // @ts-ignore
-        const hasDocumentInDb = await (this.constructor as unknown as typeof Model).repo<this>().getDoc(this._id);
+            hasDocumentInDb = await (this.constructor as unknown as typeof Model).repo<this>().getDoc(this._id);
+        }
+
         if (this.needTimestamp) newAttributes.updatedAt = now;
         if (!hasDocumentInDb) {
             if (this.needTimestamp) newAttributes.createdAt = now;
