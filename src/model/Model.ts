@@ -2,10 +2,10 @@ import QueryBuilder, { Operator, OperatorValue, QueryableModel } from 'src/query
 import Repo from 'src/repo/Repo';
 import RepoManager from 'src/manager/RepoManager';
 
-// import { belongsTo } from 'src/relationships/BelongsTo';
-// import { hasOne } from 'src/relationships/hasOne';
-// import { hasMany } from 'src/relationships/HasMany';
-// import { belongsToMany } from 'src/relationships/BelongsToMany';
+import { belongsTo } from 'src/relationships/BelongsTo';
+import { hasOne } from 'src/relationships/hasOne';
+import { hasMany } from 'src/relationships/HasMany';
+import { belongsToMany } from 'src/relationships/BelongsToMany';
 
 import moment from 'moment';
 import pluralize from 'pluralize';
@@ -162,6 +162,7 @@ export default class Model {
             if (field === 'cName') continue;
             if (field === 'modelName') continue;
             if (this._dirty && !this._dirty[field]) continue;
+            if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
             // if (!classHasAttribute(field)) {
             //     throw new Error(`Class "${(this.constructor as typeof Model).name}" does not have attribute "${field}" `);
             // }
@@ -214,40 +215,38 @@ export default class Model {
     // end of query builder
 
     // start of relationship
-    // static with<T extends Model>(...relationships: ModelKey<T>[]): QueryBuilder<T> {
-    //     const collectionName = this.cName;
-    //     const model = new this;
-    //     return QueryBuilder.query(model, relationships);
-    // }
-    // async load(...relationships: ModelKey<this>[]): Promise<this> {
-    //     const collectionName = this.cName;
-    //     const builder = new QueryBuilder(this, relationships);
-    //     const loadedModel = await builder.first() as this;
-    //     for (const relationship of relationships) {
-    //         this[relationship as keyof this] = loadedModel[relationship] as any;
-    //     }
-    //     return this;
-    // }
+    static with<T extends Model>(this: ModelStatic<T>, ...relationships: ModelKey<T>[]): QueryBuilder<T> {
+        const model = new this;
+        return new QueryBuilder(model, relationships);
+    }
+    async load(...relationships: ModelKey<this>[]): Promise<this> {
+        const builder = new QueryBuilder(this, relationships);
+        const loadedModel = await builder.first() as this;
+        for (const relationship of relationships) {
+            this[relationship as keyof this] = loadedModel[relationship] as any;
+        }
+        return this;
+    }
 
-    // belongsTo<R extends Model>(relationship: new () => R, localKey?: string, foreignKey?: string): QueryBuilder<R> {
-    //     return belongsTo<this, R>(this as any, relationship, localKey as ModelKey<this>, foreignKey as ModelKey<R>);
-    // }
-    // hasOne<R extends Model>(relationship: new () => R, localKey?: string, foreignKey?: string): QueryBuilder<R> {
-    //     return hasOne<this, R>(this as any, relationship, localKey as ModelKey<this>, foreignKey as ModelKey<R>);
-    // }
-    // hasMany<R extends Model>(relationship: new () => R, localKey?: string, foreignKey?: string): QueryBuilder<R> {
-    //     return hasMany<this, R>(this as any, relationship, localKey as ModelKey<this>, foreignKey as ModelKey<R>);
-    // }
-    // async belongsToMany<R extends Model, P extends Model>(relationship: new () => R, pivot: any, localKey?: string, foreignKey?: string): Promise<QueryBuilder<R>> {
-    //     return await belongsToMany<this, R, P>(this as any, relationship, pivot, localKey as ModelKey<P>, foreignKey as ModelKey<P>);
-    // }
+    belongsTo<R extends Model>(relationship: ModelStatic<R>, localKey?: string, foreignKey?: string): QueryBuilder<R> {
+        return belongsTo<this, R>(this, relationship, localKey as ModelKey<this>, foreignKey as ModelKey<R>);
+    }
+    hasOne<R extends Model>(relationship: ModelStatic<R>, localKey?: string, foreignKey?: string): QueryBuilder<R> {
+        return hasOne<this, R>(this, relationship, localKey as ModelKey<this>, foreignKey as ModelKey<R>);
+    }
+    hasMany<R extends Model>(relationship: ModelStatic<R>, localKey?: string, foreignKey?: string): QueryBuilder<R> {
+        return hasMany<this, R>(this, relationship, localKey as ModelKey<this>, foreignKey as ModelKey<R>);
+    }
+    async belongsToMany<R extends Model, P extends Model>(relationship: ModelStatic<R>, pivot: ModelStatic<P>, localKey?: string, foreignKey?: string): Promise<QueryBuilder<R>> {
+        return await belongsToMany<this, R, P>(this, relationship, pivot, localKey as ModelKey<P>, foreignKey as ModelKey<P>);
+    }
     // end of relationship
 
     // start transformer for api response 
-    formatResponse?(cloneSelf: this): any;
+    formatResponse?<Output>(cloneSelf: this): Output;
     public toResponse() {
-        const replicatedModel: this = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
-        delete (replicatedModel as any).save;
+        const replicatedModel = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+        delete replicatedModel.save;
         for (const key in replicatedModel) {
             let formattedResult;
             if (Array.isArray(replicatedModel[key]) && (replicatedModel[key] as unknown as Model[])[0] instanceof Model) {
