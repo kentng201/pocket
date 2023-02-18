@@ -1,4 +1,5 @@
 import DatabaseManager from 'src/manager/DatabaseManager';
+import RepoManager from 'src/manager/RepoManager';
 import Model from '../src/model/Model';
 
 describe('Model', () => {
@@ -54,5 +55,17 @@ describe('Model', () => {
             _rev: user._rev,
             name: user.name,
         }));
+    });
+
+    it('should not be save the meta data into database', async () => {
+        const user = new User;
+        user.name = 'new-user4';
+        user._id = 'new-user4';
+        await user.save();
+
+        const doc = await RepoManager.get(new User).getDoc(user._id) as any;
+        expect(doc).toBeTruthy();
+        expect(doc._dirty).not.toBeDefined();
+        expect(doc.relationships).not.toBeDefined();
     });
 });
