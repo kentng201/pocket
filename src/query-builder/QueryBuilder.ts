@@ -1,4 +1,4 @@
-import { ModelKey, ModelStatic, ModelType, ModelValue } from 'src/definitions/Model';
+import { ModelKey, ModelType, ModelValue } from 'src/definitions/Model';
 import DatabaseManager from 'src/manager/DatabaseManager';
 import Model from 'src/model/Model';
 
