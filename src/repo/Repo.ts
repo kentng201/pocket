@@ -14,8 +14,13 @@ export default class Repo<T extends Model> extends QueryBuilder<T> {
         super(modelClass, relationships, dbName, isOne);
     }
 
-    async getDoc(_id: string): Promise<PouchDB.Core.IdMeta & PouchDB.Core.GetMeta> {
-        return this.db.get(_id);
+    async getDoc(_id: string): Promise<PouchDB.Core.IdMeta & PouchDB.Core.GetMeta | undefined> {
+        try {
+            const result = await this.db.get(_id);
+            return result;
+        } catch (e) {
+            return undefined;
+        }
     }
 
     async create(attributes: NewModelType<T>): Promise<PouchDB.Core.Response> {
@@ -35,6 +40,9 @@ export default class Repo<T extends Model> extends QueryBuilder<T> {
 
     async delete(_id: string): Promise<PouchDB.Core.Response> {
         const doc = await this.getDoc(_id);
+        if (!doc) {
+            return Promise.reject(new Error('Document not found'));
+        }
         return await this.db.remove(doc);
     }
 
