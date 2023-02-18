@@ -38,4 +38,21 @@ describe('Model', () => {
             name: createdUser.name,
         }));
     });
+
+    it('should be able to save a model', async () => {
+        const user = new User;
+        user.name = 'new-user3';
+        user._id = 'new-user3';
+        await user.save();
+
+
+        const savedUser = await User.find(user._id as string);
+        expect(savedUser).toBeTruthy();
+        expect(savedUser).toBeInstanceOf(User);
+        expect(savedUser).toEqual(jasmine.objectContaining({
+            _id: user._id,
+            _rev: user._rev,
+            name: user.name,
+        }));
+    });
 });
