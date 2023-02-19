@@ -1,24 +1,27 @@
-import PouchDBFind from 'pouchdb-find';
-import PouchDBAdapterMemory from 'pouchdb-adapter-memory';
+let PouchDB: any;
 
-// @ts-ignore
-let PouchDB: PouchDB = require('pouchdb');
 export function setEnvironement(environement: 'browser' | 'node') {
+    const PouchDBFind = require('pouchdb-find');
     if (environement == 'browser') {
-        PouchDB = require('pouchdb-browser');
-        PouchDB.plugin(PouchDBFind);
+        PouchDB = require('pouchdb-browser').default;
+        PouchDB.plugin(PouchDBFind.default);
     } else {
         PouchDB = require('pouchdb');
         PouchDB.plugin(PouchDBFind);
-        PouchDB.plugin(PouchDBAdapterMemory);
     }
 }
-setEnvironement('node');
 
 export class DatabaseManager {
     private static databases: { [dbName: string]: PouchDB.Database };
 
     public static connect(url: string, dbName: string = 'default', adapter?: string, silentConnect = true) {
+        if (!PouchDB) {
+            setEnvironement('node');
+        }
+        if (adapter == 'memory') {
+            const PouchDBAdapterMemory = require('pouchdb-adapter-memory');
+            PouchDB.plugin(PouchDBAdapterMemory);
+        }
         return new Promise((resolve, reject) => {
             try {
                 let config;
@@ -27,6 +30,7 @@ export class DatabaseManager {
                 } else {
                     config = undefined;
                 }
+                // @ts-ignore
                 const pouchDb = new PouchDB<{adapter: string;}>(url, config) as unknown as PouchDB.Database & {adapter: string};
                 if (!this.databases) this.databases = {};
                 this.databases[dbName] = pouchDb;
