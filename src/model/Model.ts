@@ -54,6 +54,7 @@ export class Model {
     // start of object construction
     public fill(attributes: Partial<ModelType<this>>): void {
         Object.assign(this, attributes);
+        addWeakRef(this._id, this);
     }
     constructor(attributes?: any) {
         if (attributes) this.fill(attributes as ModelType<this>);
@@ -67,10 +68,6 @@ export class Model {
                 // if (RESERVED_FIELDS.includes(key) && target[key]) {
                 //     throw new Error(`Cannot update reserved field ${key}`);
                 // }
-
-                if (key === '_id' && isRealTime) {
-                    addWeakRef(value, this);
-                }
 
                 if (key === '_dirty') {
                     target[key] = value;
@@ -128,11 +125,6 @@ export class Model {
         model.fill(attributes as ModelType<T>);
         await model.save();
         return model;
-    }
-    async touch() {
-        const id = this._id as string;
-        const item = await (this.constructor as typeof Model).find(id) as unknown as Partial<ModelType<this>>;
-        this.fill(item);
     }
     async update(attributes: Partial<ModelType<this>>): Promise<this> {
         const guarded = (this.constructor as typeof Model).readonlyFields;

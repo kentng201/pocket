@@ -31,6 +31,7 @@ export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
     weakReferences[_id].forEach((ref) => {
         const deref = ref.deref();
         if (deref && deref instanceof Model && deref._rev != doc._rev) {
+            deref._rev = doc._rev;
             deref.fill(newAttributes);
             deref._dirty = {};
         }
@@ -47,6 +48,7 @@ export function setRealtime(realTime: boolean) {
             notifyWeakRef(_id, doc as Model);
         }
     };
+
 
     if (isRealTime) {
         Object.values(DatabaseManager.databases).forEach((db) => {
