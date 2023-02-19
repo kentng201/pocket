@@ -16,6 +16,7 @@ export function addWeakRef<T extends Model>(_id: string, doc: T) {
     weakReferences[_id].push(new WeakRef(doc));
 }
 export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
+    if (!doc.rtUpdate) return;
     if (!weakReferences[_id]) return;
     const newAttributes: Partial<T> = {};
     for (const field in doc) {
@@ -29,11 +30,13 @@ export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
         newAttributes[field as keyof Partial<T>] = doc[field as ModelKey<Partial<T>>];
     }
     weakReferences[_id].forEach((ref) => {
-        const deref = ref.deref();
-        if (deref && deref instanceof Model && deref._rev != doc._rev) {
-            deref._rev = doc._rev;
-            deref.fill(newAttributes);
-            deref._dirty = {};
+        const sameIdDoc = ref.deref();
+        if (sameIdDoc && sameIdDoc instanceof Model && sameIdDoc._rev != doc._rev) {
+            sameIdDoc._real_time_updating = true;
+            sameIdDoc._rev = doc._rev;
+            sameIdDoc.fill(newAttributes);
+            sameIdDoc._dirty = {};
+            sameIdDoc._real_time_updating = false;
         }
     });
 }

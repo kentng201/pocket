@@ -10,12 +10,13 @@ import { belongsToMany } from 'src/relationships/BelongsToMany';
 import moment from 'moment';
 import pluralize from 'pluralize';
 import { ModelKey, ModelStatic, ModelType, NewModelType } from 'src/definitions/Model';
-import { isRealTime, addWeakRef } from 'src/real-time/RealTimeModel';
+import { addWeakRef } from 'src/real-time/RealTimeModel';
 export class Model {
     static collectionName?: string;
     static dbName: string = 'default';
-    static readonlyFields?: string[];
-    static timestamp?: boolean = true;
+    static readonlyFields: string[] = [];
+    static timestamp: boolean = true;
+    static realtimeUpdate: boolean = true;
 
     public static get modelName() {
         return (new this).constructor.name;
@@ -37,6 +38,14 @@ export class Model {
         return this.dbName;
     }
 
+    public static get rtUpdate() {
+        return this.realtimeUpdate;
+    }
+
+    public get rtUpdate() {
+        return (this.constructor as typeof Model).realtimeUpdate;
+    }
+
     public get needTimestamp() {
         let timestamp = (this.constructor as typeof Model).timestamp;
         if (timestamp === undefined) {
@@ -48,6 +57,7 @@ export class Model {
     relationships?: { [relationshipName: string]: () => QueryBuilder<any> };
     public _id: string = '';
     public _rev: string = '';
+    public _real_time_updating: boolean = false;
     public createdAt?: string;
     public updatedAt?: string;
 
