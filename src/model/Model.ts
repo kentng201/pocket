@@ -38,12 +38,12 @@ export class Model {
         return this.dbName;
     }
 
-    public static get rtUpdate() {
-        return this.realtimeUpdate;
-    }
-
     public get rtUpdate() {
         return (this.constructor as typeof Model).realtimeUpdate;
+    }
+
+    public static get rtUpdate() {
+        return this.realtimeUpdate;
     }
 
     public get needTimestamp() {
@@ -160,6 +160,7 @@ export class Model {
         for (const field in this) {
             if (typeof field === 'function') continue;
             if (field === '_dirty') continue;
+            if (field === '_real_time_updating') continue;
             if (field === 'relationships') continue;
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;

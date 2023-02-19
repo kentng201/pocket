@@ -16,12 +16,12 @@ export function addWeakRef<T extends Model>(_id: string, doc: T) {
     weakReferences[_id].push(new WeakRef(doc));
 }
 export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
-    if (!doc.rtUpdate) return;
     if (!weakReferences[_id]) return;
     const newAttributes: Partial<T> = {};
     for (const field in doc) {
         if (typeof field === 'function') continue;
         if (field === '_dirty') continue;
+        if (field === '_real_time_updating') continue;
         if (field === 'relationships') continue;
         if (field === 'needTimestamp') continue;
         if (field === 'cName') continue;
@@ -31,12 +31,13 @@ export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
     }
     weakReferences[_id].forEach((ref) => {
         const sameIdDoc = ref.deref();
+        if (!sameIdDoc.rtUpdate) return;
         if (sameIdDoc && sameIdDoc instanceof Model && sameIdDoc._rev != doc._rev) {
             sameIdDoc._real_time_updating = true;
             sameIdDoc._rev = doc._rev;
             sameIdDoc.fill(newAttributes);
-            sameIdDoc._dirty = {};
             sameIdDoc._real_time_updating = false;
+            sameIdDoc._dirty = {};
         }
     });
 }
