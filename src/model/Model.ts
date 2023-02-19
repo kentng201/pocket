@@ -10,7 +10,7 @@ import { belongsToMany } from 'src/relationships/BelongsToMany';
 import moment from 'moment';
 import pluralize from 'pluralize';
 import { ModelKey, ModelStatic, ModelType, NewModelType } from 'src/definitions/Model';
-import { isRealTime, setWeakRef } from 'src/real-time/RealTimeModel';
+import { isRealTime, addWeakRef } from 'src/real-time/RealTimeModel';
 export class Model {
     static collectionName?: string;
     static dbName: string = 'default';
@@ -69,7 +69,7 @@ export class Model {
                 // }
 
                 if (key === '_id' && isRealTime) {
-                    setWeakRef(value, this);
+                    addWeakRef(value, this);
                 }
 
                 if (key === '_dirty') {
@@ -173,7 +173,7 @@ export class Model {
         if (!this._id) {
             hasDocumentInDb = false;
         } else {
-        // @ts-ignore
+            // @ts-ignore
             hasDocumentInDb = await (this.constructor as unknown as typeof Model).repo<this>().getDoc(this._id);
         }
 
