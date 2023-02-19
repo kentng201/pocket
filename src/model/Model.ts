@@ -10,6 +10,7 @@ import { belongsToMany } from 'src/relationships/BelongsToMany';
 import moment from 'moment';
 import pluralize from 'pluralize';
 import { ModelKey, ModelStatic, ModelType, NewModelType } from 'src/definitions/Model';
+import { isRealTime, setWeakRef } from 'src/real-time/RealTimeModel';
 export class Model {
     static collectionName?: string;
     static dbName: string = 'default';
@@ -66,6 +67,10 @@ export class Model {
                 // if (RESERVED_FIELDS.includes(key) && target[key]) {
                 //     throw new Error(`Cannot update reserved field ${key}`);
                 // }
+
+                if (key === '_id' && isRealTime) {
+                    setWeakRef(value, this);
+                }
 
                 if (key === '_dirty') {
                     target[key] = value;
