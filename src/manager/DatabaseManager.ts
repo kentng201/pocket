@@ -1,9 +1,19 @@
-import PouchDB from 'pouchdb';
 import PouchDBFind from 'pouchdb-find';
 import PouchDBAdapterMemory from 'pouchdb-adapter-memory';
 
-PouchDB.plugin(PouchDBFind);
-PouchDB.plugin(PouchDBAdapterMemory);
+// @ts-ignore
+let PouchDB: PouchDB = require('pouchdb');
+export function setEnvironement(environement: 'browser' | 'node') {
+    if (environement == 'browser') {
+        PouchDB = require('pouchdb-browser');
+        PouchDB.plugin(PouchDBFind);
+    } else {
+        PouchDB = require('pouchdb');
+        PouchDB.plugin(PouchDBFind);
+        PouchDB.plugin(PouchDBAdapterMemory);
+    }
+}
+setEnvironement('node');
 
 export class DatabaseManager {
     private static databases: { [dbName: string]: PouchDB.Database };

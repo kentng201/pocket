@@ -19,5 +19,6 @@ module.exports = {
         semi: ['error', 'always'],
         '@typescript-eslint/no-inferrable-types': 'off',
         '@typescript-eslint/ban-ts-comment': 'off',
+        '@typescript-eslint/no-var-requires': 'off',
     },
 };

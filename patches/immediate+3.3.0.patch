@@ -1,0 +1,15 @@
+diff --git a/node_modules/immediate/lib/mutation.js b/node_modules/immediate/lib/mutation.js
+index f159741..7025364 100644
+--- a/node_modules/immediate/lib/mutation.js
++++ b/node_modules/immediate/lib/mutation.js
+@@ -3,6 +3,10 @@
+ //license https://github.com/tildeio/rsvp.js/blob/master/LICENSE
+ //https://github.com/tildeio/rsvp.js/blob/master/lib/rsvp/asap.js
+ 
++if (!global) {
++    window.global = window;
++}
++
+ var Mutation = global.MutationObserver || global.WebKitMutationObserver;
+ 
+ exports.test = function () {
