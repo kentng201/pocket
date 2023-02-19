@@ -14,7 +14,7 @@ export function setEnvironement(environement: 'browser' | 'node') {
 }
 
 export class DatabaseManager {
-    public static databases: { [dbName: string]: PouchDB.Database };
+    public static databases: { [dbName: string]: PouchDB.Database } = {};
 
     public static connect(url: string, dbName: string = 'default', adapter?: string, silentConnect = true) {
         if (!PouchDB) {
