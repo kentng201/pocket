@@ -1,6 +1,7 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { RepoManager } from 'src/manager/RepoManager';
 import { QueryBuilder } from 'src/query-builder/QueryBuilder';
+import { setRealtime } from 'src/real-time/RealTimeModel';
 import { Model } from '../src/model/Model';
 
 const dbName = 'model';
@@ -36,6 +37,7 @@ describe('Model Relationships', () => {
 
     beforeEach(async () => {
         await DatabaseManager.connect(dbName, dbName, 'memory');
+        setRealtime(false);
     });
     
     it('should be able to save without relationships', async () => {
