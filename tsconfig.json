@@ -7,9 +7,10 @@
         "./src/*"
       ]
     },
+    "lib": ["es2021"],
     "outDir": "./dist",
     "sourceMap": true,
-    "target": "es2017",
+    "target": "es2021",
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
