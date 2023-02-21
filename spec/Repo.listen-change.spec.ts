@@ -14,7 +14,7 @@ describe('Repo', () => {
     let repo: Repo<User>;
 
     beforeEach(async () => {
-        await DatabaseManager.connect('test-repo-listen-change', 'repo-listen-change', 'memory');
+        await DatabaseManager.connect('test-repo-listen-change', 'memory', 'repo-listen-change');
         repo = RepoManager.get(new User);
     });
 

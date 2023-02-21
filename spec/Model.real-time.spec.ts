@@ -11,7 +11,7 @@ describe('Model Real Time', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect('real-time-model', 'real-time-model', 'memory');
+        await DatabaseManager.connect('real-time-model', 'memory', 'real-time-model');
     });
 
     it('should be real time synced when there is change', async () => {

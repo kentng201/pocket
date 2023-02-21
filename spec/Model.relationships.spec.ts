@@ -35,7 +35,7 @@ describe('Model Relationships', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect(dbName, dbName, 'memory');
+        await DatabaseManager.connect(dbName, 'memory', dbName);
     });
     
     it('should be able to save without relationships', async () => {

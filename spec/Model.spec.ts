@@ -15,7 +15,7 @@ describe('Model', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect('model', 'model', 'memory');
+        await DatabaseManager.connect('model', 'memory', 'model');
     });
 
     it('should be able to create a new model', async () => {

@@ -10,7 +10,7 @@ describe('Model Local DB', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect('model', 'model', 'memory');
+        await DatabaseManager.connect('model', 'memory', 'model');
     });
 
     it('should be able to find a model using query builder', async () => {
