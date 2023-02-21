@@ -29,7 +29,6 @@ function toMangoOperator(operator: Operator): string {
     case 'like': return '$regex';
     }
 }
-
 function toMangoQuery<T extends Model, Key extends ModelKey<T>, O extends Operator>(field: Key, operator: O, value: OperatorValue<T, Key, O>): PouchDB.Find.Selector {
     if (['=', '!=', '>', '>=', '<', '<='].includes(operator)) {
         return { [field]: { [toMangoOperator(operator)]: value } };
@@ -47,13 +46,19 @@ function toMangoQuery<T extends Model, Key extends ModelKey<T>, O extends Operat
 
     return {};
 }
-
 function queryableValueToValue<T extends Model, Key extends ModelKey<T>, O extends Operator>(field: Key, value: any): PouchDB.Find.Selector {
     if (value instanceof Array && operators.includes(value[0])) {
         return toMangoQuery(field as any, value[0], value[1] as any);
     } else {
         return toMangoQuery(field as any, '=', value as any);
     }
+}
+
+export enum RelationshipType {
+    HAS_ONE = 'HAS_ONE',
+    HAS_MANY = 'HAS_MANY',
+    BELONGS_TO = 'BELONGS_TO',
+    BELONGS_TO_MANY = 'BELONGS_TO_MANY',
 }
 
 
@@ -66,6 +71,8 @@ export class QueryBuilder<T extends Model> {
     protected dbName?: string;
     protected relationships: ModelKey<T>[];
     protected db: PouchDB.Database;
+
+    protected relationshipType?: RelationshipType;
 
     constructor(modelClass: T, relationships?: ModelKey<T>[], dbName?: string, isOne?: boolean) {
         if (modelClass.cName === undefined) {
@@ -90,6 +97,13 @@ export class QueryBuilder<T extends Model> {
 
     raw() {
         return {};
+    }
+
+    setRelationshipType(type: RelationshipType) {
+        this.relationshipType = type;
+    }
+    getRelationshipType() {
+        return this.relationshipType;
     }
 
     async find(_id: string): Promise<T | undefined> {

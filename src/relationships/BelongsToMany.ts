@@ -2,7 +2,7 @@ import { singular } from 'pluralize';
 import { ModelKey, ModelStatic, ModelValue } from 'src/definitions/Model';
 import { lowerCaseFirst } from 'src/helpers/stringHelper';
 import { Model } from 'src/model/Model';
-import { QueryBuilder } from 'src/query-builder/QueryBuilder';
+import { QueryBuilder, RelationshipType } from 'src/query-builder/QueryBuilder';
 
 export async function belongsToMany<T extends Model, R extends Model, P extends Model>(
     self: T, relationship: ModelStatic<R>, pivot: ModelStatic<P>, localKey?: ModelKey<P>, foreignKey?: ModelKey<P>,
@@ -19,5 +19,6 @@ export async function belongsToMany<T extends Model, R extends Model, P extends 
 
     const builder = new QueryBuilder<R>(relationshipInstance);
     builder.where('_id', 'in', relationshipIds);
+    builder.setRelationshipType(RelationshipType.BELONGS_TO_MANY);
     return builder;
 }
