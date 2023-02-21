@@ -1,4 +1,4 @@
-import { QueryBuilder, Operator, OperatorValue, QueryableModel } from 'src/query-builder/QueryBuilder';
+import { QueryBuilder, Operator, OperatorValue, QueryableModel, RelationshipType } from 'src/query-builder/QueryBuilder';
 import { Repo } from 'src/repo/Repo';
 import { RepoManager } from 'src/manager/RepoManager';
 
@@ -68,9 +68,6 @@ export class Model {
     }
     constructor(attributes?: any) {
         if (attributes) this.fill(attributes as ModelType<this>);
-
-        // add dirty observer
-        this._dirty = {};
         const handler = {
             set: (target: any, key: string, value: any) => {
                 // prevent update reserved fields
@@ -79,12 +76,13 @@ export class Model {
                 //     throw new Error(`Cannot update reserved field ${key}`);
                 // }
 
-                if (key === '_dirty') {
+                if (key === '_dirty' || key === 'relationships') {
                     target[key] = value;
                     return true;
                 }
                 target[key] = value;
                 this._dirty[key] = true;
+                
                 return true;
             }
         };
@@ -143,16 +141,43 @@ export class Model {
         delete attributes._dirty;
         if (this.needTimestamp) attributes.updatedAt = moment().toISOString();
         let updateAttributes: Partial<ModelType<this>> = {};
-        if (this._dirty) {
-            updateAttributes = {} as Partial<ModelType<this>>;
-            for (const key in this._dirty) {
-                if (this._dirty[key] && !guarded?.includes(key)) {
-                    updateAttributes[key as keyof ModelType<this>] = attributes[key as keyof ModelType<this>];
-                }
+        updateAttributes = {} as Partial<ModelType<this>>;
+        for (const key in attributes) {
+            if (!guarded?.includes(key)) {
+                updateAttributes[key as keyof ModelType<this>] = attributes[key as keyof ModelType<this>];
             }
         }
         this.fill(updateAttributes);
         await this.save();
+        return this;
+    }
+    async saveChildren(): Promise<this> {
+        for (const field in this) {
+            if (Array.isArray(this[field]) && (this[field] as Model[])[0] instanceof Model) {
+                const query = this.relationships?.[field]?.();
+                if (query?.getRelationshipType() === RelationshipType.HAS_MANY) {
+                    const children = this[field] as Model[];
+                    const newChildren = await Promise.all(children.map(async (child) => {
+                        const newChild = new (child.constructor as ModelStatic<Model>)();
+                        newChild.fill(child);
+                        await newChild.save();
+                        newChild._dirty = {};
+                        return newChild;
+                    }));
+                    this[field] = newChildren as any;
+                }
+            } else if (this[field] instanceof Model) {
+                const query = this.relationships?.[field]?.();
+                if (query?.getRelationshipType() === RelationshipType.HAS_ONE) {
+                    const child = this[field] as Model;
+                    const newChild = new (child.constructor as ModelStatic<Model>)();
+                    newChild.fill(child);
+                    await newChild.save();
+                    newChild._dirty = {};
+                    this[field] = newChild as any;
+                }
+            }
+        }
         return this;
     }
     async save(): Promise<this> {
@@ -202,6 +227,7 @@ export class Model {
             this.fill({ _rev: updatedResult.rev } as Partial<ModelType<this>>);
         }
         this.fill({...newAttributes, _rev: updatedResult.rev} as Partial<ModelType<this>>);
+        await this.saveChildren();
         this._dirty = {};
         return this;
     }
