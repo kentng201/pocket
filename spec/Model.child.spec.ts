@@ -13,11 +13,14 @@ describe('Model Child', () => {
         password?: string;
 
         posts?: Post[];
+        identityCard?: IdentityCard;
 
         relationships = {
             posts: () => this.hasMany(Post, '_id', 'userId'),
+            identityCard: () => this.hasOne(IdentityCard, '_id', 'userId'),
         } as {
             posts: () => QueryBuilder<Post>;
+            identityCard: () => QueryBuilder<IdentityCard>;
         };
     }
 
@@ -27,6 +30,18 @@ describe('Model Child', () => {
         title!: string;
         userId!: string;
         content?: string;
+        relationships = {
+            user: () => this.belongsTo(User),
+        } as {
+            user: () => QueryBuilder<User>;
+        };
+    }
+
+    class IdentityCard extends Model {
+        static dbName = dbName;
+
+        userId!: string;
+        number!: string;
         relationships = {
             user: () => this.belongsTo(User),
         } as {
@@ -47,6 +62,32 @@ describe('Model Child', () => {
             ]
         });
         expect(user).toBeInstanceOf(User);
-        console.log('user: ', user);
+
+        const posts = user.posts as Post[];
+
+        const post1 = posts[0];
+        const dbPost1 = await Post.find(post1._id);
+        expect(dbPost1).toBeInstanceOf(Post);
+        expect(dbPost1).toEqual(jasmine.objectContaining({
+            title: post1.title,
+        }));
+
+        const post2 = posts[0];
+        const dbPost2 = await Post.find(post2._id);
+        expect(dbPost2).toBeInstanceOf(Post);
+        expect(dbPost2).toEqual(jasmine.objectContaining({
+            title: post2.title,
+        }));
+
+        await user.update({
+            identityCard: new IdentityCard({ number: '123456' })
+        });
+        const card = user.identityCard as IdentityCard;
+        const dbCard = await IdentityCard.find(card._id);
+        expect(card).toBeInstanceOf(IdentityCard);
+        expect(dbCard).toEqual(jasmine.objectContaining({
+            _id: card._id,
+            number: card.number,
+        }));
     });
 });
