@@ -181,6 +181,10 @@ export class Model {
         return this;
     }
     async save(): Promise<this> {
+        while (this._real_time_updating) {
+            await new Promise((resolve) => setTimeout(resolve, 10));
+        }
+
         const newAttributes: Partial<this> = {};
         for (const field in this) {
             if (typeof field === 'function') continue;
