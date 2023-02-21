@@ -84,6 +84,7 @@ export class QueryBuilder<T extends Model> {
         this.queries = {selector: {$and: []}};
         this.isOne = isOne;
         this.db = DatabaseManager.get(this.dbName) as PouchDB.Database<T>;
+        if (!this.db) throw new Error(`Database ${this.dbName} not found`);
     }
 
     static query<T extends Model>(modelClass: T, relationships?: ModelKey<T>[], dbName?: string) {
