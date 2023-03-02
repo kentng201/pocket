@@ -9,7 +9,7 @@ describe('QueryBuilder Basic', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect('test', 'memory', 'test');
+        await DatabaseManager.connect('test', { dbName: 'test', adapter: 'memory', silentConnect: true });
     });
 
     it('should create a query builder', () => {

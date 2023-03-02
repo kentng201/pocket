@@ -35,7 +35,7 @@ describe('Model Relationships', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect(dbName, 'memory', dbName);
+        await DatabaseManager.connect(dbName, { dbName: 'real-time-model', adapter: 'memory', silentConnect: true });
     });
     
     it('should be able to save without relationships', async () => {

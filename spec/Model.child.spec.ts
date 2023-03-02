@@ -50,7 +50,7 @@ describe('Model Child', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect(dbName, 'memory', dbName);
+        await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true });
     });
 
     it('should be able to save with relationships', async () => {

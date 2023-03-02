@@ -1,4 +1,5 @@
 import { isRealTime, setRealtime } from 'src/real-time/RealTimeModel';
+import CryptoPouch from 'crypto-pouch';
 
 let PouchDB: any;
 
@@ -13,35 +14,43 @@ export function setEnvironement(environement: 'browser' | 'node') {
     }
 }
 
+export type PouchDBConfig = {
+    dbName: string;
+    password?: string;
+    adapter?: string;
+    silentConnect?: boolean;
+}
+
 export class DatabaseManager {
     public static databases: { [dbName: string]: PouchDB.Database } = {};
 
-    public static connect(url: string, adapter?: string, dbName: string = 'default', silentConnect = true) {
+    public static async connect(url: string, config: PouchDBConfig = { dbName: 'default' }) {
         if (!PouchDB) {
             setEnvironement('node');
         }
-        if (adapter == 'memory') {
+        if (config.adapter == 'memory') {
             const PouchDBAdapterMemory = require('pouchdb-adapter-memory');
             PouchDB.plugin(PouchDBAdapterMemory);
         }
         if (isRealTime) {
             setRealtime(true);
         }
-        return new Promise((resolve, reject) => {
+        PouchDB.plugin(CryptoPouch);
+        return new Promise(async (resolve, reject) => {
             try {
-                let config;
-                if (adapter) {
-                    config = {adapter};
+                let pouchConfig = {} as {adapter: string;} | undefined;
+                if (config.adapter) {
+                    pouchConfig = {adapter: config.adapter};
                 } else {
-                    config = undefined;
+                    pouchConfig = undefined;
                 }
                 // @ts-ignore
-                const pouchDb = new PouchDB<{adapter: string;}>(url, config) as unknown as PouchDB.Database & {adapter: string};
+                const pouchDb = new PouchDB<{adapter: string;}>(url, pouchConfig) as unknown as PouchDB.Database & {adapter: string};
                 if (!this.databases) this.databases = {};
-                this.databases[dbName] = pouchDb;
+                this.databases[config.dbName] = pouchDb;
                 
-                if (!silentConnect) {
-                    console.log(`- Connected to PouchDB/CouchDB "${dbName}": ${url}`);
+                if (!config.silentConnect) {
+                    console.log(`- Connected to PouchDB/CouchDB "${config.dbName}": ${url}`);
                     console.log(`- Adapter: ${pouchDb.adapter}`);
                 }
                 resolve(true);
