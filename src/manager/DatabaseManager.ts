@@ -14,9 +14,10 @@ export function setEnvironement(environement: 'browser' | 'node') {
     }
 }
 
+export const DEFAULT_DB_NAME = 'default';
+
 export type PouchDBConfig = {
-    dbName: string;
-    password?: string;
+    dbName?: string;
     adapter?: string;
     silentConnect?: boolean;
 }
@@ -24,7 +25,7 @@ export type PouchDBConfig = {
 export class DatabaseManager {
     public static databases: { [dbName: string]: PouchDB.Database } = {};
 
-    public static async connect(url: string, config: PouchDBConfig = { dbName: 'default' }) {
+    public static async connect(url: string, config: PouchDBConfig) {
         if (!PouchDB) {
             setEnvironement('node');
         }
@@ -47,6 +48,9 @@ export class DatabaseManager {
                 // @ts-ignore
                 const pouchDb = new PouchDB<{adapter: string;}>(url, pouchConfig) as unknown as PouchDB.Database & {adapter: string};
                 if (!this.databases) this.databases = {};
+                if (!config.dbName) {
+                    config.dbName = DEFAULT_DB_NAME;
+                }
                 this.databases[config.dbName] = pouchDb;
                 
                 if (!config.silentConnect) {
