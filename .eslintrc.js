@@ -20,5 +20,6 @@ module.exports = {
         '@typescript-eslint/no-inferrable-types': 'off',
         '@typescript-eslint/ban-ts-comment': 'off',
         '@typescript-eslint/no-var-requires': 'off',
+        'no-async-promise-executor': 'off',
     },
 };
