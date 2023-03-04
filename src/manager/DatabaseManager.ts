@@ -1,5 +1,4 @@
 import { isRealTime, setRealtime } from 'src/real-time/RealTimeModel';
-import CryptoPouch from 'crypto-pouch';
 
 let PouchDB: any;
 
@@ -36,7 +35,6 @@ export class DatabaseManager {
         if (isRealTime) {
             setRealtime(true);
         }
-        PouchDB.plugin(CryptoPouch);
         return new Promise(async (resolve, reject) => {
             try {
                 let pouchConfig = {} as {adapter: string;} | undefined;
