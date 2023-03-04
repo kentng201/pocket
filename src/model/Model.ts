@@ -254,7 +254,7 @@ export class Model {
     }
     async delete(): Promise<void> {
         // @ts-ignore
-        await (this.constructor as typeof Model).query<this>().where('_id', this._id).delete();
+        await (this.constructor as typeof Model).repo<this>().delete(this._id);
         Object.keys(this).forEach((key) => delete this[key as keyof this]);
     }
     // end of CRUD operation

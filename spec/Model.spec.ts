@@ -69,4 +69,15 @@ describe('Model', () => {
         expect(doc.relationships).not.toBeDefined();
         expect(doc.getRandomPassword).not.toBeDefined();
     });
+
+    it('should be able to delete a model', async () => {
+        const user = await User.create({
+            name: 'new-user5',
+        });
+
+        await user.delete();
+
+        const deletedUser = await User.find(user._id as string);
+        expect(deletedUser).not.toBeTruthy();
+    });
 });
