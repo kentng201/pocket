@@ -180,6 +180,14 @@ export class Model {
         }
         return this;
     }
+
+    public static async beforeSave(model: any): Promise<any | void> {
+        return model;
+    }
+    public static async afterSave(model: any): Promise<any | void> {
+        return model;
+    }
+
     async save(): Promise<this> {
         while (this._real_time_updating) {
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -208,6 +216,10 @@ export class Model {
             // @ts-ignore
             hasDocumentInDb = await (this.constructor as unknown as typeof Model).repo<this>().getDoc(this._id);
         }
+        // add static beforeSave function
+        if ((this.constructor as unknown as typeof Model).beforeSave) {
+            await (this.constructor as unknown as typeof Model).beforeSave(this);
+        }
 
         if (this.needTimestamp) newAttributes.updatedAt = now;
         if (!hasDocumentInDb) {
@@ -232,6 +244,11 @@ export class Model {
         }
         this.fill({...newAttributes, _rev: updatedResult.rev} as Partial<ModelType<this>>);
         await this.saveChildren();
+
+        // add static afterSave function
+        if ((this.constructor as unknown as typeof Model).afterSave) {
+            await (this.constructor as unknown as typeof Model).afterSave(this);
+        }
         this._dirty = {};
         return this;
     }
