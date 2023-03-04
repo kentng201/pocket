@@ -1,5 +1,4 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
-import { RepoManager } from 'src/manager/RepoManager';
 import { QueryBuilder } from 'src/query-builder/QueryBuilder';
 import { Model } from '../src/model/Model';
 
