@@ -249,11 +249,11 @@ class User extends Model {
 }
 
 
-const originalUser = await RealTimeUser.create({
+const originalUser = await User.create({
     _id: 'real-time',
     name: 'Title-1',
 });
-const newUser = await RealTimeUser.find(originalUser._id) as RealTimeUser;
+const newUser = await User.find(originalUser._id) as User;
 newUser.name = 'Title-2';
 await newUser.save();
 while (originalUser._real_time_updating) {
