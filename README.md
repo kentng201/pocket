@@ -15,13 +15,16 @@ To connect to a database, specify the database and the adapter
 
 ```typescript
 import { DatabaseManager, setEnvironement, setRealtime } from 'pocket';
+
 setEnvironement('browser'); // set environment to browser or node
+
 const databaseConfig = {
     dbName: 'default', // database name, required when multiple database connection
     adapter: 'idb', // available adapter: idb, memory
     silentConnect: true, // if true, the database will connect without console.log
 };
 await DatabaseManager.connect('test', databaseConfig); // connect to local database named "test"
+
 setRealtime(true); // if you set real time to true, the object with same _id with sync each other 
 ```
 
@@ -97,6 +100,7 @@ await user1.save();
 Delete
 ```typescript
 await user1.delete();
+console.log(await user1); // {}
 ```
 
 ### Query
@@ -131,7 +135,7 @@ const users = await User.query().where((query) => {
 }).get();
 ```
 
-### Relation
+### Relationship
 Pocket supported 4 types of relationships
 - belongsTo
 - hasOne
