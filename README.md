@@ -173,7 +173,6 @@ When you create a new post, you can use the following way to create the relation
 const user = await User.create({
     name: 'John',
 });
-expect(user).toBeInstanceOf(User);
 
 const post1 = await Post.create({ title: 'hello world', userId: user._id });
 const post2 = await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id });
@@ -204,6 +203,35 @@ const userWithPosts = await User.with('posts').where('name', '=', 'John').first(
     ],
 }
 ```
+
+### Hooks
+There is 2 hooks of the pocket model
+- beforeSave
+- afterSave
+```typescript
+class User extends Model {
+    name!: string;
+    password?: string;
+
+    beforeSave(user: User) {
+        console.log('beforeSave: ', user);
+    }
+
+    afterSave(user: User) {
+        console.log('afterSave: ', user);
+    }
+}
+
+// when call save method, it will trigged beforeSave and afterSave
+const user = new User({
+    username: 'John',
+});
+await user.save() // beforeSave: User {...}
+// afterSave: User {...}
+
+
+```
+
 
 ### Real Time
 
