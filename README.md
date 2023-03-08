@@ -183,18 +183,18 @@ When you query the user with post, can use following methods
 const userWithPosts = await User.with('posts').where('name', '=', 'John').first();
 
 // output
-{
+User {
     _id: '...',
     _rev: '1-xxxx',
     name: 'John',
     posts: [
-        {
+        Post {
             _id: '...',
             _rev: '1-xxxx',
             title: 'hello world',
             userId: '...',
         },
-        {
+        Post {
             _id: '...',
             _rev: '1-xxxx',
             title: 'nice to meet you, Malaysia',
