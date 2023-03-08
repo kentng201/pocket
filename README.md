@@ -100,7 +100,7 @@ await user1.save();
 Delete
 ```typescript
 await user1.delete();
-console.log(await user1); // {}
+console.log(user1); // {}
 ```
 
 ### Query
