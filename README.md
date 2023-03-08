@@ -37,6 +37,7 @@ import { Model } from 'pocket'
 export class User extends Model {
     /**
      * connect to which dbName mentioned in the DatabaseManager
+     * @default 'default'
      */
     static dbName = 'default';
 
