@@ -5,6 +5,7 @@ Pocket is a PouchDB/CouchDB object modeling tools designed to work in the browse
 ### Getting Started
 
 First install Node.js and npm. Then install Pocket:
+
 ```bash
 $ npm install pocket
 ```
@@ -31,6 +32,7 @@ setRealtime(true); // if you set real time to true, the object with same _id wit
 ### Model
 
 You can start to use Typescript classes to define your model
+
 ```typescript
 import { Model } from 'pocket'
 
@@ -73,6 +75,7 @@ export class User extends Model {
 
 You can create a model instance in both way:
 Both way will create a document in the database.
+
 ```typescript
 // Type 1
 const user1 = new User();
@@ -87,6 +90,7 @@ const user2 = await User.create({
 
 
 Update
+
 ```typescript
 // Type 1
 user1.update({
@@ -99,6 +103,7 @@ await user1.save();
 ```
 
 Delete
+
 ```typescript
 await user1.delete();
 console.log(user1); // {}
@@ -107,6 +112,7 @@ console.log(user1); // {}
 ### Query
 
 You can query the documents by using the powerful query builder
+
 ```typescript
 // Type 1, key, operator and value search
 // Supported operators: '=', '>', '>=', '<', '<=', '!=', 'in', 'not in', 'between', 'like'
@@ -137,7 +143,9 @@ const users = await User.query().where((query) => {
 ```
 
 ### Relationship
+
 Pocket supported 4 types of relationships
+
 - belongsTo
 - hasOne
 - hasMany
@@ -170,6 +178,7 @@ class Post extends Model {
 ```
 
 When you create a new post, you can use the following way to create the relationship.
+
 ```typescript
 const user = await User.create({
     name: 'John',
@@ -180,6 +189,7 @@ const post2 = await Post.create({ title: 'nice to meet you, Malaysia', userId: u
 ```
 
 When you query the user with post, can use following methods
+
 ```typescript
 const userWithPosts = await User.with('posts').where('name', '=', 'John').first();
 
@@ -205,10 +215,19 @@ User {
 }
 ```
 
-### Hooks
+### Lifecycle Hooks
+
 There is 2 hooks of the pocket model
+
 - beforeSave
 - afterSave
+- beforeCreate
+- afterCreate
+- beforeUpdate
+- afterUpdate
+- beforeDelete
+- afterDelete
+
 ```typescript
 class User extends Model {
     name!: string;
