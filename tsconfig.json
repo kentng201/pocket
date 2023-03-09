@@ -20,12 +20,14 @@
   },
   "include": [
     "src/",
-    "spec/",
-    "index.ts"
+    "index.ts",
+    "**/*.tgz",
+    "**/*.patch"
   ],
   "exclude": [
     "node_modules",
     "**/__tests__/*",
-    "dist"
+    "dist",
+    "spec"
   ]
 }
