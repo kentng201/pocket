@@ -181,13 +181,6 @@ export class Model {
         return this;
     }
 
-    public static async beforeSave(model: any): Promise<any | void> {
-        return model;
-    }
-    public static async afterSave(model: any): Promise<any | void> {
-        return model;
-    }
-
     async save(): Promise<this> {
         while (this._real_time_updating) {
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -225,9 +218,15 @@ export class Model {
         if (!hasDocumentInDb) {
             if (this.needTimestamp) newAttributes.createdAt = now;
             if (this.needTimestamp) newAttributes.updatedAt = now;
+            if ((this.constructor as unknown as typeof Model).beforeCreate) {
+                await (this.constructor as unknown as typeof Model).beforeCreate(this);
+            }
             // @ts-ignore
             updatedResult = await (this.constructor as unknown as typeof Model).repo<this>().create(newAttributes);
             this.fill({ _id: updatedResult.id } as Partial<ModelType<this>>);
+            if ((this.constructor as unknown as typeof Model).afterCreate) {
+                await (this.constructor as unknown as typeof Model).afterCreate(this);
+            }
         } else {
             const guarded = (this.constructor as typeof Model).readonlyFields;
             // remove guarded fields
@@ -238,9 +237,15 @@ export class Model {
             }
             if (this.needTimestamp) newAttributes.updatedAt = now;
             newAttributes._id = this._id;
+            if ((this.constructor as unknown as typeof Model).beforeUpdate) {
+                await (this.constructor as unknown as typeof Model).beforeUpdate(this);
+            }
             // @ts-ignore
             updatedResult = await (this.constructor as typeof Model).repo<this>().update(newAttributes);
             this.fill({ _rev: updatedResult.rev } as Partial<ModelType<this>>);
+            if ((this.constructor as unknown as typeof Model).afterCreate) {
+                await (this.constructor as unknown as typeof Model).afterCreate(this);
+            }
         }
         this.fill({...newAttributes, _rev: updatedResult.rev} as Partial<ModelType<this>>);
         await this.saveChildren();
@@ -253,9 +258,15 @@ export class Model {
         return this;
     }
     async delete(): Promise<void> {
+        if ((this.constructor as unknown as typeof Model).beforeDelete) {
+            await (this.constructor as unknown as typeof Model).beforeDelete(this);
+        }
         // @ts-ignore
         await (this.constructor as typeof Model).repo<this>().delete(this._id);
         Object.keys(this).forEach((key) => delete this[key as keyof this]);
+        if ((this.constructor as unknown as typeof Model).afterDelete) {
+            await (this.constructor as unknown as typeof Model).afterDelete(this);
+        }
     }
     // end of CRUD operation
 
@@ -307,6 +318,39 @@ export class Model {
         return await belongsToMany<this, R, P>(this, relationship, pivot, localKey as ModelKey<P>, foreignKey as ModelKey<P>);
     }
     // end of relationship
+
+
+
+    // start of lifecycle
+    public static async beforeSave<Any>(model: Any): Promise<Any | void> {
+        return model;
+    }
+    public static async afterSave<Any>(model: Any): Promise<Any | void> {
+        return model;
+    }
+
+    public static async beforeCreate<Any>(model: Any): Promise<Any | void> {
+        return model;
+    }
+    public static async afterCreate<Any>(model: Any): Promise<Any | void> {
+        return model;
+    }
+
+    public static async beforeUpdate<Any>(model: Any): Promise<Any | void> {
+        return model;
+    }
+    public static async afterUpdate<Any>(model: Any): Promise<Any | void> {
+        return model;
+    }
+
+    public static async beforeDelete<Any>(model: Any): Promise<Any | void> {
+        return model;
+    }
+    public static async afterDelete<Any>(model: Any): Promise<Any | void> {
+        return model;
+    }
+    // end of lifecycle
+
 
     // start transformer for api response 
     formatResponse?<Output>(cloneSelf: this): Output;
