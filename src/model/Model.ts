@@ -76,6 +76,8 @@ export class Model {
                 //     throw new Error(`Cannot update reserved field ${key}`);
                 // }
 
+                if (!this._dirty) this._dirty = {};
+
                 if (key === '_dirty' || key === 'relationships') {
                     target[key] = value;
                     return true;
@@ -322,31 +324,31 @@ export class Model {
 
 
     // start of lifecycle
-    public static async beforeSave<Any>(model: Any): Promise<Any | void> {
+    public static async beforeSave(model: any): Promise<any | void> {
         return model;
     }
-    public static async afterSave<Any>(model: Any): Promise<Any | void> {
-        return model;
-    }
-
-    public static async beforeCreate<Any>(model: Any): Promise<Any | void> {
-        return model;
-    }
-    public static async afterCreate<Any>(model: Any): Promise<Any | void> {
+    public static async afterSave(model: any): Promise<any | void> {
         return model;
     }
 
-    public static async beforeUpdate<Any>(model: Any): Promise<Any | void> {
+    public static async beforeCreate(model: any): Promise<any | void> {
         return model;
     }
-    public static async afterUpdate<Any>(model: Any): Promise<Any | void> {
+    public static async afterCreate(model: any): Promise<any | void> {
         return model;
     }
 
-    public static async beforeDelete<Any>(model: Any): Promise<Any | void> {
+    public static async beforeUpdate(model: any): Promise<any | void> {
         return model;
     }
-    public static async afterDelete<Any>(model: Any): Promise<Any | void> {
+    public static async afterUpdate(model: any): Promise<any | void> {
+        return model;
+    }
+
+    public static async beforeDelete(model: any): Promise<any | void> {
+        return model;
+    }
+    public static async afterDelete(model: any): Promise<any | void> {
         return model;
     }
     // end of lifecycle
