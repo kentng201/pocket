@@ -333,5 +333,5 @@ You can also use the `api` to call the API manually
 
 ```typescript
 await user.setRandomPassword(); // this will called API: POST http://pocket.test/users/1/random-password
-await user.save();
+await user.save(); // this will update both pouch db and API
 ```
