@@ -290,11 +290,11 @@ The Pocket can be integrated with REST API, you can use the following methods to
 import { Model, ApiHostManager } from 'pocket';
 
 await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
-ApiHostManager.addHost('http://pocket.test');
+ApiHostManager.addHost('http://pocket.test/api', 'pocket-backend'); // it will named the host http://pocket.test/api as pocket-backend
 
 class User extends Model {
     static dbName = dbName;
-    static apiName = 'default';
+    static apiName = 'pocket-backend'; // this will bind the api to the host pocket-backend when call api
     static apiResource = 'users';
     static apiAuto = {
         create: true,

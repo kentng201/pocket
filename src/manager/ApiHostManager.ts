@@ -28,6 +28,8 @@ export class ApiHostManager {
      * @param name use for switch API Host
      */
     static addHost(url: string, name: string = 'default') {
+        // remove trailing dash "/"
+        url = url.replace(/\/$/, '');
         this.apiHosts[name] = { url, };
     }
 

@@ -9,7 +9,7 @@ const dbName = 'model-api';
 describe('Model API', () => {
     class ApiUser extends Model {
         static dbName = dbName;
-        static apiName = 'default';
+        static apiName = 'pocket-backend';
         static apiResource = 'users';
         static apiAuto = {
             create: true,
@@ -34,7 +34,7 @@ describe('Model API', () => {
 
     beforeEach(async () => {
         await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
-        ApiHostManager.addHost('http://pocket.test');
+        ApiHostManager.addHost('http://pocket.test/', 'pocket-backend');
     });
 
     afterAll(async () => {
