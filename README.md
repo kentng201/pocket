@@ -1,4 +1,4 @@
-# Pocket 
+# Pocket
 
 Pocket is a PouchDB/CouchDB object modeling tools designed to work in the browser and Node.js.
 
@@ -7,7 +7,7 @@ Pocket is a PouchDB/CouchDB object modeling tools designed to work in the browse
 First install Node.js and npm. Then install Pocket:
 
 ```bash
-$ npm install pocket
+npm install pocket
 ```
 
 ### Database Connection
@@ -87,7 +87,6 @@ const user2 = await User.create({
     username: 'Jane',
 });
 ```
-
 
 Update
 
@@ -252,10 +251,10 @@ await user.save() // beforeSave: User {...}
 
 ```
 
-
 ### Real Time
 
 If you define the model as real time, the object with same _id with sync each other
+
 ```typescript
 import { Model, setRealtime } from 'pocket'
 
