@@ -289,7 +289,7 @@ The Pocket can be integrated with REST API, you can use the following methods to
 ```typescript
 import { Model, ApiHostManager } from 'pocket';
 
-await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
+await DatabaseManager.connect('rest-api-integration');
 ApiHostManager.addHost('http://pocket.test/api', 'pocket-backend'); // it will named the host http://pocket.test/api as pocket-backend
 
 class User extends Model {
