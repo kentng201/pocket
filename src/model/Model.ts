@@ -11,6 +11,7 @@ import moment from 'moment';
 import pluralize from 'pluralize';
 import { ModelKey, ModelStatic, ModelType, NewModelType } from 'src/definitions/Model';
 import { addWeakRef } from 'src/real-time/RealTimeModel';
+import { APIMethod } from 'src/repo/ApiRepo';
 export class Model {
     static collectionName?: string;
     static dbName: string = 'default';
@@ -54,10 +55,43 @@ export class Model {
         return timestamp;
     }
 
+    // start of API feature
+    static apiName?: string;
+    static apiResource?: string;
+    static apiAuto?: {
+        create?: boolean;
+        update?: boolean;
+        delete?: boolean;
+        fetchWhenMissing?: boolean;
+    };
+
+    public get aName() {
+        return (this.constructor as typeof Model).apiName;
+    }
+    public static get aName() {
+        return this.apiName;
+    }
+
+    public get aResource() {
+        return (this.constructor as typeof Model).apiResource;
+    }
+    public static get aResource() {
+        return this.apiResource;
+    }
+
+    public get aAuto() {
+        return (this.constructor as typeof Model).apiAuto;
+    }
+    public static get aAutoCreate() {
+        return this.apiAuto;
+    }
+    // end of API feature
+
     relationships?: { [relationshipName: string]: () => QueryBuilder<any> };
     public _id: string = '';
     public _rev: string = '';
     public _real_time_updating: boolean = false;
+    public _fallback_api_doc: boolean = false;
     public createdAt?: string;
     public updatedAt?: string;
 
@@ -321,7 +355,16 @@ export class Model {
     }
     // end of relationship
 
-
+    // start api method
+    public static api(apiPath: string, params: any, method: APIMethod = 'POST'): Promise<any> {
+        // @ts-ignore
+        return (this as unknown as typeof Model).repo<this>().api?.callApi(method, apiPath, params);
+    }
+    public api(apiPath: string, method: APIMethod = 'POST'): Promise<any> {
+        // @ts-ignore
+        return (this.constructor as unknown as typeof Model).repo<this>().api?.callModelApi(method, apiPath, this.toJson());
+    }
+    // end api method
 
     // start of lifecycle
     public static async beforeSave(model: any): Promise<any | void> {
@@ -353,6 +396,22 @@ export class Model {
     }
     // end of lifecycle
 
+    public toJson(): Partial<ModelType<this>> {
+        const json: any = {};
+        for (const field in this) {
+            if (typeof field === 'function') continue;
+            if (field === '_dirty') continue;
+            if (field === '_real_time_updating') continue;
+            if (field === 'relationships') continue;
+            if (field === 'needTimestamp') continue;
+            if (field === 'cName') continue;
+            if (field === 'modelName') continue;
+            if (this._dirty && !this._dirty[field]) continue;
+            if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
+            json[field] = this[field];
+        }
+        return json;
+    }
 
     // start transformer for api response 
     formatResponse?<Output>(cloneSelf: this): Output;

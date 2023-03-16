@@ -1,6 +1,8 @@
 import { ModelKey, ModelType, ModelValue } from 'src/definitions/Model';
+import { APIResourceInfo } from 'src/manager/ApiHostManager';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { Model } from 'src/model/Model';
+import { ApiRepo } from 'src/repo/ApiRepo';
 
 const operators = ['=', '>', '>=', '<', '<=', '!=', 'in', 'not in', 'between', 'like'] as const;
 export type Operator = typeof operators[number];
@@ -71,10 +73,12 @@ export class QueryBuilder<T extends Model> {
     protected dbName?: string;
     protected relationships: ModelKey<T>[];
     protected db: PouchDB.Database;
+    protected apiInfo?: APIResourceInfo;
+    protected api?: ApiRepo<T>;
 
     protected relationshipType?: RelationshipType;
 
-    constructor(modelClass: T, relationships?: ModelKey<T>[], dbName?: string, isOne?: boolean) {
+    constructor(modelClass: T, relationships?: ModelKey<T>[], dbName?: string, isOne?: boolean, apiInfo?: APIResourceInfo) {
         if (modelClass.cName === undefined) {
             throw new Error('QueryBuilder create error: collectionName not found');
         }
@@ -85,6 +89,8 @@ export class QueryBuilder<T extends Model> {
         this.isOne = isOne;
         this.db = DatabaseManager.get(this.dbName) as PouchDB.Database<T>;
         if (!this.db) throw new Error(`Database ${this.dbName} not found`);
+        this.apiInfo = apiInfo;
+        if (this.apiInfo) this.api = new ApiRepo<T>(this.apiInfo);
     }
 
     static query<T extends Model>(modelClass: T, relationships?: ModelKey<T>[], dbName?: string) {

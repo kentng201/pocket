@@ -74,4 +74,22 @@ export class DatabaseManager {
         }
         return this.databases[dbName];
     }
+
+    public static close(dbName?: string) {
+        if (!dbName) {
+            // find the only database
+            if (Object.keys(this.databases).length === 1) {
+                dbName = Object.keys(this.databases)[0];
+            } else {
+                throw new Error(
+                    'There is more than one database connected. Please specify the database name.'
+                );
+            }
+        }
+        const db = this.databases[dbName];
+        if (db) {
+            db.close();
+            delete this.databases[dbName];
+        }
+    }
 }
