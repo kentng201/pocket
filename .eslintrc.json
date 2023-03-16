@@ -34,6 +34,13 @@
             "error",
             "always"
         ],
+        "comma-dangle": [
+            "error",
+            "never"
+        ],
+        "@typescript-eslint/semi": [
+            "error"
+        ],
         "@typescript-eslint/no-inferrable-types": "off",
         "@typescript-eslint/ban-ts-comment": "off",
         "@typescript-eslint/no-var-requires": "off",
