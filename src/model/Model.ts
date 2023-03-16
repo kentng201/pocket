@@ -116,7 +116,7 @@ export class Model {
                 this._dirty[key] = true;
 
                 return true;
-            }
+            },
         };
         return new Proxy(this, handler);
     }
@@ -255,7 +255,7 @@ export class Model {
             }
             // @ts-ignore
             updatedResult = await (this.constructor as unknown as typeof Model).repo<this>().create(newAttributes);
-            this.fill({ _id: updatedResult.id } as Partial<ModelType<this>>);
+            this.fill({ _id: updatedResult.id, } as Partial<ModelType<this>>);
             if ((this.constructor as unknown as typeof Model).afterCreate) {
                 await (this.constructor as unknown as typeof Model).afterCreate(this);
             }
@@ -274,12 +274,12 @@ export class Model {
             }
             // @ts-ignore
             updatedResult = await (this.constructor as typeof Model).repo<this>().update(newAttributes);
-            this.fill({ _rev: updatedResult.rev } as Partial<ModelType<this>>);
+            this.fill({ _rev: updatedResult.rev, } as Partial<ModelType<this>>);
             if ((this.constructor as unknown as typeof Model).afterCreate) {
                 await (this.constructor as unknown as typeof Model).afterCreate(this);
             }
         }
-        this.fill({ ...newAttributes, _rev: updatedResult.rev } as Partial<ModelType<this>>);
+        this.fill({ ...newAttributes, _rev: updatedResult.rev, } as Partial<ModelType<this>>);
         await this.saveChildren();
 
         // add static afterSave function
@@ -311,7 +311,7 @@ export class Model {
     static where<T extends Model>(this: ModelStatic<T>, condition: (query: QueryBuilder<T>) => void): QueryBuilder<T>;
     static where<T extends Model>(this: ModelStatic<T>, queryableModel: Partial<QueryableModel<T>>): QueryBuilder<T>;
     static where<T extends Model, Key extends ModelKey<T>>(this: ModelStatic<T>, field: Key, value: OperatorValue<T, Key, '='>): QueryBuilder<T>;
-    static where<T extends Model, Key extends ModelKey<T>, O extends Operator>(this: ModelStatic<T>, field: Key, operator: O, value: OperatorValue<T, Key, O>): QueryBuilder<T>
+    static where<T extends Model, Key extends ModelKey<T>, O extends Operator>(this: ModelStatic<T>, field: Key, operator: O, value: OperatorValue<T, Key, O>): QueryBuilder<T>;
     static where<T extends Model, Key extends ModelKey<T>, O extends Operator>(...args: (ModelKey<T> | O | OperatorValue<T, Key, O>)[]): QueryBuilder<T> {
         const query = new QueryBuilder(new this, undefined, (this as unknown as typeof Model).dbName);
         // @ts-ignore

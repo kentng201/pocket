@@ -20,7 +20,7 @@ export class Repo<T extends Model> extends QueryBuilder<T> {
                 if (!result) return undefined;
                 delete (result as any)._rev;
                 _id = _id.includes('.') ? _id.split('.')[1] : _id;
-                const createdItem = await this.create({...result, _id} as NewModelType<T>, true);
+                const createdItem = await this.create({...result, _id,} as NewModelType<T>, true);
                 result._fallback_api_doc = true;
                 result._rev = createdItem.rev;
                 result._id = createdItem.id;
@@ -43,11 +43,11 @@ export class Repo<T extends Model> extends QueryBuilder<T> {
 
     async update(attributes: Partial<ModelType<T>>): Promise<PouchDB.Core.Response> {
         const doc = await this.getDoc(attributes._id as string);
-        const result = await this.db.put({...doc, ...attributes}, {
+        const result = await this.db.put({...doc, ...attributes,}, {
             force: false,
         });
         if (this.apiInfo && this.apiInfo.apiAutoUpdate) {
-            await this.api?.update({...doc, ...attributes});
+            await this.api?.update({...doc, ...attributes,});
         }
         return result;
     }

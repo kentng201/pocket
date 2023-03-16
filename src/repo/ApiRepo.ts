@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ModelKey, ModelType, NewModelType } from 'src/definitions/Model';
+import { ModelType, NewModelType } from 'src/definitions/Model';
 import { Model } from 'src/model/Model';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
 

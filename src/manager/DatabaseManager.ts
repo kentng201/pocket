@@ -19,7 +19,7 @@ export type PouchDBConfig = {
     dbName?: string;
     adapter?: string;
     silentConnect?: boolean;
-}
+};
 
 export class DatabaseManager {
     public static databases: { [dbName: string]: PouchDB.Database } = {};
@@ -37,20 +37,20 @@ export class DatabaseManager {
         }
         return new Promise(async (resolve, reject) => {
             try {
-                let pouchConfig = {} as {adapter: string;} | undefined;
+                let pouchConfig = {} as { adapter: string; } | undefined;
                 if (config.adapter) {
-                    pouchConfig = {adapter: config.adapter};
+                    pouchConfig = { adapter: config.adapter, };
                 } else {
                     pouchConfig = undefined;
                 }
                 // @ts-ignore
-                const pouchDb = new PouchDB<{adapter: string;}>(url, pouchConfig) as unknown as PouchDB.Database & {adapter: string};
+                const pouchDb = new PouchDB<{ adapter: string; }>(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string };
                 if (!this.databases) this.databases = {};
                 if (!config.dbName) {
                     config.dbName = DEFAULT_DB_NAME;
                 }
                 this.databases[config.dbName] = pouchDb;
-                
+
                 if (!config.silentConnect) {
                     console.log(`- Connected to PouchDB/CouchDB "${config.dbName}": ${url}`);
                     console.log(`- Adapter: ${pouchDb.adapter}`);

@@ -5,7 +5,7 @@ import { Model } from 'src/model/Model';
 import { QueryBuilder, RelationshipType } from 'src/query-builder/QueryBuilder';
 
 export async function belongsToMany<T extends Model, R extends Model, P extends Model>(
-    self: T, relationship: ModelStatic<R>, pivot: ModelStatic<P>, localKey?: ModelKey<P>, foreignKey?: ModelKey<P>,
+    self: T, relationship: ModelStatic<R>, pivot: ModelStatic<P>, localKey?: ModelKey<P>, foreignKey?: ModelKey<P>
 ) {
     const relationshipInstance = new relationship();
     const pivotInstance = new pivot();

@@ -5,7 +5,7 @@ import { Model } from 'src/model/Model';
 import { QueryBuilder, RelationshipType } from 'src/query-builder/QueryBuilder';
 
 export function belongsTo<T extends Model, R extends Model>(
-    self: T, relationship: ModelStatic<R>, localKey?: ModelKey<T>, foreignKey?: ModelKey<R>,
+    self: T, relationship: ModelStatic<R>, localKey?: ModelKey<T>, foreignKey?: ModelKey<R>
 ) {
     const relationshipInstance = new relationship();
     if (!localKey) localKey = `${lowerCaseFirst(singular(relationshipInstance.cName))}Id` as ModelKey<T>;
