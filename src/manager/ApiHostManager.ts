@@ -10,6 +10,7 @@ export type APIResourceInfo = APIInfo & {
     apiAutoCreate?: boolean;
     apiAutoUpdate?: boolean;
     apiAutoDelete?: boolean;
+    apiAutoSoftDelete?: boolean;
     apiFallbackGet?: boolean;
 };
 
@@ -27,7 +28,7 @@ export class ApiHostManager {
      * @param name use for switch API Host
      */
     static addHost(url: string, name: string = 'default') {
-        this.apiHosts[name] = {url};
+        this.apiHosts[name] = { url };
     }
 
     static getApiInfo(name: string = 'default') {

@@ -11,18 +11,18 @@ export class ApiRepo<T extends Model> {
     constructor(apiInfo: APIResourceInfo) {
         this.apiInfo = apiInfo;
     }
-    
+
     async get(_id: string): Promise<T | undefined> {
-        const { resource, url, token } = this.apiInfo;
+        const { resource, url, token, } = this.apiInfo;
         const result = await axios.get(`${url}/${resource}/${_id}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         });
-        return {_id, ...result.data};
+        return { _id, ...result.data, };
     }
     async create(attributes: NewModelType<T>): Promise<T> {
-        const { resource, url, token } = this.apiInfo;
+        const { resource, url, token, } = this.apiInfo;
         const result = await axios.post(`${url}/${resource}/${attributes._id}`, attributes, {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -31,7 +31,7 @@ export class ApiRepo<T extends Model> {
         return result.data;
     }
     async update(attributes: Partial<ModelType<T>>): Promise<T> {
-        const { resource, url, token } = this.apiInfo;
+        const { resource, url, token, } = this.apiInfo;
         const result = await axios.put(`${url}/${resource}/${attributes._id}`, attributes, {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -40,8 +40,17 @@ export class ApiRepo<T extends Model> {
         return result.data;
     }
     async delete(_id: string): Promise<T> {
-        const { resource, url, token } = this.apiInfo;
+        const { resource, url, token, } = this.apiInfo;
         const result = await axios.delete(`${url}/${resource}/${_id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return result.data;
+    }
+    async softDelete(_id: string): Promise<T> {
+        const { resource, url, token, } = this.apiInfo;
+        const result = await axios.delete(`${url}/${resource}/${_id}/soft`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -50,7 +59,7 @@ export class ApiRepo<T extends Model> {
     }
 
     async callApi(method: APIMethod, apiPath: string, params?: any): Promise<any> {
-        const { resource, url, token } = this.apiInfo;
+        const { resource, url, token, } = this.apiInfo;
         const result = await axios({
             method,
             url: `${url}/${resource}/api/${apiPath}`,
@@ -62,7 +71,7 @@ export class ApiRepo<T extends Model> {
         return result.data;
     }
     async callModelApi(method: APIMethod, apiPath: string, model?: Partial<ModelType<T>>): Promise<any> {
-        const { resource, url, token } = this.apiInfo;
+        const { resource, url, token, } = this.apiInfo;
         const result = await axios({
             method,
             url: `${url}/${resource}/${model?._id}/${apiPath}`,

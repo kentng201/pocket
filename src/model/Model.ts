@@ -10,6 +10,7 @@ import { belongsToMany } from 'src/relationships/BelongsToMany';
 import moment from 'moment';
 import pluralize from 'pluralize';
 import { ModelKey, ModelStatic, ModelType, NewModelType } from 'src/definitions/Model';
+import { APIAutoConfig } from 'src/definitions/APIAutoConfig';
 import { addWeakRef } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
 export class Model {
@@ -58,12 +59,7 @@ export class Model {
     // start of API feature
     static apiName?: string;
     static apiResource?: string;
-    static apiAuto?: {
-        create?: boolean;
-        update?: boolean;
-        delete?: boolean;
-        fetchWhenMissing?: boolean;
-    };
+    static apiAuto?: APIAutoConfig;
 
     public get aName() {
         return (this.constructor as typeof Model).apiName;
@@ -118,7 +114,7 @@ export class Model {
                 }
                 target[key] = value;
                 this._dirty[key] = true;
-                
+
                 return true;
             }
         };
@@ -283,7 +279,7 @@ export class Model {
                 await (this.constructor as unknown as typeof Model).afterCreate(this);
             }
         }
-        this.fill({...newAttributes, _rev: updatedResult.rev} as Partial<ModelType<this>>);
+        this.fill({ ...newAttributes, _rev: updatedResult.rev } as Partial<ModelType<this>>);
         await this.saveChildren();
 
         // add static afterSave function

@@ -1,5 +1,4 @@
 import uuid from 'short-uuid';
-import axios from 'axios';
 import { ModelKey, ModelType, NewModelType } from 'src/definitions/Model';
 import { Model } from 'src/model/Model';
 import { QueryBuilder } from 'src/query-builder/QueryBuilder';
@@ -61,6 +60,9 @@ export class Repo<T extends Model> extends QueryBuilder<T> {
         const result = await this.db.remove(doc);
         if (this.apiInfo && this.apiInfo.apiAutoDelete) {
             await this.api?.delete(_id);
+        }
+        if (this.apiInfo && this.apiInfo.apiAutoSoftDelete) {
+            await this.api?.softDelete(_id);
         }
         return result;
     }

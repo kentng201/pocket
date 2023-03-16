@@ -51,4 +51,13 @@ export const handlers: RequestHandler[] = [
             }),
         )
     }),
+    rest.delete('http://pocket.test/users/:_id/soft', (req, res, ctx) => {
+        return res(
+            ctx.status(200),
+            ctx.json({
+                _id: req.params._id,
+                ok: true,
+            }),
+        )
+    }),
 ]

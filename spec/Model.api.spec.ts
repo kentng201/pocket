@@ -1,5 +1,6 @@
 import { DatabaseManager } from '../src/manager/DatabaseManager';
 import { ApiHostManager } from '../src/manager/ApiHostManager';
+import { APIAutoConfig } from '../src/definitions/APIAutoConfig';
 import { server } from '../mocks/server';
 import { Model } from '../src/model/Model';
 
@@ -14,8 +15,9 @@ describe('Model API', () => {
             create: true,
             update: true,
             delete: false,
+            softDelete: false,
             fetchWhenMissing: true,
-        };
+        } as APIAutoConfig;
 
         name!: string;
         password?: string;
@@ -23,16 +25,16 @@ describe('Model API', () => {
 
     beforeAll(() => {
         server.listen();
-    })
+    });
 
     beforeEach(async () => {
-        await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true });
+        await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
         ApiHostManager.addHost('http://pocket.test');
     });
 
     afterAll(async () => {
         server.close();
-    })
+    });
 
     it('should be able to create a model with API', async () => {
         const user = await ApiUser.create({
@@ -63,7 +65,7 @@ describe('Model API', () => {
         expect(userFallback).toBeTruthy();
         expect(userFallback?._fallback_api_doc).toBe(true);
 
-        const userFallbackRefetch = await ApiUser.find<ApiUser>(id); 
+        const userFallbackRefetch = await ApiUser.find<ApiUser>(id);
         expect(userFallbackRefetch).toBeTruthy();
         expect(userFallbackRefetch?._fallback_api_doc).toBe(false);
     });
