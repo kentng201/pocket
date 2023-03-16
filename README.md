@@ -318,20 +318,20 @@ const user = await User.create({
     _id: 1,
     name: 'John',
 });
-// API called: POST http://pocket.test/users/1
+// API called: POST http://pocket.test/api/users/1
 
 await user.update({
     name: 'Jane',
 });
-// API called: PUT http://pocket.test/users/1
+// API called: PUT http://pocket.test/api/users/1
 
 await user.delete();
-// API called: DELETE http://pocket.test/users/1
+// API called: DELETE http://pocket.test/api/users/1
 ```
 
 You can also use the `api` to call the API manually
 
 ```typescript
-await user.setRandomPassword(); // this will called API: POST http://pocket.test/users/1/random-password
+await user.setRandomPassword(); // this will called API: POST http://pocket.test/api/users/1/random-password
 await user.save(); // this will update both pouch db and API
 ```
