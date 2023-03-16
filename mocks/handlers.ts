@@ -10,7 +10,6 @@ export const handlers: RequestHandler[] = [
         );
     }),
     rest.post('http://pocket.test/users/:_id', (req, res, ctx) => {
-        console.log('post user');
         return res(
             ctx.status(200),
             ctx.json({
