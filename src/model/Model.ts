@@ -223,6 +223,7 @@ export class Model {
             if (typeof field === 'function') continue;
             if (field === '_dirty') continue;
             if (field === '_real_time_updating') continue;
+            if (field === '_fallback_api_doc') continue;
             if (field === 'relationships') continue;
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;
@@ -398,11 +399,11 @@ export class Model {
             if (typeof field === 'function') continue;
             if (field === '_dirty') continue;
             if (field === '_real_time_updating') continue;
+            if (field === '_fallback_api_doc') continue;
             if (field === 'relationships') continue;
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;
             if (field === 'modelName') continue;
-            if (this._dirty && !this._dirty[field]) continue;
             if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
             json[field] = this[field];
         }

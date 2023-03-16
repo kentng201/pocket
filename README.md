@@ -4,7 +4,7 @@ Pocket is a PouchDB/CouchDB object modeling tools designed to work in the browse
 
 ### Getting Started
 
-First install Node.js and npm. Then install Pocket:
+First install Node.js and npm. Then install Pocket via:
 
 ```bash
 npm install pocket
@@ -216,7 +216,7 @@ User {
 
 ### Lifecycle Hooks
 
-There is 2 hooks of the pocket model
+Pocket model supported below hooks when you call create/update/delete and save method:
 
 - beforeSave
 - afterSave
@@ -280,4 +280,58 @@ while (originalUser._real_time_updating) {
 }
 
 const isEqual = originalUser === newUser; // true
+```
+
+### REST API Integration
+
+The Pocket can be integrated with REST API, you can use the following methods to do so:
+
+```typescript
+import { Model, ApiHostManager } from 'pocket';
+
+await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
+ApiHostManager.addHost('http://pocket.test');
+
+class User extends Model {
+    static dbName = dbName;
+    static apiName = 'default';
+    static apiResource = 'users';
+    static apiAuto = {
+        create: true,
+        update: true,
+        delete: false,
+        softDelete: false,
+        fetchWhenMissing: true,
+    } as APIAutoConfig;
+
+    name!: string;
+    password?: string;
+
+    async setRandomPassword() {
+        const result = await this.api('random-password');
+        this.fill(result);
+    }
+}
+
+// When you perform create, and set the apiAuto.create to true, it will call the following API:
+const user = await User.create({
+    _id: 1,
+    name: 'John',
+});
+// API called: POST http://pocket.test/users/1
+
+await user.update({
+    name: 'Jane',
+});
+// API called: PUT http://pocket.test/users/1
+
+await user.delete();
+// API called: DELETE http://pocket.test/users/1
+```
+
+You can also use the `api` to call the API manually
+
+```typescript
+await user.setRandomPassword(); // this will called API: POST http://pocket.test/users/1/random-password
+await user.save();
 ```

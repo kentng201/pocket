@@ -21,6 +21,11 @@ describe('Model API', () => {
 
         name!: string;
         password?: string;
+
+        async setRandomPassword() {
+            const result = await this.api('random-password');
+            this.fill(result);
+        }
     }
 
     beforeAll(() => {
@@ -68,5 +73,14 @@ describe('Model API', () => {
         const userFallbackRefetch = await ApiUser.find<ApiUser>(id);
         expect(userFallbackRefetch).toBeTruthy();
         expect(userFallbackRefetch?._fallback_api_doc).toBe(false);
+    });
+
+    it('should be able to run backend function with API', async () => {
+        const user = await ApiUser.create<ApiUser>({
+            name: 'John',
+        });
+        await user.setRandomPassword();
+        expect(user.password).toBeTruthy();
+        expect(user.password).toBe('random');
     });
 });
