@@ -36,7 +36,7 @@
         ],
         "comma-dangle": [
             "error",
-            "never"
+            "always"
         ],
         "@typescript-eslint/semi": [
             "error"
