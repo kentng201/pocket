@@ -17,6 +17,7 @@ export const DEFAULT_DB_NAME = 'default';
 
 export type PouchDBConfig = {
     dbName?: string;
+    password?: string;
     adapter?: string;
     silentConnect?: boolean;
 };
@@ -35,6 +36,9 @@ export class DatabaseManager {
         if (isRealTime) {
             setRealtime(true);
         }
+        if (config.password) {
+            PouchDB.plugin(require('crypto-pouch'));
+        }
         return new Promise(async (resolve, reject) => {
             try {
                 let pouchConfig = {} as { adapter: string; } | undefined;
@@ -45,6 +49,10 @@ export class DatabaseManager {
                 }
                 // @ts-ignore
                 const pouchDb = new PouchDB<{ adapter: string; }>(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string };
+                if (config.password) {
+                    await (pouchDb as any).crypto(config.password);
+                }
+
                 if (!this.databases) this.databases = {};
                 if (!config.dbName) {
                     config.dbName = DEFAULT_DB_NAME;
@@ -89,6 +97,9 @@ export class DatabaseManager {
         const db = this.databases[dbName];
         if (db) {
             db.close();
+            if ((db as any).removeCrypto) {
+                (db as any).removeCrypto();
+            }
             delete this.databases[dbName];
         }
     }

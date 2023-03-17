@@ -14,7 +14,7 @@ describe('Repo', () => {
     let repo: Repo<User>;
 
     beforeEach(async () => {
-        await DatabaseManager.connect('test-repo-listen-change', { dbName: 'test-repo-listen-change', adapter: 'memory', silentConnect: true });
+        await DatabaseManager.connect('test-repo-listen-change', { dbName: 'test-repo-listen-change', adapter: 'memory', silentConnect: true, });
         repo = RepoManager.get(new User);
     });
 
@@ -38,17 +38,17 @@ describe('Repo', () => {
                 }
             }
         });
-        
+
         await repo.create({
             _id: 'TestListenChangeUser',
             name: 'John',
         });
         const document = await repo.getDoc('Users.TestListenChangeUser');
-        await repo.update({...document, name: 'John Doe'});
+        await repo.update({ ...document, name: 'John Doe', });
         const docs = await repo.raw().allDocs({
             include_docs: true,
         });
         expect(docs).toBeTruthy();
-
+        await new Promise((res) => setTimeout(res, 1000));
     });
 });
