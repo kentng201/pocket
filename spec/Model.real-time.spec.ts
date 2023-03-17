@@ -1,5 +1,5 @@
-import { DatabaseManager } from 'src/manager/DatabaseManager';
-import { setRealtime } from 'src/real-time/RealTimeModel';
+import { DatabaseManager } from '../src/manager/DatabaseManager';
+import { setRealtime } from '../src/real-time/RealTimeModel';
 import { Model } from '../src/model/Model';
 
 describe('Model Real Time', () => {
@@ -11,12 +11,12 @@ describe('Model Real Time', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect('real-time-model', { dbName: 'real-time-model', adapter: 'memory', silentConnect: true });
+        await DatabaseManager.connect('real-time-model', { dbName: 'real-time-model', adapter: 'memory', silentConnect: true, });
     });
 
     it('should be real time synced when there is change', async () => {
         setRealtime(true);
-        const originalUser = await RealTimeUser.create({
+        const originalUser = await RealTimeUser.create<RealTimeUser>({
             _id: 'real-time',
             name: 'Title-1',
         });

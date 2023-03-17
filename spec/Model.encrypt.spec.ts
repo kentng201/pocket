@@ -1,4 +1,5 @@
 import { DatabaseManager } from '../src/manager/DatabaseManager';
+import { setRealtime } from '../src/real-time/RealTimeModel';
 import { RepoManager } from '../src/manager/RepoManager';
 import { Repo } from '../src/repo/Repo';
 import { Model } from '../src/model/Model';
@@ -8,6 +9,7 @@ const dbName = 'model-encrypt';
 describe('Model Encrypt', () => {
     class EncryptUser extends Model {
         static dbName = dbName;
+        static realtimeUpdate = true;
 
         name!: string;
         password?: string;
@@ -26,6 +28,7 @@ describe('Model Encrypt', () => {
             adapter: 'memory',
             silentConnect: true,
         });
+        setRealtime(true);
         repo = RepoManager.get(new EncryptUser);
     });
 
@@ -35,15 +38,15 @@ describe('Model Encrypt', () => {
             include_docs: true,
             live: true,
         }).on('change', function (change) {
-            if (change.doc?._id === 'Users.TestEncryptUser') {
+            if (change.doc?._id === 'EncryptUsers.TestEncryptUser') {
                 if (change.doc?._rev.includes('1-')) {
                     expect(change.doc).toEqual(jasmine.objectContaining({
-                        _id: 'Users.TestEncryptUser',
+                        _id: 'EncryptUsers.TestEncryptUser',
                         name: 'John',
                     }));
                 } else {
                     expect(change.doc).toEqual(jasmine.objectContaining({
-                        _id: 'Users.TestEncryptUser',
+                        _id: 'EncryptUsers.TestEncryptUser',
                         name: 'Jane',
                     }));
                 }
@@ -54,11 +57,13 @@ describe('Model Encrypt', () => {
             _id: 'TestEncryptUser',
             name: 'John',
         }) as EncryptUser;
+        expect(user._id).toBe('EncryptUsers.TestEncryptUser');
+        const anotherUser = await EncryptUser.find(user._id) as EncryptUser;
         user.name = 'Jane';
         await user.save();
+
         await new Promise((res) => setTimeout(res, 1000));
-        const savedUser = await EncryptUser.find(user._id);
-        expect(savedUser).toEqual(user);
+        expect(anotherUser).toEqual(user);
 
         // generate random 10 users
         await Promise.all(new Array(10).fill(0).map(
