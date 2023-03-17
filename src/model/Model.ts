@@ -150,7 +150,7 @@ export class Model {
         return result;
     }
 
-    static async find<T extends Model>(primaryKey: string | string): Promise<T | undefined> {
+    static async find<T extends Model>(this: ModelStatic<T>, primaryKey: string | string): Promise<T | undefined> {
         // @ts-ignore
         const item = await (this as unknown as typeof Model).repo<T>().getDoc(primaryKey);
         if (!item) return undefined;
