@@ -6,7 +6,7 @@ import { ApiRepo } from 'src/repo/ApiRepo';
 
 const operators = ['=', '>', '>=', '<', '<=', '!=', 'in', 'not in', 'between', 'like',] as const;
 export type Operator = typeof operators[number];
-export type OperatorValue<T extends Model, Key extends keyof T, O extends Operator> = 
+export type OperatorValue<T extends Model, Key extends keyof T, O extends Operator> =
     O extends 'in' ? ModelValue<T, Key>[]
     : O extends 'not in' ? ModelValue<T, Key>[]
     : O extends 'between' ? [ModelValue<T, Key>, ModelValue<T, Key>]
@@ -19,16 +19,16 @@ export type QueryBuilderFunction<T extends Model> = (query: QueryBuilder<T>) => 
 
 function toMangoOperator(operator: Operator): string {
     switch (operator) {
-    case '=': return '$eq';
-    case '!=': return '$ne';
-    case '>': return '$gt';
-    case '>=': return '$gte';
-    case '<': return '$lt';
-    case '<=': return '$lte';
-    case 'in': return '$in';
-    case 'not in': return '$nin';
-    case 'between': return '$gte';
-    case 'like': return '$regex';
+        case '=': return '$eq';
+        case '!=': return '$ne';
+        case '>': return '$gt';
+        case '>=': return '$gte';
+        case '<': return '$lt';
+        case '<=': return '$lte';
+        case 'in': return '$in';
+        case 'not in': return '$nin';
+        case 'between': return '$gte';
+        case 'like': return '$regex';
     }
 }
 function toMangoQuery<T extends Model, Key extends ModelKey<T>, O extends Operator>(field: Key, operator: O, value: OperatorValue<T, Key, O>): PouchDB.Find.Selector {
@@ -85,7 +85,7 @@ export class QueryBuilder<T extends Model> {
         this.dbName = dbName;
         this.modelClass = modelClass;
         this.relationships = relationships || [];
-        this.queries = {selector: {$and: [],},};
+        this.queries = { selector: { $and: [], }, };
         this.isOne = isOne;
         this.db = DatabaseManager.get(this.dbName) as PouchDB.Database<T>;
         if (!this.db) throw new Error(`Database ${this.dbName} not found`);
@@ -124,7 +124,7 @@ export class QueryBuilder<T extends Model> {
     where<Key extends ModelKey<T>, O extends Operator>(field: Key, operator: O, value: OperatorValue<T, Key, O>): this;
     where<Key extends ModelKey<T>, O extends Operator>(...args: (ModelKey<T> | Operator | OperatorValue<T, Key, O>)[]) {
         if (args.length === 2) args = [args[0], '=', args[1],];
-            
+
         if (args.length === 3) {
             const query = toMangoQuery(args[0] as any, args[1] as any, args[2] as any);
             this.queries.selector.$and.push(query);
@@ -261,10 +261,10 @@ export class QueryBuilder<T extends Model> {
         let model;
         try {
             // @ts-ignore
-            model  = new this.modelClass() as T;
+            model = new this.modelClass() as T;
         } catch (error) {
             // @ts-ignore
-            model  = new this.modelClass.constructor() as T;
+            model = new this.modelClass.constructor() as T;
         }
         model.fill(item);
         model._dirty = {};
