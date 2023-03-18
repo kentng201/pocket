@@ -42,34 +42,42 @@ describe('Model Child', () => {
         userId!: string;
         number!: string;
         relationships = {
-            user: () => this.belongsTo(User),
+            user: () => this.belongsTo(User, 'userId', '_id'),
         } as {
             user: () => QueryBuilder<User>;
         };
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true });
+        await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
     });
 
     it('should be able to save with relationships', async () => {
         const user = await User.create({
             name: 'John',
             posts: [
-                new Post({ title: 'hello world' }),
-                new Post({ title: 'hi world' }),
-            ]
+                new Post({ title: 'hello world', }),
+                new Post({ title: 'hi world', }),
+            ],
         });
         expect(user).toBeInstanceOf(User);
 
         const posts = user.posts as Post[];
 
         const post1 = posts[0];
-        const dbPost1 = await Post.find(post1._id);
+        const dbPost1 = await Post.find(post1._id) as Post;
         expect(dbPost1).toBeInstanceOf(Post);
         expect(dbPost1).toEqual(jasmine.objectContaining({
             title: post1.title,
+            userId: user._id,
         }));
+
+        const dbUser = await dbPost1.relationships.user().first();
+        expect(dbUser).toBeInstanceOf(User);
+        expect(dbUser).toEqual(jasmine.objectContaining({
+            name: user.name,
+        }));
+
 
         const post2 = posts[0];
         const dbPost2 = await Post.find(post2._id);
@@ -79,7 +87,7 @@ describe('Model Child', () => {
         }));
 
         await user.update({
-            identityCard: new IdentityCard({ number: '123456' })
+            identityCard: new IdentityCard({ number: '123456', }),
         });
         const card = user.identityCard as IdentityCard;
         const dbCard = await IdentityCard.find(card._id);

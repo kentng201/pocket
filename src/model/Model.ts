@@ -8,11 +8,12 @@ import { hasMany } from 'src/relationships/HasMany';
 import { belongsToMany } from 'src/relationships/BelongsToMany';
 
 import moment from 'moment';
-import pluralize from 'pluralize';
+import pluralize, { singular } from 'pluralize';
 import { ModelKey, ModelStatic, ModelType, NewModelType } from 'src/definitions/Model';
 import { APIAutoConfig } from 'src/definitions/APIAutoConfig';
 import { addWeakRef } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
+import { lowerCaseFirst } from 'src/helpers/stringHelper';
 export class Model {
     static collectionName?: string;
     static dbName: string = 'default';
@@ -191,6 +192,8 @@ export class Model {
                     const children = this[field] as Model[];
                     const newChildren = await Promise.all(children.map(async (child) => {
                         const newChild = new (child.constructor as ModelStatic<Model>)();
+                        const foreignKey = `${lowerCaseFirst(singular(this.cName))}Id` as ModelKey<Model>;
+                        child[foreignKey] = this._id;
                         newChild.fill(child);
                         await newChild.save();
                         newChild._dirty = {};
@@ -202,6 +205,10 @@ export class Model {
                 const query = this.relationships?.[field]?.();
                 if (query?.getRelationshipType() === RelationshipType.HAS_ONE) {
                     const child = this[field] as Model;
+                    const foreignKey = `${lowerCaseFirst(singular(this.cName))}Id` as ModelKey<Model>;
+                    if (!child[foreignKey]) {
+                        child[foreignKey] = this._id;
+                    }
                     const newChild = new (child.constructor as ModelStatic<Model>)();
                     newChild.fill(child);
                     await newChild.save();
