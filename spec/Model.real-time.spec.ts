@@ -16,10 +16,10 @@ describe('Model Real Time', () => {
 
     it('should be real time synced when there is change', async () => {
         setRealtime(true);
-        const originalUser = await RealTimeUser.create<RealTimeUser>({
+        const originalUser = await RealTimeUser.create({
             _id: 'real-time',
             name: 'Title-1',
-        });
+        }) as RealTimeUser;
         const newUser = await RealTimeUser.find(originalUser._id) as RealTimeUser;
         newUser.name = 'Title-2';
         await newUser.save();
@@ -45,6 +45,5 @@ describe('Model Real Time', () => {
         await new Promise(res => setTimeout(res, 10)); // wait 10 milli-second for every module up-to-date
         expect(newUser).toEqual(originalUser);
         expect(newUser).toEqual(anotherUser);
-
     });
 });
