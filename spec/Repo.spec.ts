@@ -92,4 +92,8 @@ describe('Repo', () => {
             }));
         }
     });
+
+    it('should not be able to delete document via repo if it does not exist', async () => {
+        expect(async () => await repo.delete('Users.User5')).toThrowError('Document not found');
+    });
 });

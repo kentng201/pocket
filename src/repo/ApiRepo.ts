@@ -19,7 +19,7 @@ export class ApiRepo<T extends Model> {
                 Authorization: `Bearer ${token}`,
             },
         });
-        return { _id, ...result.data, };
+        return result.data;
     }
     async create(attributes: NewModelType<T>): Promise<T> {
         const { resource, url, token, } = this.apiInfo;

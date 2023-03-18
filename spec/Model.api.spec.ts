@@ -15,8 +15,8 @@ describe('Model API', () => {
         static apiAuto = {
             create: true,
             update: true,
-            delete: false,
-            softDelete: false,
+            delete: true,
+            softDelete: true,
             fetchWhenMissing: true,
         } as APIAutoConfig;
 
@@ -85,7 +85,7 @@ describe('Model API', () => {
         expect(user.password).toBe('random');
     });
 
-    it('should be able manually to call delete API', async () => {
+    it('should be able to call delete API manually ', async () => {
         const user = await ApiUser.create<ApiUser>({
             name: 'Test User',
         });
@@ -93,5 +93,26 @@ describe('Model API', () => {
         const repo = ApiUser.repo();
         const apiDeleteResult = await (repo.api as ApiRepo<ApiUser>).delete(user._id);
         expect(apiDeleteResult).toBeTruthy();
+    });
+
+    it('should be able to call soft delete API', async () => {
+        const user = await ApiUser.create<ApiUser>({
+            name: 'Test User',
+        });
+
+        const repo = ApiUser.repo();
+        const apiSoftDeleteResult = await (repo.api as ApiRepo<ApiUser>).softDelete(user._id);
+        expect(apiSoftDeleteResult).toBeTruthy();
+    });
+
+    it('should be able to call resource API', async () => {
+        const repo = ApiUser.repo();
+        const apiResult = await (repo.api as ApiRepo<ApiUser>).callApi('GET', 'top-secret-users');
+        expect(apiResult).toBeTruthy();
+    });
+
+    it('should able to fallback as undefined when api not found the non_existed_user', async () => {
+        const user = await ApiUser.find<ApiUser>('ApiUsers.non_existed_user');
+        expect(user).toBeUndefined();
     });
 });
