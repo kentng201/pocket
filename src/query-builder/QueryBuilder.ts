@@ -289,7 +289,6 @@ export class QueryBuilder<T extends Model> {
     }
 
     async count() {
-        // todo: count
-        return 0;
+        return (await this.get()).length;
     }
 }

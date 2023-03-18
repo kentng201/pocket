@@ -65,7 +65,9 @@ describe('Model Encrypt', () => {
         await new Promise((res) => setTimeout(res, 1000));
         expect(anotherUser).toEqual(user);
 
-        // generate random 10 users
+    });
+
+    it('should able to generate 10 users and query with mango query when encrypted', async () => {
         await Promise.all(new Array(10).fill(0).map(
             () => EncryptUser.create({ name: 'Test' + Math.random(), })
         ));
@@ -73,5 +75,13 @@ describe('Model Encrypt', () => {
         // test if mango query still workable when setup crypto pouch
         const users = await EncryptUser.query().where('name', '>', 'Test').get();
         expect(users.length).toBe(10);
+    });
+
+    it('should able to query all users when encrypted', async () => {
+        const allUsers = await EncryptUser.all();
+        expect(allUsers.length).toBe(11);
+
+        const allUsersCount = await EncryptUser.count();
+        expect(allUsersCount).toBe(11);
     });
 });

@@ -39,20 +39,20 @@ describe('Model Hooks', () => {
 
 
     beforeEach(async () => {
-        await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true });
+        await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
     });
 
     it('should be able to run predefined beforeSave hook', async () => {
         const user = new User;
         user.name = 'John';
-        // spyOn(User, 'beforeSave');
+        spyOn(User, 'beforeSave');
         await user.save();
-        // expect(User.beforeSave).toHaveBeenCalled();
+        expect(User.beforeSave).toHaveBeenCalled();
 
         const user2 = new User;
         user2.name = 'Jane';
-        // spyOn(user2, 'setPassword');
+        spyOn(user2, 'setPassword');
         await user2.save();
-        // expect(user2.setPassword).toHaveBeenCalled();
+        expect(user2.setPassword).toHaveBeenCalled();
     });
 });

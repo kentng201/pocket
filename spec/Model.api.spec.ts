@@ -41,6 +41,14 @@ describe('Model API', () => {
         server.close();
     });
 
+    it('should throw error when get api info that not set', async () => {
+        expect(() => ApiHostManager.getApiInfo('random-api')).toThrow(new Error('API Host "random-api" not found'));
+    });
+
+    it('should throw error when set token for api', async () => {
+        expect(() => ApiHostManager.setToken('random-token', 'random-api')).toThrow(new Error('API Host "random-api" not found'));
+    });
+
     it('should be able to create a model with API', async () => {
         const user = await ApiUser.create({
             name: 'John',
