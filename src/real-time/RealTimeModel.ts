@@ -4,11 +4,8 @@ import { Model } from '..';
 
 export let isRealTime = false;
 
-const weakReferences: {[_id: string]: WeakRef<any>[]} = {};
+const weakReferences: { [_id: string]: WeakRef<any>[] } = {};
 
-export function getWeakRef(_id: string) {
-    return weakReferences[_id];
-}
 export function addWeakRef<T extends Model>(_id: string, doc: T) {
     if (!weakReferences[_id]) {
         weakReferences[_id] = [];

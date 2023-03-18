@@ -1,4 +1,5 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { setRealtime } from '../src/real-time/RealTimeModel';
 import { RepoManager } from 'src/manager/RepoManager';
 import { Model } from '../src/model/Model';
 
@@ -15,7 +16,7 @@ describe('Model', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect('model', { dbName: 'model', adapter: 'memory', silentConnect: true });
+        await DatabaseManager.connect('model', { dbName: 'model', adapter: 'memory', silentConnect: true, });
     });
 
     it('should be able to create a new model', async () => {

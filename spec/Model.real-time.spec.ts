@@ -46,4 +46,10 @@ describe('Model Real Time', () => {
         expect(newUser).toEqual(originalUser);
         expect(newUser).toEqual(anotherUser);
     });
+
+    it('should not have any real time listner when real time is disabled', async () => {
+        setRealtime(false);
+        const availableEvents = DatabaseManager.get('real-time-model').eventNames();
+        expect(availableEvents.length).toEqual(0);
+    });
 });

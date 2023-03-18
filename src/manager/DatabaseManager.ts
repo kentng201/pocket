@@ -80,7 +80,11 @@ export class DatabaseManager {
                 'There is more than one database connected. Please specify the database name.'
             );
         }
-        return this.databases[dbName];
+        const db = this.databases[dbName];
+        if (!db) {
+            throw new Error(`Database "${dbName}" not found.`);
+        }
+        return db;
     }
 
     public static close(dbName?: string) {

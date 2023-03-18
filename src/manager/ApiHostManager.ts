@@ -43,6 +43,7 @@ export class ApiHostManager {
     static setToken(token: string, name: string = 'default') {
         if (this.apiHosts[name]) {
             this.apiHosts[name].token = token;
+            return;
         }
         throw new Error(`API Host "${name}" not found`);
     }
