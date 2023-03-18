@@ -108,11 +108,13 @@ export class Model {
                 // }
 
                 if (!this._dirty) this._dirty = {};
+                if (!this._before_dirty) this._before_dirty = {};
 
-                if (key === '_dirty' || key === 'relationships') {
+                if (key === '_dirty' || key === '_before_dirty' || key === 'relationships') {
                     target[key] = value;
                     return true;
                 }
+                this._before_dirty[key] = this[key as ModelKey<this>];
                 target[key] = value;
                 this._dirty[key] = true;
 
@@ -229,6 +231,7 @@ export class Model {
         for (const field in this) {
             if (typeof field === 'function') continue;
             if (field === '_dirty') continue;
+            if (field === '_before_dirty') continue;
             if (field === '_real_time_updating') continue;
             if (field === '_fallback_api_doc') continue;
             if (field === 'relationships') continue;
@@ -272,6 +275,7 @@ export class Model {
             if (guarded && guarded.length > 0) {
                 for (const field of guarded) {
                     delete newAttributes[field as ModelKey<this>];
+                    newAttributes[field as ModelKey<this>] = this.getBeforeDirtyValue(field as ModelKey<this>);
                 }
             }
             if (this.needTimestamp) newAttributes.updatedAt = now;
@@ -294,6 +298,7 @@ export class Model {
             await (this.constructor as unknown as typeof Model).afterSave(this);
         }
         this._dirty = {};
+        this._before_dirty = {};
         return this;
     }
     async delete(): Promise<void> {
@@ -404,6 +409,7 @@ export class Model {
         for (const field in this) {
             if (typeof field === 'function') continue;
             if (field === '_dirty') continue;
+            if (field === '_before_dirty') continue;
             if (field === '_real_time_updating') continue;
             if (field === '_fallback_api_doc') continue;
             if (field === 'relationships') continue;
@@ -441,11 +447,15 @@ export class Model {
 
     // start dirty maintenance
     _dirty: { [key: string]: boolean } = {};
+    _before_dirty: { [key: string]: any } = {};
 
     isDirty(attribute?: ModelKey<this>): boolean {
         if (attribute) return !!this._dirty[attribute as string];
         // return this._dirty whereas the boolean value is true
         return Object.keys(this._dirty).some(key => this._dirty[key]);
+    }
+    getBeforeDirtyValue(attribute: ModelKey<this>): any {
+        return this._before_dirty[attribute as string];
     }
     // end dirty maintenance
 }

@@ -103,9 +103,8 @@ describe('Model', () => {
         user.name = 'new-user7';
         await user.save();
 
-        await user.update({
-            username: NEW_USERNAME,
-        });
+        user.username = NEW_USERNAME;
+        await user.save();
         expect(user.username).toEqual(OLD_USERNAME);
 
         const dbUser = await User.find(user._id as string) as User;
