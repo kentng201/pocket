@@ -16,14 +16,12 @@ export const handlers: RequestHandler[] = [
         );
     }),
     rest.get('http://pocket.test/users/ApiUsers.non_existed_user', (req, res, ctx) => {
-        console.log('goes here?');
         return res(
             ctx.status(200),
             ctx.json(null)
         );
     }),
     rest.get('http://pocket.test/users/:_id', (req, res, ctx) => {
-        console.log('find id?');
         return res(
             ctx.status(200),
             ctx.json({
