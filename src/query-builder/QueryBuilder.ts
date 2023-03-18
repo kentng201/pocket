@@ -74,7 +74,7 @@ export class QueryBuilder<T extends Model> {
     protected relationships: ModelKey<T>[];
     protected db: PouchDB.Database;
     protected apiInfo?: APIResourceInfo;
-    protected api?: ApiRepo<T>;
+    public api?: ApiRepo<T>;
 
     protected relationshipType?: RelationshipType;
 

@@ -1,5 +1,6 @@
 import { DatabaseManager } from '../src/manager/DatabaseManager';
 import { ApiHostManager } from '../src/manager/ApiHostManager';
+import { ApiRepo } from '../src/repo/ApiRepo';
 import { APIAutoConfig } from '../src/definitions/APIAutoConfig';
 import { server } from '../mocks/server';
 import { Model } from '../src/model/Model';
@@ -82,5 +83,15 @@ describe('Model API', () => {
         await user.setRandomPassword();
         expect(user.password).toBeTruthy();
         expect(user.password).toBe('random');
+    });
+
+    it('should be able manually to call delete API', async () => {
+        const user = await ApiUser.create<ApiUser>({
+            name: 'Test User',
+        });
+
+        const repo = ApiUser.repo();
+        const apiDeleteResult = await (repo.api as ApiRepo<ApiUser>).delete(user._id);
+        expect(apiDeleteResult).toBeTruthy();
     });
 });

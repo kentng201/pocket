@@ -14,7 +14,7 @@ describe('Repo', () => {
     let repo: Repo<User>;
 
     beforeEach(async () => {
-        await DatabaseManager.connect('repo', { dbName: 'repo', adapter: 'memory', silentConnect: true });
+        await DatabaseManager.connect('repo', { dbName: 'repo', adapter: 'memory', silentConnect: true, });
         repo = RepoManager.get(new User);
     });
 
@@ -45,7 +45,7 @@ describe('Repo', () => {
             _id: 'Users.User2',
             name: 'Jane',
         }));
-        const result = await repo.update({...doc, name: 'Jack'});
+        const result = await repo.update({ ...doc, name: 'Jack', });
         expect(result).toEqual(jasmine.objectContaining({
             ok: true,
             id: 'Users.User2',
@@ -76,6 +76,16 @@ describe('Repo', () => {
 
         try {
             await repo.getDoc('Users.User3');
+        } catch (e) {
+            expect(e).toEqual(jasmine.objectContaining({
+                status: 404,
+            }));
+        }
+    });
+
+    it('should not be able to get document via repo if it does not exist', async () => {
+        try {
+            await repo.getDoc('Users.User4');
         } catch (e) {
             expect(e).toEqual(jasmine.objectContaining({
                 status: 404,

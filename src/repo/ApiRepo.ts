@@ -39,7 +39,7 @@ export class ApiRepo<T extends Model> {
         });
         return result.data;
     }
-    async delete(_id: string): Promise<T> {
+    async delete(_id: string): Promise<any> {
         const { resource, url, token, } = this.apiInfo;
         const result = await axios.delete(`${url}/${resource}/${_id}`, {
             headers: {
@@ -48,7 +48,7 @@ export class ApiRepo<T extends Model> {
         });
         return result.data;
     }
-    async softDelete(_id: string): Promise<T> {
+    async softDelete(_id: string): Promise<any> {
         const { resource, url, token, } = this.apiInfo;
         const result = await axios.delete(`${url}/${resource}/${_id}/soft`, {
             headers: {

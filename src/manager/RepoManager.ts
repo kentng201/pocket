@@ -8,7 +8,7 @@ export class RepoManager {
     static get<T extends Model>(model: T): Repo<T> {
         const dbName = model.dName;
         const apiName = model.aName;
-        const apiInfo = apiName ? ApiHostManager.getApiInfo(apiName) : undefined;
+        const apiInfo = apiName ? ApiHostManager.getApiInfo(apiName) : {};
         const apiResourceInfo = {
             ...apiInfo,
             resource: model.aResource,
@@ -21,7 +21,7 @@ export class RepoManager {
 
         const collectionName = model.cName;
         if (!this.repos[collectionName]) {
-            this.repos[collectionName] = new Repo<T>(model, [], dbName, undefined, apiResourceInfo);
+            this.repos[collectionName] = new Repo<T>(model, [], dbName, undefined, Object.keys(apiResourceInfo).length > 0 ? apiResourceInfo : undefined);
         }
         return this.repos[collectionName];
     }

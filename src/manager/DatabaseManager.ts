@@ -39,34 +39,31 @@ export class DatabaseManager {
         if (config.password) {
             PouchDB.plugin(require('crypto-pouch'));
         }
-        return new Promise(async (resolve, reject) => {
-            try {
-                let pouchConfig = {} as { adapter: string; } | undefined;
-                if (config.adapter) {
-                    pouchConfig = { adapter: config.adapter, };
-                } else {
-                    pouchConfig = undefined;
-                }
-                // @ts-ignore
-                const pouchDb = new PouchDB<{ adapter: string; }>(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string };
-                if (config.password) {
-                    await (pouchDb as any).crypto(config.password);
-                }
-
-                if (!this.databases) this.databases = {};
-                if (!config.dbName) {
-                    config.dbName = DEFAULT_DB_NAME;
-                }
-                this.databases[config.dbName] = pouchDb;
-
-                if (!config.silentConnect) {
-                    console.log(`- Connected to PouchDB/CouchDB "${config.dbName}": ${url}`);
-                    console.log(`- Adapter: ${pouchDb.adapter}`);
-                }
-                resolve(true);
-            } catch (error) {
-                reject(error);
+        return new Promise(async (resolve) => {
+            let pouchConfig = {} as { adapter: string; } | undefined;
+            if (config.adapter) {
+                pouchConfig = { adapter: config.adapter, };
+            } else {
+                pouchConfig = undefined;
             }
+            // @ts-ignore
+            const pouchDb = new PouchDB<{ adapter: string; }>(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string };
+            if (config.password) {
+                await (pouchDb as any).crypto(config.password);
+            }
+
+            if (!this.databases) this.databases = {};
+            if (!config.dbName) {
+                config.dbName = DEFAULT_DB_NAME;
+            }
+            this.databases[config.dbName] = pouchDb;
+
+            if (!config.silentConnect) {
+                console.log(`- Connected to PouchDB/CouchDB "${config.dbName}": ${url}`);
+                console.log(`- Adapter: ${pouchDb.adapter}`);
+            }
+            resolve(true);
+
         });
     }
 
@@ -76,8 +73,11 @@ export class DatabaseManager {
             if (Object.keys(this.databases).length === 1) {
                 return this.databases[Object.keys(this.databases)[0]];
             }
+            if (Object.keys(this.databases).length === 0) {
+                throw new Error('No database connected.');
+            }
             throw new Error(
-                'There is more than one database connected. Please specify the database name.'
+                'There is more than one database connected. Please specify the database name to get.'
             );
         }
         const db = this.databases[dbName];
@@ -92,9 +92,11 @@ export class DatabaseManager {
             // find the only database
             if (Object.keys(this.databases).length === 1) {
                 dbName = Object.keys(this.databases)[0];
+            } else if (Object.keys(this.databases).length === 0) {
+                throw new Error('No database connected.');
             } else {
                 throw new Error(
-                    'There is more than one database connected. Please specify the database name.'
+                    'There is more than one database connected. Please specify the database name to close.'
                 );
             }
         }
