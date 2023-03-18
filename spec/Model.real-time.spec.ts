@@ -5,6 +5,7 @@ import { Model } from '../src/model/Model';
 describe('Model Real Time', () => {
     class RealTimeUser extends Model {
         static dbName = 'real-time-model';
+        static timestamp = undefined;
 
         name!: string;
         password?: string;

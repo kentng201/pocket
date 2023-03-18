@@ -18,24 +18,21 @@ export class Model {
     static collectionName?: string;
     static dbName: string = 'default';
     static readonlyFields: string[] = [];
-    static timestamp: boolean = true;
+    static timestamp?: boolean = true;
     static realtimeUpdate: boolean = true;
 
     public get cName() {
         return (this.constructor as typeof Model).collectionName || pluralize(this.constructor.name, 2);
     }
-
     public get dName() {
         return (this.constructor as typeof Model).dbName;
     }
-
     public get rtUpdate() {
         return (this.constructor as typeof Model).realtimeUpdate;
     }
-
     public get needTimestamp() {
         let timestamp = (this.constructor as typeof Model).timestamp;
-        if (timestamp === undefined) {
+        if (!timestamp) {
             timestamp = true;
         }
         return timestamp;
@@ -101,6 +98,7 @@ export class Model {
     public replicate(): this {
         const replicatedModel = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
         delete replicatedModel._id;
+        delete replicatedModel._rev;
         return replicatedModel;
     }
     // end of object construction

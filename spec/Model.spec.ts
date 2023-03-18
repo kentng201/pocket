@@ -12,8 +12,8 @@ describe('Model', () => {
         username?: string;
         password?: string;
 
-        getRandomPassword() {
-            return Math.random().toString();
+        setRandomPassword() {
+            this.password = Math.random().toString();
         }
     }
 
@@ -70,7 +70,7 @@ describe('Model', () => {
         expect(doc).toBeTruthy();
         expect(doc._dirty).not.toBeDefined();
         expect(doc.relationships).not.toBeDefined();
-        expect(doc.getRandomPassword).not.toBeDefined();
+        expect(doc.setRandomPassword).not.toBeDefined();
     });
 
     it('should be able to delete a model', async () => {
@@ -109,5 +109,22 @@ describe('Model', () => {
 
         const dbUser = await User.find(user._id as string) as User;
         expect(dbUser.username).toEqual(OLD_USERNAME);
+    });
+
+    it('should be able to replicate a model without _id', async () => {
+        const user = new User;
+        user.name = 'new-user8';
+        await user.save();
+
+        const replicatedUser = user.replicate();
+        replicatedUser.setRandomPassword();
+        expect(replicatedUser).toEqual(jasmine.objectContaining({
+            name: 'new-user8',
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+        }));
+        expect(replicatedUser._id).not.toBeDefined();
+        expect(replicatedUser._rev).not.toBeDefined();
+        expect(replicatedUser.password).toBeTruthy();
     });
 });
