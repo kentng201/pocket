@@ -1,5 +1,6 @@
 import { Model } from 'src/model/Model';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { ApiHostManager } from '../src/manager/ApiHostManager';
 import { RepoManager } from 'src/manager/RepoManager';
 import { Repo } from 'src/repo/Repo';
 
@@ -11,11 +12,19 @@ describe('Repo', () => {
         password?: string;
     }
 
+    class UserTestApi extends Model {
+        static apiName = 'default';
+
+        name!: string;
+        password?: string;
+    }
+
     let repo: Repo<User>;
 
     beforeEach(async () => {
         await DatabaseManager.connect('repo', { dbName: 'repo', adapter: 'memory', silentConnect: true, });
         repo = RepoManager.get(new User);
+        ApiHostManager.addHost('http://test.io');
     });
 
     it('should be able to create document via repo', async () => {

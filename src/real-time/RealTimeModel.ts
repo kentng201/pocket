@@ -22,7 +22,6 @@ export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
         if (field === 'relationships') continue;
         if (field === 'needTimestamp') continue;
         if (field === 'cName') continue;
-        if (field === 'modelName') continue;
         if (doc.relationships && Object.keys(doc.relationships).includes(field)) continue;
         newAttributes[field as keyof Partial<T>] = doc[field as ModelKey<Partial<T>>];
     }
@@ -35,6 +34,7 @@ export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
             sameIdDoc.fill(newAttributes);
             sameIdDoc._real_time_updating = false;
             sameIdDoc._dirty = {};
+            sameIdDoc._before_dirty = {};
         }
     });
 }

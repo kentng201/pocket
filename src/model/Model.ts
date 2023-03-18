@@ -21,32 +21,16 @@ export class Model {
     static timestamp: boolean = true;
     static realtimeUpdate: boolean = true;
 
-    public static get modelName() {
-        return (new this).constructor.name;
-    }
-
     public get cName() {
         return (this.constructor as typeof Model).collectionName || pluralize(this.constructor.name, 2);
-    }
-
-    public static get cName() {
-        return this.collectionName || pluralize((new this()).constructor.name, 2);
     }
 
     public get dName() {
         return (this.constructor as typeof Model).dbName;
     }
 
-    public static get dName() {
-        return this.dbName;
-    }
-
     public get rtUpdate() {
         return (this.constructor as typeof Model).realtimeUpdate;
-    }
-
-    public static get rtUpdate() {
-        return this.realtimeUpdate;
     }
 
     public get needTimestamp() {
@@ -65,22 +49,11 @@ export class Model {
     public get aName() {
         return (this.constructor as typeof Model).apiName;
     }
-    public static get aName() {
-        return this.apiName;
-    }
-
     public get aResource() {
         return (this.constructor as typeof Model).apiResource;
     }
-    public static get aResource() {
-        return this.apiResource;
-    }
-
     public get aAuto() {
         return (this.constructor as typeof Model).apiAuto;
-    }
-    public static get aAutoCreate() {
-        return this.apiAuto;
     }
     // end of API feature
 
@@ -114,7 +87,9 @@ export class Model {
                     target[key] = value;
                     return true;
                 }
-                this._before_dirty[key] = this[key as ModelKey<this>];
+                if (this[key as ModelKey<this>]) {
+                    this._before_dirty[key] = this[key as ModelKey<this>];
+                }
                 target[key] = value;
                 this._dirty[key] = true;
 
@@ -237,7 +212,6 @@ export class Model {
             if (field === 'relationships') continue;
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;
-            if (field === 'modelName') continue;
             if (this._dirty && !this._dirty[field]) continue;
             if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
             newAttributes[field] = this[field];
@@ -415,7 +389,6 @@ export class Model {
             if (field === 'relationships') continue;
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;
-            if (field === 'modelName') continue;
             if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
             json[field] = this[field];
         }
