@@ -18,7 +18,9 @@ export class Repo<T extends Model> extends QueryBuilder<T> {
                 const result = await this.api?.get(_id);
                 if (!result) return undefined;
                 delete (result as any)._rev;
-                _id = _id.includes('.') ? _id.split('.')[1] : _id;
+                if (_id.includes(this.modelClass.cName)) {
+                    _id = _id.replace(`${this.modelClass.cName}.`, '');
+                }
                 const createdItem = await this.create({ ...result, _id, } as NewModelType<T>, true);
                 result._fallback_api_doc = true;
                 result._rev = createdItem.rev;
@@ -32,7 +34,9 @@ export class Repo<T extends Model> extends QueryBuilder<T> {
         if (!attributes._id) {
             attributes._id = String(uuid.generate());
         }
-        attributes._id = `${this.modelClass.cName}.${attributes._id}`;
+        if (!attributes._id.includes(this.modelClass.cName)) {
+            attributes._id = `${this.modelClass.cName}.${attributes._id}`;
+        }
         const result = await this.db.post(attributes);
         if (this.apiInfo && this.apiInfo.apiAutoCreate && !fallbackCreate) {
             await this.api?.create(attributes);

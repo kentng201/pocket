@@ -20,6 +20,23 @@ describe('Repo', () => {
 
     it('should be able to create document via repo', async () => {
         const result = await repo.create({
+            _id: 'Users.User0',
+            name: 'John',
+        });
+        expect(result).toEqual(jasmine.objectContaining({
+            ok: true,
+            id: 'Users.User0',
+        }));
+
+        const doc = await repo.getDoc('Users.User0');
+        expect(doc).toEqual(jasmine.objectContaining({
+            _id: 'Users.User0',
+            name: 'John',
+        }));
+    });
+
+    it('should be able to create document via repo without model name prefix', async () => {
+        const result = await repo.create({
             _id: 'User1',
             name: 'John',
         });
