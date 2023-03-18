@@ -6,8 +6,10 @@ import { Model } from '../src/model/Model';
 describe('Model', () => {
     class User extends Model {
         static dbName = 'model';
+        static readonlyFields = ['username',];
 
         name!: string;
+        username?: string;
         password?: string;
 
         getRandomPassword() {
@@ -80,5 +82,33 @@ describe('Model', () => {
 
         const deletedUser = await User.find(user._id as string);
         expect(deletedUser).not.toBeTruthy();
+    });
+
+    it('should be able to check if a attribute is dirty', () => {
+        const user = new User;
+        user.name = 'new-user6';
+        const nameIsDirty = user.isDirty('name');
+        expect(nameIsDirty).toEqual(true);
+
+        const modelIsDirty = user.isDirty();
+        expect(modelIsDirty).toEqual(true);
+    });
+
+    it('should only to set once for readonly field', async () => {
+        const OLD_USERNAME = 'old-username';
+        const NEW_USERNAME = 'new-username';
+
+        const user = new User;
+        user.username = OLD_USERNAME;
+        user.name = 'new-user7';
+        await user.save();
+
+        await user.update({
+            username: NEW_USERNAME,
+        });
+        expect(user.username).toEqual(OLD_USERNAME);
+
+        const dbUser = await User.find(user._id as string) as User;
+        expect(dbUser.username).toEqual(OLD_USERNAME);
     });
 });

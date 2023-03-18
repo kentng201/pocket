@@ -269,8 +269,7 @@ export class Model {
             }
         } else {
             const guarded = (this.constructor as typeof Model).readonlyFields;
-            // remove guarded fields
-            if (guarded) {
+            if (guarded && guarded.length > 0) {
                 for (const field of guarded) {
                     delete newAttributes[field as ModelKey<this>];
                 }
