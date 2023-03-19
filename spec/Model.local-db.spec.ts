@@ -1,5 +1,5 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
-import { Model } from '../src/model/Model';
+import { Model } from 'src/model/Model';
 
 describe('Model Local DB', () => {
     class User extends Model {
@@ -10,7 +10,7 @@ describe('Model Local DB', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect('model', { dbName: 'model', adapter: 'memory', silentConnect: true });
+        await DatabaseManager.connect('model', { dbName: 'model', adapter: 'memory', silentConnect: true, });
     });
 
     it('should be able to find a model using query builder', async () => {
@@ -18,7 +18,7 @@ describe('Model Local DB', () => {
             name: 'new-user2',
         });
 
-        const userFromMangoQuery = await User.query().where('_id', '=', createdUser._id as string).first();
+        const userFromMangoQuery = await User.query().where('_id', '=', createdUser._id).first();
         expect(userFromMangoQuery).toBeTruthy();
         expect(userFromMangoQuery).toEqual(createdUser);
     });

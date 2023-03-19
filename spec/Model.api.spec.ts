@@ -1,9 +1,9 @@
-import { DatabaseManager } from '../src/manager/DatabaseManager';
-import { ApiHostManager } from '../src/manager/ApiHostManager';
-import { ApiRepo } from '../src/repo/ApiRepo';
-import { APIAutoConfig } from '../src/definitions/APIAutoConfig';
+import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { ApiHostManager } from 'src/manager/ApiHostManager';
+import { ApiRepo } from 'src/repo/ApiRepo';
+import { APIAutoConfig } from 'src/definitions/APIAutoConfig';
 import { server } from '../mocks/server';
-import { Model } from '../src/model/Model';
+import { Model } from 'src/model/Model';
 
 const dbName = 'model-api';
 

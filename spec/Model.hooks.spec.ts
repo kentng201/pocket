@@ -1,5 +1,5 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
-import { Model } from '../src/model/Model';
+import { Model } from 'src/model/Model';
 
 const dbName = 'model-hooks';
 

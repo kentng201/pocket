@@ -1,6 +1,6 @@
-import { DatabaseManager } from '../src/manager/DatabaseManager';
-import { setRealtime } from '../src/real-time/RealTimeModel';
-import { Model } from '../src/model/Model';
+import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { setRealtime } from 'src/real-time/RealTimeModel';
+import { Model } from 'src/model/Model';
 
 describe('Model Real Time', () => {
     class RealTimeUser extends Model {
@@ -24,7 +24,7 @@ describe('Model Real Time', () => {
         const originalUser = await RealTimeUser.create({
             _id: 'real-time',
             name: 'Title-1',
-        }) as RealTimeUser;
+        });
         const newUser = await RealTimeUser.find(originalUser._id) as RealTimeUser;
         newUser.name = 'Title-2';
         newUser.setRandomPassword();

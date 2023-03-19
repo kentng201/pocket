@@ -1,5 +1,5 @@
-import { QueryBuilder } from '../src/query-builder/QueryBuilder';
-import { Model } from '../src/model/Model';
+import { QueryBuilder } from 'src/query-builder/QueryBuilder';
+import { Model } from 'src/model/Model';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 
 describe('QueryBuilder Basic', () => {
@@ -23,7 +23,7 @@ describe('QueryBuilder Basic', () => {
         expect(queryBuilder.getQuery()).toEqual({
             selector: {
                 $and: [
-                    {name: { $eq: 'John' }},
+                    { name: { $eq: 'John' } },
                 ]
             }
         });
@@ -36,8 +36,8 @@ describe('QueryBuilder Basic', () => {
             selector: {
                 $and: [{
                     $or: [
-                        {name: { $eq: 'John' }},
-                        {name: { $eq: 'Jane' }},
+                        { name: { $eq: 'John' } },
+                        { name: { $eq: 'Jane' } },
                     ]
                 }],
             },
@@ -53,8 +53,8 @@ describe('QueryBuilder Basic', () => {
         expect(queryBuilder.getQuery()).toEqual({
             selector: {
                 $and: [
-                    {name: { $in: ['John', 'Jane'] }},
-                    {password: { $eq: 'qwer1234' }},
+                    { name: { $in: ['John', 'Jane'] } },
+                    { password: { $eq: 'qwer1234' } },
                 ]
             }
         });
@@ -67,8 +67,8 @@ describe('QueryBuilder Basic', () => {
             selector: {
                 $and: [{
                     $or: [
-                        {name: { $eq: 'John' }},
-                        {password: { $gte: 'qwer1234' }},
+                        { name: { $eq: 'John' } },
+                        { password: { $gte: 'qwer1234' } },
                     ]
                 }],
             },
@@ -77,13 +77,13 @@ describe('QueryBuilder Basic', () => {
 
     it('should create multiple or where by passing model object', async () => {
         const queryBuilder = new QueryBuilder(new User, undefined, 'test');
-        queryBuilder.orWhere({  name: 'John', password: ['>=', 'qwer1234'] });
+        queryBuilder.orWhere({ name: 'John', password: ['>=', 'qwer1234'] });
         expect(queryBuilder.getQuery()).toEqual({
             selector: {
                 $and: [{
                     $or: [
-                        {name: { $eq: 'John' }},
-                        {password: { $gte: 'qwer1234' }},
+                        { name: { $eq: 'John' } },
+                        { password: { $gte: 'qwer1234' } },
                     ]
                 }],
             },
@@ -101,19 +101,19 @@ describe('QueryBuilder Basic', () => {
             selector: {
                 $and: [{
                     $or: [
-                        {name: { $eq: 'John' }},
-                        {password: { $eq: 'qwer1234' }},
-                        {password: { $eq: 'qwer12345' }},
+                        { name: { $eq: 'John' } },
+                        { password: { $eq: 'qwer1234' } },
+                        { password: { $eq: 'qwer12345' } },
                     ]
                 }, {
                     $or: [
-                        {name: { $eq: 'Jane' }},
-                        {password: { $eq: '24680' }},
+                        { name: { $eq: 'Jane' } },
+                        { password: { $eq: '24680' } },
                     ]
                 }],
             },
         });
-        
+
 
     });
 });

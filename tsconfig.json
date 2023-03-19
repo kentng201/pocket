@@ -1,33 +1,35 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "rootDir": ".",
-    "paths": {
-      "src/*": [
-        "./src/*"
-      ]
+    "compilerOptions": {
+        "baseUrl": ".",
+        "rootDir": ".",
+        "paths": {
+            "src/*": [
+                "./src/*"
+            ]
+        },
+        "lib": [
+            "es2021"
+        ],
+        "outDir": "./dist",
+        "sourceMap": true,
+        "target": "es2021",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "declaration": true,
+        "strict": true,
+        "allowJs": true
     },
-    "lib": ["es2021"],
-    "outDir": "./dist",
-    "sourceMap": true,
-    "target": "es2021",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "declaration": true,
-    "strict": true,
-    "allowJs": true
-  },
-  "include": [
-    "src/",
-    "index.ts",
-    "**/*.tgz",
-    "**/*.patch"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/__tests__/*",
-    "dist",
-    "spec"
-  ]
+    "include": [
+        "src/",
+        "spec/",
+        "index.ts",
+        "**/*.tgz",
+        "**/*.patch"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/__tests__/*",
+        "dist"
+    ]
 }

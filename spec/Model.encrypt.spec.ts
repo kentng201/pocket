@@ -1,8 +1,8 @@
-import { DatabaseManager } from '../src/manager/DatabaseManager';
-import { setRealtime } from '../src/real-time/RealTimeModel';
-import { RepoManager } from '../src/manager/RepoManager';
-import { Repo } from '../src/repo/Repo';
-import { Model } from '../src/model/Model';
+import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { setRealtime } from 'src/real-time/RealTimeModel';
+import { RepoManager } from 'src/manager/RepoManager';
+import { Repo } from 'src/repo/Repo';
+import { Model } from 'src/model/Model';
 
 const dbName = 'model-encrypt';
 
@@ -56,7 +56,7 @@ describe('Model Encrypt', () => {
         const user = await EncryptUser.create({
             _id: 'TestEncryptUser',
             name: 'John',
-        }) as EncryptUser;
+        });
         expect(user._id).toBe('EncryptUsers.TestEncryptUser');
         const anotherUser = await EncryptUser.find(user._id) as EncryptUser;
         user.name = 'Jane';

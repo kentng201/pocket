@@ -1,5 +1,5 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
-import { Model } from '../src/model/Model';
+import { Model } from 'src/model/Model';
 
 const dbName = 'model-hooks';
 
@@ -24,7 +24,7 @@ describe('Model', () => {
         user.name = 'John';
         await user.save();
 
-        const clonedUser = {...user};
+        const clonedUser = { ...user };
         await user.delete();
 
         const savingClonedUser = new User;

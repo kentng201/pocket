@@ -1,4 +1,4 @@
-import { ApiHostManager } from '../src/manager/ApiHostManager';
+import { ApiHostManager } from 'src/manager/ApiHostManager';
 
 describe('API Host Manager', () => {
     it('should be able to add api host with removing trailing dash', async () => {

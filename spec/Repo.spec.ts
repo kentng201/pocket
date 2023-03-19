@@ -1,8 +1,8 @@
-import { Model } from '../src/model/Model';
-import { DatabaseManager } from '../src/manager/DatabaseManager';
-import { ApiHostManager } from '../src/manager/ApiHostManager';
-import { RepoManager } from '../src/manager/RepoManager';
-import { Repo } from '../src/repo/Repo';
+import { Model } from 'src/model/Model';
+import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { ApiHostManager } from 'src/manager/ApiHostManager';
+import { RepoManager } from 'src/manager/RepoManager';
+import { Repo } from 'src/repo/Repo';
 
 describe('Repo', () => {
     class User extends Model {

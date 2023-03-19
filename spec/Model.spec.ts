@@ -1,6 +1,6 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { RepoManager } from 'src/manager/RepoManager';
-import { Model } from '../src/model/Model';
+import { Model } from 'src/model/Model';
 
 describe('Model', () => {
     class User extends Model {
@@ -36,7 +36,7 @@ describe('Model', () => {
             name: 'new-user2',
         });
 
-        const user = await User.find(createdUser._id as string);
+        const user = await User.find(createdUser._id);
 
         expect(user).toBeTruthy();
         expect(user).toEqual(jasmine.objectContaining({
@@ -65,7 +65,7 @@ describe('Model', () => {
         user._id = 'new-user4';
         await user.save();
 
-        const doc = await RepoManager.get(new User).getDoc(user._id) as any;
+        const doc = await RepoManager.get(new User).getDoc(user._id) as User;
         expect(doc).toBeTruthy();
         expect(doc._dirty).not.toBeDefined();
         expect(doc.relationships).not.toBeDefined();

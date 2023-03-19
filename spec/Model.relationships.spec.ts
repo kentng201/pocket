@@ -1,7 +1,7 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { RepoManager } from 'src/manager/RepoManager';
 import { QueryBuilder } from 'src/query-builder/QueryBuilder';
-import { Model } from '../src/model/Model';
+import { Model } from 'src/model/Model';
 
 const dbName = 'model';
 
@@ -37,7 +37,7 @@ describe('Model Relationships', () => {
     beforeEach(async () => {
         await DatabaseManager.connect(dbName, { dbName: 'real-time-model', adapter: 'memory', silentConnect: true });
     });
-    
+
     it('should be able to save without relationships', async () => {
         const user = await User.create({
             name: 'John',

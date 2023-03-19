@@ -1,6 +1,6 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { QueryBuilder } from 'src/query-builder/QueryBuilder';
-import { Model } from '../src/model/Model';
+import { Model } from 'src/model/Model';
 
 const dbName = 'model';
 

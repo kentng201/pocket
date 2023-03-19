@@ -1,4 +1,4 @@
-import { DatabaseManager, setEnvironement } from '../src/manager/DatabaseManager';
+import { DatabaseManager, setEnvironement } from 'src/manager/DatabaseManager';
 import fs from 'fs';
 
 describe('Database Manager', () => {

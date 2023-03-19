@@ -1,6 +1,6 @@
-import { DatabaseManager } from '../src/manager/DatabaseManager';
-import { setRealtime } from '../src/real-time/RealTimeModel';
-import { Model } from '../src/model/Model';
+import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { setRealtime } from 'src/real-time/RealTimeModel';
+import { Model } from 'src/model/Model';
 
 describe('Model Not Real Time', () => {
     class NotRealTimeUser extends Model {
