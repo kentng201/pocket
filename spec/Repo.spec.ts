@@ -1,8 +1,8 @@
-import { Model } from 'src/model/Model';
-import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { Model } from '../src/model/Model';
+import { DatabaseManager } from '../src/manager/DatabaseManager';
 import { ApiHostManager } from '../src/manager/ApiHostManager';
-import { RepoManager } from 'src/manager/RepoManager';
-import { Repo } from 'src/repo/Repo';
+import { RepoManager } from '../src/manager/RepoManager';
+import { Repo } from '../src/repo/Repo';
 
 describe('Repo', () => {
     class User extends Model {
@@ -13,18 +13,22 @@ describe('Repo', () => {
     }
 
     class UserTestApi extends Model {
+        static dbName = 'repo';
         static apiName = 'default';
+        static apiResource = 'users';
 
         name!: string;
         password?: string;
     }
 
     let repo: Repo<User>;
+    let userTestApiRepo: Repo<UserTestApi>;
 
     beforeEach(async () => {
         await DatabaseManager.connect('repo', { dbName: 'repo', adapter: 'memory', silentConnect: true, });
         repo = RepoManager.get(new User);
-        ApiHostManager.addHost('http://test.io');
+        userTestApiRepo = RepoManager.get(new UserTestApi);
+        ApiHostManager.addHost('http://pocket.test/');
     });
 
     it('should be able to create document via repo', async () => {
@@ -125,5 +129,17 @@ describe('Repo', () => {
         } catch (e) {
             expect(e).toEqual(new Error('Document not found'));
         }
+    });
+
+    it('should be able to create document via repo with api name', async () => {
+        const apiUser = await userTestApiRepo.create({
+            _id: 'test-api-user',
+            name: 'John',
+        });
+        expect(apiUser).toEqual(jasmine.objectContaining({
+            ok: true,
+            id: 'UserTestApis.test-api-user',
+            rev: jasmine.any(String),
+        }));
     });
 });

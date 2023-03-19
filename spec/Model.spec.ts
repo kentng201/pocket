@@ -1,5 +1,4 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
-import { setRealtime } from '../src/real-time/RealTimeModel';
 import { RepoManager } from 'src/manager/RepoManager';
 import { Model } from '../src/model/Model';
 

@@ -20,8 +20,16 @@ export class RepoManager {
         } as APIResourceInfo;
 
         const collectionName = model.cName;
+        const haveApiConfig = Object
+            .keys(apiResourceInfo)
+            .filter(
+                (attribute) => !!apiResourceInfo[attribute as keyof APIResourceInfo] as boolean
+            )
+            .length > 0;
         if (!this.repos[collectionName]) {
-            this.repos[collectionName] = new Repo<T>(model, [], dbName, undefined, Object.keys(apiResourceInfo).length > 0 ? apiResourceInfo : undefined);
+            this.repos[collectionName] = new Repo<T>(
+                model, [], dbName, undefined, haveApiConfig ? apiResourceInfo : undefined
+            );
         }
         return this.repos[collectionName];
     }
