@@ -9,6 +9,10 @@ describe('Model Real Time', () => {
 
         name!: string;
         password?: string;
+
+        setRandomPassword() {
+            this.password = String(Math.random());
+        }
     }
 
     beforeEach(async () => {
@@ -23,6 +27,7 @@ describe('Model Real Time', () => {
         }) as RealTimeUser;
         const newUser = await RealTimeUser.find(originalUser._id) as RealTimeUser;
         newUser.name = 'Title-2';
+        newUser.setRandomPassword();
         await newUser.save();
         await new Promise(res => setTimeout(res, 10)); // wait 10 milli-second for every module up-to-date
         expect(newUser).toEqual(originalUser);

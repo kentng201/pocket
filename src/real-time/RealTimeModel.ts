@@ -18,7 +18,9 @@ export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
     for (const field in doc) {
         if (typeof field === 'function') continue;
         if (field === '_dirty') continue;
+        if (field === '_before_dirty') continue;
         if (field === '_real_time_updating') continue;
+        if (field === '_fallback_api_doc') continue;
         if (field === 'relationships') continue;
         if (field === 'needTimestamp') continue;
         if (field === 'cName') continue;
@@ -43,11 +45,9 @@ export function setRealtime(realTime: boolean) {
 
     isRealTime = realTime;
     const onRealTimeChange = (change: PouchDB.Core.ChangesResponseChange<any>) => {
-        if (change.doc) {
-            const _id = change.doc._id;
-            const doc = change.doc;
-            notifyWeakRef(_id, doc as Model);
-        }
+        const _id = change.doc?._id;
+        const doc = change.doc;
+        notifyWeakRef(_id, doc as Model);
     };
 
 
