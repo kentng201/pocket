@@ -5,7 +5,7 @@
     "main": "dist/src/index.js",
     "types": "dist/src/index.d.ts",
     "scripts": {
-        "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json && npm pack",
+        "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json && rm -Rf dist/mocks && rm -Rf dist/spec && npm pack",
         "lint": "eslint src/**/*.ts",
         "repl": "ts-node -r tsconfig-paths/register",
         "test": "ts-node -r tsconfig-paths/register node_modules/jasmine/bin/jasmine --config=jasmine.json",
