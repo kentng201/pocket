@@ -126,4 +126,13 @@ describe('Model', () => {
         expect(replicatedUser._rev).not.toBeDefined();
         expect(replicatedUser.password).toBeTruthy();
     });
+
+    it('should be able to check the dirty record based on first time unsave edit', async () => {
+        const user = new User;
+        user.name = 'new-user9';
+        await user.save();
+        user.name = 'test1';
+        user.name = 'test2';
+        expect(user.getBeforeDirtyValue('name')).toEqual('new-user9');
+    });
 });

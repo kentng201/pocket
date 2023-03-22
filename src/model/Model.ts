@@ -84,7 +84,7 @@ export class Model {
                     target[key] = value;
                     return true;
                 }
-                if (this[key as ModelKey<this>]) {
+                if (this[key as ModelKey<this>] && this._before_dirty[key] === undefined) {
                     this._before_dirty[key] = this[key as ModelKey<this>];
                 }
                 target[key] = value;
