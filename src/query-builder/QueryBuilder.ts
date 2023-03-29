@@ -197,7 +197,7 @@ export class QueryBuilder<T extends Model> {
 
     whereCondition(condition: QueryBuilderFunction<T> | Partial<ModelType<T>>, type: '$and' | '$or'): this {
         if (typeof condition === 'function') {
-            const newQueryBuilder = new QueryBuilder<T>(this.modelClass, []);
+            const newQueryBuilder = new QueryBuilder<T>(this.modelClass, [], this.dbName);
             (condition as QueryBuilderFunction<T>)(newQueryBuilder);
             this.queries.selector.$and = this.queries.selector.$and.concat(newQueryBuilder.queries.selector.$and || []);
         } else if (typeof condition === 'object') {
