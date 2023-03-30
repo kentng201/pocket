@@ -242,11 +242,28 @@ export class QueryBuilder<T extends Model> {
         if (this.relationships && model.relationships) {
             for (const r of this.relationships) {
                 try {
-                    const queryBuilder = await model.relationships[r as string]() as QueryBuilder<T>;
-                    if (queryBuilder.isOne) {
-                        Object.assign(model, { [r]: await queryBuilder.first(), });
+                    if ((r as string).includes('.')) {
+                        const mainRelationship = (r as string).split('.')[0];
+                        const subRelationships = (r as string).split('.').slice(1).join('.');
+                        const mainModel = model[mainRelationship as keyof T] as Model | Model[];
+                        if (mainModel && mainModel instanceof Model) {
+                            // @ts-ignore
+                            const newMainModel = await new QueryBuilder(mainModel as typeof Model, [subRelationships,], this.dbName).bindRelationship(mainModel);
+                            // @ts-ignore
+                            model[mainRelationship as keyof T] = newMainModel;
+                        } else if (mainModel && mainModel instanceof Array) {
+                            // @ts-ignore
+                            const newMainModels = await Promise.all(mainModel.map(async (m) => await new QueryBuilder(m as typeof Model, [subRelationships,], this.dbName).bindRelationship(m)));
+                            // @ts-ignore
+                            model[mainRelationship as keyof T] = newMainModels;
+                        }
                     } else {
-                        Object.assign(model, { [r]: await queryBuilder.get(), });
+                        const queryBuilder = await model.relationships[r as string]() as QueryBuilder<T>;
+                        if (queryBuilder.isOne) {
+                            Object.assign(model, { [r]: await queryBuilder.first(), });
+                        } else {
+                            Object.assign(model, { [r]: await queryBuilder.get(), });
+                        }
                     }
                 } catch (error) {
                     throw new Error(`Relationship "${r as string}" does not exists in model ${model.constructor.name}`);

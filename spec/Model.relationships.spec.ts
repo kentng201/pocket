@@ -27,15 +27,27 @@ describe('Model Relationships', () => {
         title!: string;
         userId!: string;
         content?: string;
+        attachments?: Attachment[];
         relationships = {
             user: () => this.belongsTo(User),
+            attachments: () => this.hasMany(Attachment, '_id', 'postId'),
         } as {
             user: () => QueryBuilder<User>;
+            attachments: () => QueryBuilder<Attachment>;
         };
     }
 
+    class Attachment extends Model {
+        static dbName = dbName;
+
+        name!: string;
+        url!: string;
+        postId!: string;
+    }
+
+
     beforeEach(async () => {
-        await DatabaseManager.connect(dbName, { dbName: 'real-time-model', adapter: 'memory', silentConnect: true });
+        await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
     });
 
     it('should be able to save without relationships', async () => {
@@ -44,8 +56,8 @@ describe('Model Relationships', () => {
         });
         expect(user).toBeInstanceOf(User);
 
-        const post1 = await Post.create({ title: 'hello world', userId: user._id });
-        const post2 = await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id });
+        const post1 = await Post.create({ title: 'hello world', userId: user._id, });
+        const post2 = await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
 
         await user.load('posts');
         expect(user.posts?.length).toBe(2);
@@ -75,9 +87,9 @@ describe('Model Relationships', () => {
     });
 
     it('should not save relationship detail within the model', async () => {
-        const user = await User.create({ name: 'Jane' });
-        await Post.create({ title: 'hello world', userId: user._id });
-        await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id });
+        const user = await User.create({ name: 'Jane', });
+        await Post.create({ title: 'hello world', userId: user._id, });
+        await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
         await user.load('posts');
         user.name = 'John';
         await user.save();
@@ -92,9 +104,9 @@ describe('Model Relationships', () => {
     });
 
     it('should able to save sub-relationship', async () => {
-        const user = await User.create({ name: 'Jane' });
-        await Post.create({ title: 'hello world', userId: user._id });
-        await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id });
+        const user = await User.create({ name: 'Jane', });
+        await Post.create({ title: 'hello world', userId: user._id, });
+        await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
         await user.load('posts');
 
         user.posts![0].title = 'Hi world';
@@ -110,9 +122,9 @@ describe('Model Relationships', () => {
     });
 
     it('should able to load sub-relationship', async () => {
-        const user = await User.create({ name: 'Jane' });
-        await Post.create({ title: 'hello world', userId: user._id });
-        await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id });
+        const user = await User.create({ name: 'Jane', });
+        await Post.create({ title: 'hello world', userId: user._id, });
+        await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
         const dbUser = await User.with('posts').find(user._id);
 
         expect(dbUser?.posts?.length).toBe(2);
@@ -123,5 +135,32 @@ describe('Model Relationships', () => {
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
         }));
+    });
+
+    it('should able to load multi level sub-relationship', async () => {
+        const user = await User.create({
+            name: 'Hall', posts: [
+                new Post({
+                    title: 'hello world', attachments: [
+                        new Attachment({ name: 'attachment 1', url: 'http://example.com/1', }),
+                        new Attachment({ name: 'attachment 2', url: 'http://example.com/2', }),
+                    ],
+                }),
+            ],
+        });
+        expect(user.posts?.length).toBe(1);
+
+        // @ts-ignore
+        const dbUser = await User.with('posts', 'posts.attachments').find(user._id) as User;
+        const dbPost = dbUser.posts?.[0] as Post;
+        expect(dbPost).toEqual(jasmine.objectContaining({
+            _id: (user.posts as Post[])[0]._id,
+            _rev: (user.posts as Post[])[0]._rev,
+            title: (user.posts as Post[])[0].title,
+            createdAt: (user.posts as Post[])[0].createdAt,
+            updatedAt: (user.posts as Post[])[0].updatedAt,
+        }));
+        expect(dbPost.attachments?.length).toBe(2);
+        expect(dbPost.attachments).toEqual((user.posts as Post[])[0].attachments);
     });
 });
