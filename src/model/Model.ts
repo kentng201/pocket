@@ -169,7 +169,7 @@ export class Model {
                     const newChildren = [];
                     for (const child of children) {
                         const newChild = new (child.constructor as ModelStatic<Model>)();
-                        const foreignKey = `${lowerCaseFirst(singular(this.cName))}Id` as ModelKey<Model>;
+                        const foreignKey = query.getForeignKey() as ModelKey<Model>;
                         child[foreignKey] = this._id;
                         newChild.fill(child);
                         await newChild.save();
@@ -182,7 +182,7 @@ export class Model {
                 const query = this.relationships?.[field]?.();
                 if (query?.getRelationshipType() === RelationshipType.HAS_ONE) {
                     const child = this[field] as Model;
-                    const foreignKey = `${lowerCaseFirst(singular(this.cName))}Id` as ModelKey<Model>;
+                    const foreignKey = query.getForeignKey() as ModelKey<Model>;
                     if (!child[foreignKey]) {
                         child[foreignKey] = this._id;
                     }

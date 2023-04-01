@@ -78,6 +78,8 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
     public api?: ApiRepo<T>;
 
     protected relationshipType?: RelationshipType;
+    protected localKey?: string;
+    protected foreignKey?: string;
 
     constructor(modelClass: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string, isOne?: boolean, apiInfo?: APIResourceInfo) {
         if (modelClass.cName === undefined) {
@@ -107,11 +109,19 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         return {};
     }
 
-    setRelationshipType(type: RelationshipType) {
+    setRelationshipType(type: RelationshipType, localKey: string, foreignKey: string) {
         this.relationshipType = type;
+        this.localKey = localKey;
+        this.foreignKey = foreignKey;
     }
     getRelationshipType() {
         return this.relationshipType;
+    }
+    getLocalKey() {
+        return this.localKey;
+    }
+    getForeignKey() {
+        return this.foreignKey;
     }
 
     async find(_id: string): Promise<T | undefined> {
@@ -266,6 +276,11 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
                         }
                     } else {
                         const queryBuilder = await model.relationships[r as string]() as QueryBuilder<T>;
+                        queryBuilder.sortBy('createdAt', 'asc');
+                        console.log('queryBuilder: ', JSON.stringify(queryBuilder.getQuery(), null, 2));
+                        const result = await queryBuilder.get();
+                        console.log('result: ', result);
+
                         if (queryBuilder.isOne) {
                             Object.assign(model, { [r]: await queryBuilder.first(), });
                         } else {
@@ -297,6 +312,10 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
     }
 
     async get(): Promise<T[]> {
+        this.queries.selector._id = { $regex: `^${this.modelClass.cName}`, }; // search only related models
+        const all = await DatabaseManager.get(this.dbName).allDocs({ include_docs: true, });
+        console.log('all: ', all.rows.map((a) => a.doc));
+
         const data = await DatabaseManager.get(this.dbName).find(this.queries);
         const result = [] as T[];
         for (const item of data.docs) {

@@ -13,6 +13,6 @@ export function belongsTo<T extends Model, R extends Model>(
 
     const builder = new QueryBuilder<R>(relationshipInstance, undefined, self.dName, true);
     builder.where(foreignKey, '=', self[localKey] as ModelValue<R, ModelKey<R>>);
-    builder.setRelationshipType(RelationshipType.BELONGS_TO);
+    builder.setRelationshipType(RelationshipType.BELONGS_TO, localKey as string, foreignKey as string);
     return builder;
 }

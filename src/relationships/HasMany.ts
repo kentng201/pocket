@@ -12,7 +12,7 @@ export function hasMany<T extends Model, R extends Model>(
     if (!foreignKey) foreignKey = `${lowerCaseFirst(singular(self.cName))}Id` as ModelKey<R>;
 
     const builder = new QueryBuilder<R>(relationshipInstance, undefined, self.dName);
-    builder.setRelationshipType(RelationshipType.HAS_MANY);
+    builder.setRelationshipType(RelationshipType.HAS_MANY, localKey as string, foreignKey as string);
     builder.where(foreignKey, '=', self[localKey] as ModelValue<R, ModelKey<R>>);
     return builder;
 }
