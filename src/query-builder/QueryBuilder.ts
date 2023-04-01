@@ -277,9 +277,7 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
                     } else {
                         const queryBuilder = await model.relationships[r as string]() as QueryBuilder<T>;
                         queryBuilder.sortBy('createdAt', 'asc');
-                        console.log('queryBuilder: ', JSON.stringify(queryBuilder.getQuery(), null, 2));
                         const result = await queryBuilder.get();
-                        console.log('result: ', result);
 
                         if (queryBuilder.isOne) {
                             Object.assign(model, { [r]: await queryBuilder.first(), });
@@ -313,9 +311,6 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
 
     async get(): Promise<T[]> {
         this.queries.selector._id = { $regex: `^${this.modelClass.cName}`, }; // search only related models
-        const all = await DatabaseManager.get(this.dbName).allDocs({ include_docs: true, });
-        console.log('all: ', all.rows.map((a) => a.doc));
-
         const data = await DatabaseManager.get(this.dbName).find(this.queries);
         const result = [] as T[];
         for (const item of data.docs) {
