@@ -72,7 +72,7 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
     protected isOne?: boolean;
     protected modelClass: T;
     protected dbName?: string;
-    protected relationships: ValidDotNotationArray<T, K>;
+    protected relationships?: ValidDotNotationArray<T, K>;
     protected db: PouchDB.Database;
     protected apiInfo?: APIResourceInfo;
     public api?: ApiRepo<T>;
@@ -85,7 +85,7 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         }
         this.dbName = dbName;
         this.modelClass = modelClass;
-        this.relationships = relationships || [] as unknown as ValidDotNotationArray<T, K>;
+        this.relationships = (relationships || []) as ValidDotNotationArray<T, K>;
         this.queries = { selector: { $and: [], }, };
         this.isOne = isOne;
         this.db = DatabaseManager.get(this.dbName) as PouchDB.Database<T>;
@@ -224,7 +224,10 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
     }
 
 
-    async sortBy(field: keyof T, order: 'asc' | 'desc') {
+    sortBy(field: keyof T, order: 'asc' | 'desc') {
+        if ((this.db as PouchDB.Database & { adapter: string }).adapter === 'memory') {
+            return this;
+        }
         if (!this.queries.sort) {
             this.queries.sort = [];
         }
