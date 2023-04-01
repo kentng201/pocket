@@ -2,11 +2,12 @@ import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { QueryBuilder } from 'src/query-builder/QueryBuilder';
 import { Model } from 'src/model/Model';
 
-const dbName = 'model';
+const dbName = 'model-child';
 
 describe('Model Child', () => {
-    class User extends Model {
+    class ChildUser extends Model {
         static dbName = dbName;
+        static collectionName = 'Users';
 
         name!: string;
         password?: string;
@@ -29,10 +30,11 @@ describe('Model Child', () => {
         title!: string;
         userId!: string;
         content?: string;
+        user?: ChildUser;
         relationships = {
-            user: () => this.belongsTo(User),
+            user: () => this.belongsTo(ChildUser),
         } as {
-            user: () => QueryBuilder<User>;
+            user: () => QueryBuilder<ChildUser>;
         };
     }
 
@@ -42,9 +44,9 @@ describe('Model Child', () => {
         userId!: string;
         number!: string;
         relationships = {
-            user: () => this.belongsTo(User, 'userId', '_id'),
+            user: () => this.belongsTo(ChildUser, 'userId', '_id'),
         } as {
-            user: () => QueryBuilder<User>;
+            user: () => QueryBuilder<ChildUser>;
         };
     }
 
@@ -53,14 +55,14 @@ describe('Model Child', () => {
     });
 
     it('should be able to save with relationships', async () => {
-        const user = await User.create({
+        const user = await ChildUser.create({
             name: 'John',
             posts: [
                 new Post({ title: 'hello world', }),
                 new Post({ title: 'hi world', }),
             ],
         });
-        expect(user).toBeInstanceOf(User);
+        expect(user).toBeInstanceOf(ChildUser);
 
         const posts = user.posts as Post[];
 
@@ -73,7 +75,7 @@ describe('Model Child', () => {
         }));
 
         const dbUser = await dbPost1.relationships.user().first();
-        expect(dbUser).toBeInstanceOf(User);
+        expect(dbUser).toBeInstanceOf(ChildUser);
         expect(dbUser).toEqual(jasmine.objectContaining({
             name: user.name,
         }));

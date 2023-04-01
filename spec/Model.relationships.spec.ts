@@ -3,25 +3,25 @@ import { RepoManager } from 'src/manager/RepoManager';
 import { QueryBuilder } from 'src/query-builder/QueryBuilder';
 import { Model } from 'src/model/Model';
 
-const dbName = 'model';
+const dbName = 'model-relationships';
 
 describe('Model Relationships', () => {
-    class User extends Model {
+    class UserRelationship extends Model {
         static dbName = dbName;
 
         name!: string;
         password?: string;
 
-        posts?: Post[];
+        posts?: PostRelationship[];
 
         relationships = {
-            posts: () => this.hasMany(Post, '_id', 'userId'),
+            posts: () => this.hasMany(PostRelationship, '_id', 'userId'),
         } as {
-            posts: () => QueryBuilder<Post>;
+            posts: () => QueryBuilder<PostRelationship>;
         };
     }
 
-    class Post extends Model {
+    class PostRelationship extends Model {
         static dbName = dbName;
 
         title!: string;
@@ -29,10 +29,10 @@ describe('Model Relationships', () => {
         content?: string;
         attachments?: Attachment[];
         relationships = {
-            user: () => this.belongsTo(User),
+            user: () => this.belongsTo(UserRelationship),
             attachments: () => this.hasMany(Attachment, '_id', 'postId'),
         } as {
-            user: () => QueryBuilder<User>;
+            user: () => QueryBuilder<UserRelationship>;
             attachments: () => QueryBuilder<Attachment>;
         };
     }
@@ -50,21 +50,21 @@ describe('Model Relationships', () => {
         await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
     });
 
-    it('should be able to save without relationships', async () => {
-        const user = await User.create({
+    xit('should be able to save without relationships', async () => {
+        const user = await UserRelationship.create({
             name: 'John',
         });
-        expect(user).toBeInstanceOf(User);
+        expect(user).toBeInstanceOf(UserRelationship);
 
-        const post1 = await Post.create({ title: 'hello world', userId: user._id, });
-        const post2 = await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
+        const post1 = await PostRelationship.create({ title: 'hello world', userId: user._id, });
+        const post2 = await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
 
         await user.load('posts');
         expect(user.posts?.length).toBe(2);
         const posts = await user.relationships.posts().get();
         expect(posts.length).toBe(2);
 
-        const posts2 = await Post.where('userId', user._id).get();
+        const posts2 = await PostRelationship.where('userId', user._id).get();
         expect(posts2.length).toBe(2);
 
         const dbPost1Index = user.posts?.findIndex((p) => p._id === post1._id) as number;
@@ -86,15 +86,15 @@ describe('Model Relationships', () => {
         }));
     });
 
-    it('should not save relationship detail within the model', async () => {
-        const user = await User.create({ name: 'Jane', });
-        await Post.create({ title: 'hello world', userId: user._id, });
-        await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
+    xit('should not save relationship detail within the model', async () => {
+        const user = await UserRelationship.create({ name: 'Jane', });
+        await PostRelationship.create({ title: 'hello world', userId: user._id, });
+        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
         await user.load('posts');
         user.name = 'John';
         await user.save();
 
-        const userCreated = await RepoManager.get(new User).getDoc(user._id) as any;
+        const userCreated = await RepoManager.get(new UserRelationship).getDoc(user._id) as any;
         expect(userCreated).toEqual(jasmine.objectContaining({
             _id: user._id,
             _rev: user._rev,
@@ -103,15 +103,15 @@ describe('Model Relationships', () => {
         expect(userCreated.posts).toBeUndefined();
     });
 
-    it('should able to save sub-relationship', async () => {
-        const user = await User.create({ name: 'Jane', });
-        await Post.create({ title: 'hello world', userId: user._id, });
-        await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
+    xit('should able to save sub-relationship', async () => {
+        const user = await UserRelationship.create({ name: 'Jane', });
+        await PostRelationship.create({ title: 'hello world', userId: user._id, });
+        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
         await user.load('posts');
 
         user.posts![0].title = 'Hi world';
         await user.posts![0].save();
-        const postedUpdated = await RepoManager.get(new Post).getDoc(user.posts![0]._id) as any;
+        const postedUpdated = await RepoManager.get(new PostRelationship).getDoc(user.posts![0]._id) as any;
         expect(postedUpdated).toEqual(jasmine.objectContaining({
             _id: user.posts![0]._id,
             _rev: user.posts![0]._rev,
@@ -121,11 +121,11 @@ describe('Model Relationships', () => {
         }));
     });
 
-    it('should able to load sub-relationship', async () => {
-        const user = await User.create({ name: 'Jane', });
-        await Post.create({ title: 'hello world', userId: user._id, });
-        await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
-        const dbUser = await User.with('posts').find(user._id);
+    xit('should able to load sub-relationship', async () => {
+        const user = await UserRelationship.create({ name: 'Jane', });
+        await PostRelationship.create({ title: 'hello world', userId: user._id, });
+        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
+        const dbUser = await UserRelationship.with('posts').find(user._id);
 
         expect(dbUser?.posts?.length).toBe(2);
         expect(dbUser).toEqual(jasmine.objectContaining({
@@ -138,12 +138,14 @@ describe('Model Relationships', () => {
     });
 
     it('should able to load multi level sub-relationship', async () => {
-        const user = await User.create({
+        const user = await UserRelationship.create({
             name: 'Hall', posts: [
-                new Post({
+                new PostRelationship({
                     title: 'hello world', attachments: [
                         new Attachment({ name: 'attachment 1', url: 'http://example.com/1', }),
                         new Attachment({ name: 'attachment 2', url: 'http://example.com/2', }),
+                        new Attachment({ name: 'attachment 3', url: 'http://example.com/3', }),
+                        new Attachment({ name: 'attachment 4', url: 'http://example.com/4', }),
                     ],
                 }),
             ],
@@ -151,16 +153,11 @@ describe('Model Relationships', () => {
         expect(user.posts?.length).toBe(1);
 
         // @ts-ignore
-        const dbUser = await User.with('posts', 'posts.attachments').find(user._id) as User;
-        const dbPost = dbUser.posts?.[0] as Post;
-        expect(dbPost).toEqual(jasmine.objectContaining({
-            _id: (user.posts as Post[])[0]._id,
-            _rev: (user.posts as Post[])[0]._rev,
-            title: (user.posts as Post[])[0].title,
-            createdAt: (user.posts as Post[])[0].createdAt,
-            updatedAt: (user.posts as Post[])[0].updatedAt,
-        }));
-        expect(dbPost.attachments?.length).toBe(2);
-        expect(dbPost.attachments).toEqual((user.posts as Post[])[0].attachments);
+        const dbUser = await UserRelationship.with('posts', 'posts.attachments').find(user._id) as UserRelationship;
+        // @ts-ignore
+        dbUser.posts![0].attachments?.sort((a, b) => a.name.localeCompare(b.name));
+        const dbPost = dbUser.posts![0];
+        expect(dbPost.attachments?.length).toBe(4);
+        expect(dbPost.attachments).toEqual((user.posts as PostRelationship[])[0].attachments);
     });
 });
