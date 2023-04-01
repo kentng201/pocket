@@ -310,7 +310,9 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
     }
 
     async get(): Promise<T[]> {
-        this.queries.selector._id = { $regex: `^${this.modelClass.cName}`, }; // search only related models
+        this.queries.selector.$and.push({
+            _id: { $regex: `^${this.modelClass.cName}`, },
+        });
         const data = await DatabaseManager.get(this.dbName).find(this.queries);
         const result = [] as T[];
         for (const item of data.docs) {

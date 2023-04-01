@@ -13,11 +13,14 @@ describe('Model Relationships', () => {
         password?: string;
 
         posts?: PostRelationship[];
+        employee?: Employee;
 
         relationships = {
             posts: () => this.hasMany(PostRelationship, '_id', 'userId'),
+            employee: () => this.hasOne(Employee, '_id', 'userId'),
         } as {
             posts: () => QueryBuilder<PostRelationship>;
+            employee: () => QueryBuilder<Employee>;
         };
     }
 
@@ -34,6 +37,21 @@ describe('Model Relationships', () => {
         } as {
             user: () => QueryBuilder<UserRelationship>;
             attachments: () => QueryBuilder<Attachment>;
+        };
+    }
+
+    class Employee extends Model {
+        static dbName = dbName;
+
+        name!: string;
+        password?: string;
+        userId!: string;
+
+        user?: UserRelationship;
+        relationships = {
+            user: () => this.belongsTo(UserRelationship, '_id', 'userId'),
+        } as {
+            user: () => QueryBuilder<UserRelationship>;
         };
     }
 
@@ -159,5 +177,16 @@ describe('Model Relationships', () => {
         const dbPost = dbUser.posts![0];
         expect(dbPost.attachments?.length).toBe(4);
         expect(dbPost.attachments).toEqual((user.posts as PostRelationship[])[0].attachments);
+    });
+
+    it('should not query Employee when query PostRelationship from UserRelationship', async () => {
+        const user = await UserRelationship.create({ name: 'John', });
+        await PostRelationship.create({ title: 'hello world', userId: user._id, });
+        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
+        await Employee.create({ name: 'John', userId: user._id, });
+        await user.load('posts');
+        expect(user.posts?.length).toBe(2);
+        const posts = await user.relationships.posts().get();
+        expect(posts.length).toBe(2);
     });
 });
