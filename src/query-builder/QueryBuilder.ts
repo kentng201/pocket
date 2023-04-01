@@ -16,21 +16,20 @@ export type OperatorValue<T extends Model, Key extends keyof T, O extends Operat
 export type QueryableModel<T extends Model> = {
     [Key in ModelKey<T>]: OperatorValue<T, Key, Operator> | [Operator, OperatorValue<T, Key, Operator>];
 };
-export type QueryBuilderFunction<T extends Model> = (query: QueryBuilder<T>) => any;
+export type QueryBuilderFunction<T extends Model> = (query: QueryBuilder<T>) => void;
 
 function toMangoOperator(operator: Operator): string {
-    switch (operator) {
-        case '=': return '$eq';
-        case '!=': return '$ne';
-        case '>': return '$gt';
-        case '>=': return '$gte';
-        case '<': return '$lt';
-        case '<=': return '$lte';
-        case 'in': return '$in';
-        case 'not in': return '$nin';
-        case 'between': return '$gte';
-        case 'like': return '$regex';
-    }
+    if (operator === '=') return '$eq';
+    if (operator === '!=') return '$ne';
+    if (operator === '>') return '$gt';
+    if (operator === '>=') return '$gte';
+    if (operator === '<') return '$lt';
+    if (operator === '<=') return '$lte';
+    if (operator === 'in') return '$in';
+    if (operator === 'not in') return '$nin';
+    if (operator === 'between') return '$gte';
+    if (operator === 'like') return '$regex';
+    return '';
 }
 function toMangoQuery<T extends Model, Key extends ModelKey<T>, O extends Operator>(field: Key, operator: O, value: OperatorValue<T, Key, O>): PouchDB.Find.Selector {
     if (['=', '!=', '>', '>=', '<', '<=',].includes(operator)) {
@@ -49,11 +48,11 @@ function toMangoQuery<T extends Model, Key extends ModelKey<T>, O extends Operat
 
     return {};
 }
-function queryableValueToValue<T extends Model, Key extends ModelKey<T>, O extends Operator>(field: Key, value: any): PouchDB.Find.Selector {
+function queryableValueToValue<T extends Model, Key extends ModelKey<T>>(field: Key, value: ModelValue<T, Key>): PouchDB.Find.Selector {
     if (value instanceof Array && operators.includes(value[0])) {
-        return toMangoQuery(field as any, value[0], value[1] as any);
+        return toMangoQuery<T, Key, typeof value[0]>(field, value[0], value[1]);
     } else {
-        return toMangoQuery(field as any, '=', value as any);
+        return toMangoQuery<T, Key, '='>(field, '=', value);
     }
 }
 
@@ -137,14 +136,14 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         if (args.length === 2) args = [args[0], '=', args[1],];
 
         if (args.length === 3) {
-            const query = toMangoQuery(args[0] as any, args[1] as any, args[2] as any);
+            const query = toMangoQuery<T, ModelKey<T>, O>(args[0] as Key, args[1] as O, args[2] as OperatorValue<T, Key, O>);
             this.queries.selector.$and.push(query);
             this.lastWhere = args[0] as ModelKey<T>;
             return this;
         } else {
             if (typeof args[0] === 'object') {
                 Object.entries(args[0] as object).forEach(([key, value,]) => {
-                    const query = queryableValueToValue(key as any, value);
+                    const query = queryableValueToValue<T, Key>(key as Key, value);
                     this.queries.selector.$and.push(query);
                 });
                 return this;
@@ -187,7 +186,7 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         } else {
             if (typeof args[0] === 'object') {
                 Object.entries(args[0] as object).forEach(([key, value,]) => {
-                    let operator: Operator, objectValue: any;
+                    let operator: Operator, objectValue: OperatorValue<T, ModelKey<T>, Operator>;
                     if (value instanceof Array && operators.includes(value[0])) {
                         operator = value[0];
                         objectValue = value[1];
@@ -213,7 +212,7 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
             this.queries.selector.$and = this.queries.selector.$and.concat(newQueryBuilder.queries.selector.$and || []);
         } else if (typeof condition === 'object') {
             Object.entries(condition).forEach(([key, value,]) => {
-                let operator: Operator, objectValue: any;
+                let operator: Operator, objectValue: OperatorValue<T, ModelKey<T>, Operator>;
                 if (value instanceof Array && operators.includes(value[0])) {
                     operator = value[0];
                     objectValue = value[1];
@@ -277,8 +276,6 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
                     } else {
                         const queryBuilder = await model.relationships[r as string]() as QueryBuilder<T>;
                         queryBuilder.sortBy('createdAt', 'asc');
-                        const result = await queryBuilder.get();
-
                         if (queryBuilder.isOne) {
                             Object.assign(model, { [r]: await queryBuilder.first(), });
                         } else {
