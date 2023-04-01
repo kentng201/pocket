@@ -14,6 +14,7 @@ import { APIAutoConfig } from 'src/definitions/APIAutoConfig';
 import { addWeakRef } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
 import { lowerCaseFirst } from 'src/helpers/stringHelper';
+import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 export class Model {
     static collectionName?: string;
     static dbName: string = 'default';
@@ -165,15 +166,16 @@ export class Model {
                 const query = this.relationships?.[field]?.();
                 if (query?.getRelationshipType() === RelationshipType.HAS_MANY) {
                     const children = this[field] as Model[];
-                    const newChildren = await Promise.all(children.map(async (child) => {
+                    const newChildren = [];
+                    for (const child of children) {
                         const newChild = new (child.constructor as ModelStatic<Model>)();
                         const foreignKey = `${lowerCaseFirst(singular(this.cName))}Id` as ModelKey<Model>;
                         child[foreignKey] = this._id;
                         newChild.fill(child);
                         await newChild.save();
                         newChild._dirty = {};
-                        return newChild;
-                    }));
+                        newChildren.push(newChild);
+                    }
                     this[field] = newChildren as any;
                 }
             } else if (this[field] instanceof Model) {
@@ -290,7 +292,7 @@ export class Model {
     static query<T extends Model>(this: ModelStatic<T>): QueryBuilder<T> {
         const dbName = (this as unknown as typeof Model).dbName;
         const model = new this;
-        return new QueryBuilder(model, undefined, dbName);
+        return new QueryBuilder<T, []>(model, undefined, dbName);
     }
     static where<T extends Model>(this: ModelStatic<T>, condition: (query: QueryBuilder<T>) => void): QueryBuilder<T>;
     static where<T extends Model>(this: ModelStatic<T>, queryableModel: Partial<QueryableModel<T>>): QueryBuilder<T>;
@@ -304,11 +306,11 @@ export class Model {
     // end of query builder
 
     // start of relationship
-    static with<T extends Model>(this: ModelStatic<T>, ...relationships: ModelKey<T>[]): QueryBuilder<T> {
+    static with<T extends Model, K extends string[]>(this: ModelStatic<T>, ...relationships: ValidDotNotationArray<T, K>): QueryBuilder<T> {
         const model = new this;
-        return new QueryBuilder(model, relationships, (this as unknown as typeof Model).dbName);
+        return new QueryBuilder<T, []>(model, relationships as unknown as ValidDotNotationArray<T, []>, (this as unknown as typeof Model).dbName);
     }
-    async load(...relationships: ModelKey<this>[]): Promise<this> {
+    async load<K extends string[]>(...relationships: ValidDotNotationArray<this, K>): Promise<this> {
         // @ts-ignore
         const newInstance = new this.constructor() as this;
         const builder = new QueryBuilder(newInstance, relationships, this.dName);
@@ -316,7 +318,7 @@ export class Model {
         // @ts-ignore
         const loadedModel = await builder.first() as this;
         for (const relationship of relationships) {
-            this[relationship as keyof this] = loadedModel[relationship];
+            this[relationship as keyof this] = loadedModel[relationship as keyof this];
         }
         return this;
     }

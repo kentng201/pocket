@@ -1,3 +1,4 @@
+import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { ModelKey, ModelType, ModelValue } from 'src/definitions/Model';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
@@ -64,27 +65,27 @@ export enum RelationshipType {
 }
 
 
-export class QueryBuilder<T extends Model> {
+export class QueryBuilder<T extends Model, K extends string[] = []> {
     protected queries: PouchDB.Find.FindRequest<T> & { selector: { $and: PouchDB.Find.Selector[] } };
 
     protected lastWhere?: ModelKey<T> | '$or';
     protected isOne?: boolean;
     protected modelClass: T;
     protected dbName?: string;
-    protected relationships: ModelKey<T>[];
+    protected relationships: ValidDotNotationArray<T, K>;
     protected db: PouchDB.Database;
     protected apiInfo?: APIResourceInfo;
     public api?: ApiRepo<T>;
 
     protected relationshipType?: RelationshipType;
 
-    constructor(modelClass: T, relationships?: ModelKey<T>[], dbName?: string, isOne?: boolean, apiInfo?: APIResourceInfo) {
+    constructor(modelClass: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string, isOne?: boolean, apiInfo?: APIResourceInfo) {
         if (modelClass.cName === undefined) {
             throw new Error('QueryBuilder create error: collectionName not found');
         }
         this.dbName = dbName;
         this.modelClass = modelClass;
-        this.relationships = relationships || [];
+        this.relationships = relationships || [] as unknown as ValidDotNotationArray<T, K>;
         this.queries = { selector: { $and: [], }, };
         this.isOne = isOne;
         this.db = DatabaseManager.get(this.dbName) as PouchDB.Database<T>;
@@ -93,8 +94,8 @@ export class QueryBuilder<T extends Model> {
         if (this.apiInfo) this.api = new ApiRepo<T>(this.apiInfo);
     }
 
-    static query<T extends Model>(modelClass: T, relationships?: ModelKey<T>[], dbName?: string) {
-        return new this(modelClass, relationships, dbName, false) as QueryBuilder<T>;
+    static query<T extends Model, K extends string[] = []>(modelClass: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string) {
+        return new this(modelClass, relationships, dbName, false) as QueryBuilder<T, K>;
     }
 
     static where<T extends Model, O extends Operator>(field: ModelKey<T>, operator: O, value: OperatorValue<T, ModelKey<T>, O>, modelClass: T) {
@@ -197,7 +198,7 @@ export class QueryBuilder<T extends Model> {
 
     whereCondition(condition: QueryBuilderFunction<T> | Partial<ModelType<T>>, type: '$and' | '$or'): this {
         if (typeof condition === 'function') {
-            const newQueryBuilder = new QueryBuilder<T>(this.modelClass, [], this.dbName);
+            const newQueryBuilder = new QueryBuilder<T, []>(this.modelClass, [] as ValidDotNotationArray<T, []>, this.dbName);
             (condition as QueryBuilderFunction<T>)(newQueryBuilder);
             this.queries.selector.$and = this.queries.selector.$and.concat(newQueryBuilder.queries.selector.$and || []);
         } else if (typeof condition === 'object') {
@@ -223,8 +224,11 @@ export class QueryBuilder<T extends Model> {
     }
 
 
-    sortBy(field: keyof T, order: 'asc' | 'desc') {
-        this.queries.sort?.push({ [field]: order, });
+    async sortBy(field: keyof T, order: 'asc' | 'desc') {
+        if (!this.queries.sort) {
+            this.queries.sort = [];
+        }
+        this.queries.sort.push({ [field]: order, });
         return this;
     }
 
@@ -242,18 +246,18 @@ export class QueryBuilder<T extends Model> {
         if (this.relationships && model.relationships) {
             for (const r of this.relationships) {
                 try {
-                    if ((r as string).includes('.')) {
-                        const mainRelationship = (r as string).split('.')[0];
-                        const subRelationships = (r as string).split('.').slice(1).join('.');
+                    if (r.includes('.')) {
+                        const mainRelationship = r.split('.')[0];
+                        const subRelationships = r.split('.').slice(1).join('.');
                         const mainModel = model[mainRelationship as keyof T] as Model | Model[];
                         if (mainModel && mainModel instanceof Model) {
                             // @ts-ignore
-                            const newMainModel = await new QueryBuilder(mainModel as typeof Model, [subRelationships,], this.dbName).bindRelationship(mainModel);
+                            const newMainModel = await new QueryBuilder(mainModel as typeof Model, [subRelationships,], this.dbName).sortBy('createdAt', 'asc').bindRelationship(mainModel);
                             // @ts-ignore
                             model[mainRelationship as keyof T] = newMainModel;
                         } else if (mainModel && mainModel instanceof Array) {
                             // @ts-ignore
-                            const newMainModels = await Promise.all(mainModel.map(async (m) => await new QueryBuilder(m as typeof Model, [subRelationships,], this.dbName).bindRelationship(m)));
+                            const newMainModels = await Promise.all(mainModel.map(async (m) => await new QueryBuilder(m as typeof Model, [subRelationships,], this.dbName).sortBy('createdAt', 'asc').bindRelationship(m)));
                             // @ts-ignore
                             model[mainRelationship as keyof T] = newMainModels;
                         }

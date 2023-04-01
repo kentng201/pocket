@@ -1,3 +1,4 @@
+import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { Model } from 'src/model/Model';
 import { Repo } from 'src/repo/Repo';
 import { APIResourceInfo, ApiHostManager } from './ApiHostManager';
@@ -28,7 +29,7 @@ export class RepoManager {
             .length > 0;
         if (!this.repos[collectionName]) {
             this.repos[collectionName] = new Repo<T>(
-                model, [], dbName, undefined, haveApiConfig ? apiResourceInfo : undefined
+                model, [] as ValidDotNotationArray<T, []>, dbName, undefined, haveApiConfig ? apiResourceInfo : undefined
             );
         }
         return this.repos[collectionName];

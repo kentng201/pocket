@@ -1,11 +1,12 @@
 import uuid from 'short-uuid';
-import { ModelKey, ModelType, NewModelType } from 'src/definitions/Model';
+import { ModelType, NewModelType } from 'src/definitions/Model';
 import { Model } from 'src/model/Model';
 import { QueryBuilder } from 'src/query-builder/QueryBuilder';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
+import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 
-export class Repo<T extends Model> extends QueryBuilder<T> {
-    constructor(modelClass: T, relationships?: ModelKey<T>[], dbName?: string, isOne?: boolean, apiInfo?: APIResourceInfo) {
+export class Repo<T extends Model, K extends string[] = []> extends QueryBuilder<T, K> {
+    constructor(modelClass: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string, isOne?: boolean, apiInfo?: APIResourceInfo) {
         super(modelClass, relationships, dbName, isOne, apiInfo);
     }
 
