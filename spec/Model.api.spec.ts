@@ -4,6 +4,7 @@ import { ApiRepo } from 'src/repo/ApiRepo';
 import { APIAutoConfig } from 'src/definitions/APIAutoConfig';
 import { server } from '../mocks/server';
 import { Model } from 'src/model/Model';
+import { ModelType } from 'src/definitions/Model';
 
 const dbName = 'model-api';
 
@@ -24,7 +25,7 @@ describe('Model API', () => {
         password?: string;
 
         async setRandomPassword() {
-            const result = await this.api('random-password');
+            const result = await this.api('random-password') as Partial<ModelType<this>>;
             this.fill(result);
         }
     }

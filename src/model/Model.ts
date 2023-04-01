@@ -9,7 +9,7 @@ import { belongsToMany } from 'src/relationships/BelongsToMany';
 
 import moment from 'moment';
 import pluralize from 'pluralize';
-import { ModelKey, ModelStatic, ModelType, NewModelType } from 'src/definitions/Model';
+import { ModelKey, ModelStatic, ModelType, ModelValue, NewModelType } from 'src/definitions/Model';
 import { APIAutoConfig } from 'src/definitions/APIAutoConfig';
 import { addWeakRef } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
@@ -67,10 +67,10 @@ export class Model {
         Object.assign(this, attributes);
         addWeakRef(this._id, this);
     }
-    constructor(attributes?: any) {
-        if (attributes) this.fill(attributes as ModelType<this>);
+    constructor(attributes?: object) {
+        if (attributes) this.fill(attributes as unknown as ModelType<this>);
         const handler = {
-            set: (target: any, key: string, value: any) => {
+            set: <Key extends ModelKey<this>>(target: this, key: Key, value: ModelValue<this, Key>) => {
                 // prevent update reserved fields
                 // const RESERVED_FIELDS = ['_id', 'createdAt', 'updatedAt', 'relationships', '_dirty'];
                 // if (RESERVED_FIELDS.includes(key) && target[key]) {
@@ -84,16 +84,16 @@ export class Model {
                     target[key] = value;
                     return true;
                 }
-                if (this[key as ModelKey<this>] && this._before_dirty[key] === undefined) {
-                    this._before_dirty[key] = this[key as ModelKey<this>];
+                if (this[key as ModelKey<this>] && this._before_dirty[key as string] === undefined) {
+                    this._before_dirty[key as string] = this[key as ModelKey<this>];
                 }
                 target[key] = value;
-                this._dirty[key] = true;
+                this._dirty[key as string] = true;
 
                 return true;
             },
         };
-        return new Proxy(this, handler);
+        return new Proxy(this, handler as ProxyHandler<this>);
     }
     public replicate(): this {
         const replicatedModel = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
@@ -175,7 +175,7 @@ export class Model {
                         newChild._dirty = {};
                         newChildren.push(newChild);
                     }
-                    this[field] = newChildren as any;
+                    this[field] = newChildren as ModelValue<this, typeof field>;
                 }
             } else if (this[field] instanceof Model) {
                 const query = this.relationships?.[field]?.();
@@ -189,7 +189,7 @@ export class Model {
                     newChild.fill(child);
                     await newChild.save();
                     newChild._dirty = {};
-                    this[field] = newChild as any;
+                    this[field] = newChild as ModelValue<this, typeof field>;
                 }
             }
         }
@@ -248,7 +248,7 @@ export class Model {
             if (guarded && guarded.length > 0) {
                 for (const field of guarded) {
                     delete newAttributes[field as ModelKey<this>];
-                    newAttributes[field as ModelKey<this>] = this.getBeforeDirtyValue(field as ModelKey<this>);
+                    newAttributes[field as keyof this] = this.getBeforeDirtyValue(field as ModelKey<this>) as ModelValue<this, ModelKey<this>>;
                 }
             }
             if (this.needTimestamp) newAttributes.updatedAt = now;
@@ -337,48 +337,48 @@ export class Model {
     // end of relationship
 
     // start api method
-    public static api(apiPath: string, params: any, method: APIMethod = 'POST'): Promise<any> {
+    public static api<Result, Params extends object>(apiPath: string, params: Params, method: APIMethod = 'POST'): Promise<Result> {
         // @ts-ignore
         return (this as unknown as typeof Model).repo<this>().api?.callApi(method, apiPath, params);
     }
-    public api(apiPath: string, method: APIMethod = 'POST'): Promise<any> {
+    public api<Result>(apiPath: string, method: APIMethod = 'POST'): Promise<this | Result> {
         // @ts-ignore
         return (this.constructor as unknown as typeof Model).repo<this>().api?.callModelApi(method, apiPath, this.toJson());
     }
     // end api method
 
     // start of lifecycle
-    public static async beforeSave(model: any): Promise<any | void> {
+    public static async beforeSave<Result, T extends Model>(model: T): Promise<Result | Model> {
         return model;
     }
-    public static async afterSave(model: any): Promise<any | void> {
-        return model;
-    }
-
-    public static async beforeCreate(model: any): Promise<any | void> {
-        return model;
-    }
-    public static async afterCreate(model: any): Promise<any | void> {
+    public static async afterSave<Result, T extends Model>(model: T): Promise<Result | Model> {
         return model;
     }
 
-    public static async beforeUpdate(model: any): Promise<any | void> {
+    public static async beforeCreate<Result, T extends Model>(model: T): Promise<Result | Model> {
         return model;
     }
-    public static async afterUpdate(model: any): Promise<any | void> {
+    public static async afterCreate<Result, T extends Model>(model: T): Promise<Result | Model> {
         return model;
     }
 
-    public static async beforeDelete(model: any): Promise<any | void> {
+    public static async beforeUpdate<Result, T extends Model>(model: T): Promise<Result | Model> {
         return model;
     }
-    public static async afterDelete(model: any): Promise<any | void> {
+    public static async afterUpdate<Result, T extends Model>(model: T): Promise<Result | Model> {
+        return model;
+    }
+
+    public static async beforeDelete<Result, T extends Model>(model: T): Promise<Result | Model> {
+        return model;
+    }
+    public static async afterDelete<Result, T extends Model>(model: T): Promise<Result | Model> {
         return model;
     }
     // end of lifecycle
 
     public toJson(): Partial<ModelType<this>> {
-        const json: any = {};
+        const json: Partial<this> = {};
         for (const field in this) {
             if (typeof field === 'function') continue;
             if (field === '_dirty') continue;
@@ -389,7 +389,7 @@ export class Model {
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;
             if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
-            json[field] = this[field];
+            json[field as keyof this] = this[field];
         }
         return json;
     }
@@ -426,7 +426,7 @@ export class Model {
         // return this._dirty whereas the boolean value is true
         return Object.keys(this._dirty).some(key => this._dirty[key]);
     }
-    getBeforeDirtyValue(attribute: ModelKey<this>): any {
+    getBeforeDirtyValue<Key extends ModelKey<this>>(attribute: Key): ModelValue<this, Key> {
         return this._before_dirty[attribute as string];
     }
     // end dirty maintenance
