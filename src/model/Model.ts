@@ -8,19 +8,18 @@ import { hasMany } from 'src/relationships/HasMany';
 import { belongsToMany } from 'src/relationships/BelongsToMany';
 
 import moment from 'moment';
-import pluralize, { singular } from 'pluralize';
+import pluralize from 'pluralize';
 import { ModelKey, ModelStatic, ModelType, NewModelType } from 'src/definitions/Model';
 import { APIAutoConfig } from 'src/definitions/APIAutoConfig';
 import { addWeakRef } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
-import { lowerCaseFirst } from 'src/helpers/stringHelper';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 export class Model {
-    static collectionName?: string;
-    static dbName: string = 'default';
-    static readonlyFields: string[] = [];
-    static timestamp?: boolean = true;
-    static realtimeUpdate: boolean = true;
+    static readonly collectionName?: string;
+    static readonly dbName: string = 'default';
+    static readonly readonlyFields: string[] = [];
+    static readonly timestamp?: boolean = true;
+    static readonly realtimeUpdate: boolean = true;
 
     public get cName() {
         return (this.constructor as typeof Model).collectionName || pluralize(this.constructor.name, 2);
