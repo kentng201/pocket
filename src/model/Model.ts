@@ -14,12 +14,26 @@ import { APIAutoConfig } from 'src/definitions/APIAutoConfig';
 import { addWeakRef } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
+
+export function setDefaultDbName(dbName: string): string {
+    Model.dbName = dbName;
+    return Model.dbName;
+}
+export function setDefaultNeedTimestamp(timestamp: boolean): boolean {
+    Model.timestamp = timestamp;
+    return Model.timestamp;
+}
+export function setDefaultNeedRealtimeUpdate(realtimeUpdate: boolean): boolean {
+    Model.realtimeUpdate = realtimeUpdate;
+    return Model.realtimeUpdate;
+}
+
 export class Model {
-    static readonly collectionName?: string;
-    static readonly dbName: string = 'default';
-    static readonly readonlyFields: string[] = [];
-    static readonly timestamp?: boolean = true;
-    static readonly realtimeUpdate: boolean = true;
+    static collectionName?: string;
+    static dbName: string = 'default';
+    static readonlyFields: string[] = [];
+    static timestamp?: boolean = true;
+    static realtimeUpdate: boolean = true;
 
     public get cName() {
         return (this.constructor as typeof Model).collectionName || pluralize(this.constructor.name, 2);

@@ -29,6 +29,16 @@ await DatabaseManager.connect('test', databaseConfig); // connect to local datab
 setRealtime(true); // if you set real time to true, the object with same _id with sync each other 
 ```
 
+You can set some default attributes of model
+
+```typescript
+import { setDefaultDbName, setDefaultNeedTimestamp, setDefaultNeedRealtimeUpdate } from 'pocket';
+
+setDefaultDbName('default'); // set default database name
+setDefaultNeedTimestamp(true); // set default need createdAt and updatedAt field
+setDefaultNeedRealtimeUpdate(true); // set default realtime update when related _id is changed
+```
+
 ### Model
 
 You can start to use Typescript classes to define your model
