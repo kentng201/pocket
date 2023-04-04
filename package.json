@@ -46,7 +46,6 @@
         "axios": "^1.3.4",
         "crypto-pouch": "git+ssh://git@github.com:kentng201/crypto-pouch.git#patch-doc",
         "events": "^3.3.0",
-        "immediate": "git+ssh://git@github.com:kentng201/immediate.git#patch-window",
         "moment": "^2.29.1",
         "pluralize": "^8.0.0",
         "pouchdb": "^8.0.1",
