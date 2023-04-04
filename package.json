@@ -53,5 +53,8 @@
         "pouchdb-browser": "^8.0.1",
         "pouchdb-find": "^8.0.0",
         "short-uuid": "^4.2.2"
+    },
+    "engines": {
+        "node": ">=19.0.0"
     }
 }
