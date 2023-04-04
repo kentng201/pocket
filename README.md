@@ -10,6 +10,21 @@ First install Node.js and npm. Then install Pocket via:
 npm install pocket
 ```
 
+### Caution of Vite
+
+If you are using Vite, you may found the issue that "ReferenceError: global is not defined"
+In this case, you need to add the following code to your `vite.config.js` file
+
+```typescript
+import { defineConfig, Plugin } from 'vite'
+import vue from '@vitejs/plugin-vue'
+
+export default defineConfig({
+    plugins: [vue()],
++   define: { global: 'window' },
+})
+```
+
 ### Database Connection
 
 To connect to a database, specify the database and the adapter
