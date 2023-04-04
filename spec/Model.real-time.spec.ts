@@ -1,5 +1,5 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
-import { setRealtime } from 'src/real-time/RealTimeModel';
+import { setDocChangeEventListener, setRealtime } from 'src/real-time/RealTimeModel';
 import { Model } from 'src/model/Model';
 
 describe('Model Real Time', () => {
@@ -57,5 +57,18 @@ describe('Model Real Time', () => {
         setRealtime(false);
         const availableEvents = DatabaseManager.get('real-time-model').eventNames();
         expect(availableEvents.length).toEqual(0);
+    });
+
+    it('should emit change event when real time is enabled', async () => {
+        setDocChangeEventListener((_id: string) => {
+            if (_id.includes('RealTimeUsers')) {
+                expect(_id).toEqual(user._id);
+            }
+        });
+        const user = await RealTimeUser.create({
+            name: 'Title-Testing-1',
+        });
+        user.name = 'Title-Testing-2';
+        await user.save();
     });
 });

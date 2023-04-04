@@ -1,6 +1,7 @@
 import { ModelKey } from 'src/definitions/Model';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { Model } from '..';
+import EventEmitter from 'events';
 
 export let isRealTime = false;
 
@@ -41,6 +42,15 @@ export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
     });
 }
 
+export let docEvent: EventEmitter;
+export function emitChangeEvent(_id: string) {
+    docEvent?.emit('docChange', _id);
+}
+
+export function setDocChangeEventListener(listener: (id: string) => void | Promise<void>) {
+    docEvent?.on('docChange', listener);
+}
+
 export function setRealtime(realTime: boolean) {
 
     isRealTime = realTime;
@@ -48,6 +58,8 @@ export function setRealtime(realTime: boolean) {
         const _id = change.doc?._id;
         const doc = change.doc;
         notifyWeakRef(_id, doc as Model);
+        if (!docEvent) docEvent = new EventEmitter();
+        emitChangeEvent(_id);
     };
 
 
