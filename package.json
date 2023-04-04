@@ -1,6 +1,6 @@
 {
     "name": "pocket",
-    "version": "0.2.10",
+    "version": "0.2.12",
     "description": "Pouch DB model library",
     "main": "dist/src/index.js",
     "types": "dist/src/index.d.ts",
