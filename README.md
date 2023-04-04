@@ -307,6 +307,18 @@ while (originalUser._real_time_updating) {
 const isEqual = originalUser === newUser; // true
 ```
 
+For listen document change in vue js component, you can use the following code
+
+```typescript
+import { setDocChangeEventListener } from 'pocket';
+
+setDocChangeEventListener((_id: string) => {
+    this.$forceUpdate();
+});
+```
+
+then your other model will update once related _id document is updated
+
 ### REST API Integration
 
 The Pocket can be integrated with REST API, you can use the following methods to do so:
