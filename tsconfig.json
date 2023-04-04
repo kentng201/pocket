@@ -8,11 +8,11 @@
             ]
         },
         "lib": [
-            "es2021"
+            "ES2021"
         ],
         "outDir": "./dist",
         "sourceMap": true,
-        "target": "es2021",
+        "target": "ES2019",
         "module": "commonjs",
         "moduleResolution": "node",
         "esModuleInterop": true,
