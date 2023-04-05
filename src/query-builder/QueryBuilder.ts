@@ -264,18 +264,22 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
                         const mainModel = model[mainRelationship as keyof T] as Model | Model[];
                         if (mainModel && mainModel instanceof Model) {
                             // @ts-ignore
-                            const newMainModel = await new QueryBuilder(mainModel as typeof Model, [subRelationships,], this.dbName).sortBy('createdAt', 'asc').bindRelationship(mainModel);
+                            const newMainModel = await new QueryBuilder(mainModel as typeof Model, [subRelationships,], this.dbName)
+                                // .sortBy('createdAt', 'asc')
+                                .bindRelationship(mainModel);
                             // @ts-ignore
                             model[mainRelationship as keyof T] = newMainModel;
                         } else if (mainModel && mainModel instanceof Array) {
                             // @ts-ignore
-                            const newMainModels = await Promise.all(mainModel.map(async (m) => await new QueryBuilder(m as typeof Model, [subRelationships,], this.dbName).sortBy('createdAt', 'asc').bindRelationship(m)));
+                            const newMainModels = await Promise.all(mainModel.map(async (m) => await new QueryBuilder(m as typeof Model, [subRelationships,], this.dbName)
+                                // .sortBy('createdAt', 'asc')
+                                .bindRelationship(m)));
                             // @ts-ignore
                             model[mainRelationship as keyof T] = newMainModels;
                         }
                     } else {
                         const queryBuilder = await model.relationships[r as string]() as QueryBuilder<T>;
-                        queryBuilder.sortBy('createdAt', 'asc');
+                        // queryBuilder.sortBy('createdAt', 'asc');
                         if (queryBuilder.isOne) {
                             Object.assign(model, { [r]: await queryBuilder.first(), });
                         } else {
