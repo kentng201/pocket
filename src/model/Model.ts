@@ -227,6 +227,16 @@ export class Model {
             if (field === 'cName') continue;
             if (this._dirty && !this._dirty[field]) continue;
             if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
+            if (typeof this[field] === 'object' && this[field] !== null) {
+                let hasFunction = false;
+                for (const key in this[field]) {
+                    if (typeof this[field][key] === 'function') {
+                        hasFunction = true;
+                        break;
+                    }
+                }
+                if (hasFunction) continue;
+            }
             newAttributes[field] = this[field];
         }
         const now = moment().toISOString();
@@ -403,6 +413,16 @@ export class Model {
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;
             if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
+            if (typeof this[field] === 'object' && this[field] !== null) {
+                let hasFunction = false;
+                for (const key in this[field]) {
+                    if (typeof this[field][key] === 'function') {
+                        hasFunction = true;
+                        break;
+                    }
+                }
+                if (hasFunction) continue;
+            }
             json[field as keyof this] = this[field];
         }
         return json;

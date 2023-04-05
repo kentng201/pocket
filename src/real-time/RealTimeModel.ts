@@ -26,10 +26,21 @@ export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
         if (field === 'needTimestamp') continue;
         if (field === 'cName') continue;
         if (doc.relationships && Object.keys(doc.relationships).includes(field)) continue;
+        if (typeof doc[field] === 'object' && doc[field] !== null) {
+            let hasFunction = false;
+            for (const key in doc[field]) {
+                if (typeof doc[field][key] === 'function') {
+                    hasFunction = true;
+                    break;
+                }
+            }
+            if (hasFunction) continue;
+        }
         newAttributes[field as keyof Partial<T>] = doc[field as ModelKey<Partial<T>>];
     }
     weakReferences[_id].forEach((ref) => {
         const sameIdDoc = ref.deref();
+        if (!sameIdDoc) return;
         if (!sameIdDoc.rtUpdate) return;
         if (sameIdDoc && sameIdDoc instanceof Model && sameIdDoc._rev != doc._rev) {
             sameIdDoc._real_time_updating = true;
