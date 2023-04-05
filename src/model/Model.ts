@@ -319,11 +319,11 @@ export class Model {
     // end of query builder
 
     // start of relationship
-    static with<T extends Model, K extends string[]>(this: ModelStatic<T>, ...relationships: ValidDotNotationArray<T, K>): QueryBuilder<T> {
+    static with<T extends Model, K extends string[]>(this: ModelStatic<T>, ...relationships: string[]): QueryBuilder<T> {
         const model = new this;
         return new QueryBuilder<T, []>(model, relationships as unknown as ValidDotNotationArray<T, []>, (this as unknown as typeof Model).dbName);
     }
-    async load<K extends string[]>(...relationships: ValidDotNotationArray<this, K>): Promise<this> {
+    async load<K extends string[]>(...relationships: string[]): Promise<this> {
         // @ts-ignore
         const newInstance = new this.constructor() as this;
         const builder = new QueryBuilder(newInstance, relationships, this.dName);
