@@ -20,6 +20,10 @@ export type PouchDBConfig = {
     password?: string;
     adapter?: string;
     silentConnect?: boolean;
+    auth?: {
+        username: string;
+        password: string;
+    };
 };
 
 export class DatabaseManager {
@@ -40,11 +44,12 @@ export class DatabaseManager {
             PouchDB.plugin(require('crypto-pouch'));
         }
         return new Promise(async (resolve) => {
-            let pouchConfig = {} as { adapter: string; } | undefined;
+            let pouchConfig = {} as { adapter: string; auth?: { username: string; password: string; }; };
             if (config.adapter) {
                 pouchConfig = { adapter: config.adapter, };
-            } else {
-                pouchConfig = undefined;
+            }
+            if (config.auth) {
+                pouchConfig.auth = config.auth;
             }
             // @ts-ignore
             const pouchDb = new PouchDB<{ adapter: string; }>(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string };
