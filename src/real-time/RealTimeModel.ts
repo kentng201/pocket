@@ -42,13 +42,13 @@ export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
     });
 }
 
-export let docEvent: EventEmitter;
+export const docEvent = new EventEmitter();
 export function emitChangeEvent(_id: string) {
-    docEvent?.emit('docChange', _id);
+    docEvent.emit('docChange', _id);
 }
 
 export function setDocChangeEventListener(listener: (id: string) => void | Promise<void>) {
-    docEvent?.on('docChange', listener);
+    docEvent.on('docChange', listener);
 }
 
 export function setRealtime(realTime: boolean) {
@@ -58,7 +58,6 @@ export function setRealtime(realTime: boolean) {
         const _id = change.doc?._id;
         const doc = change.doc;
         notifyWeakRef(_id, doc as Model);
-        if (!docEvent) docEvent = new EventEmitter();
         emitChangeEvent(_id);
     };
 
