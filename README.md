@@ -319,6 +319,23 @@ setDocChangeEventListener((_id: string) => {
 
 then your other model will update once related _id document is updated
 
+You can also sync your databases via following code, then your database will sync with each other
+
+```typescript
+import { syncDatabases, DatabaseManager } from 'pocket';
+
+await DatabaseManager.connect('pocket-backend', {
+    name: 'pocket-backend',
+    adapter: 'http',
+});
+await DatabaseManager.connect('local', {
+    name: 'local',
+    adapter: 'idb',
+});
+
+syncDatabases('pocket-frontend', 'local');
+```
+
 ### REST API Integration
 
 The Pocket can be integrated with REST API, you can use the following methods to do so:
