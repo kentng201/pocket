@@ -11,7 +11,7 @@ import moment from 'moment';
 import pluralize from 'pluralize';
 import { ModelKey, ModelStatic, ModelType, ModelValue, NewModelType } from 'src/definitions/Model';
 import { APIAutoConfig } from 'src/definitions/APIAutoConfig';
-import { addWeakRef } from 'src/real-time/RealTimeModel';
+import { addWeakRef, needToReload } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 
@@ -462,6 +462,9 @@ export class Model {
     }
     getBeforeDirtyValue<Key extends ModelKey<this>>(attribute: Key): ModelValue<this, Key> {
         return this._before_dirty[attribute as string];
+    }
+    isOutdated(changeId: string): boolean {
+        return needToReload(this, changeId);
     }
     // end dirty maintenance
 }

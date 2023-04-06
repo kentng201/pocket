@@ -1,6 +1,7 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { setDocChangeEventListener, setRealtime } from 'src/real-time/RealTimeModel';
 import { Model } from 'src/model/Model';
+import { QueryBuilder } from 'src/index';
 
 describe('Model Real Time', () => {
     class RealTimeUser extends Model {
@@ -13,6 +14,37 @@ describe('Model Real Time', () => {
         setRandomPassword() {
             this.password = String(Math.random());
         }
+    }
+
+    class RealTimeUser2 extends Model {
+        static dbName = 'real-time-model';
+        static timestamp = undefined;
+
+        name!: string;
+        password?: string;
+        posts?: RealTimePost[];
+
+        relationships = {
+            posts: () => this.hasMany(RealTimePost, '_id', 'userId'),
+        } as {
+            posts: () => QueryBuilder<RealTimePost>;
+        };
+    }
+
+    class RealTimePost extends Model {
+        static dbName = 'real-time-model';
+        static timestamp = undefined;
+
+        title!: string;
+        userId!: string;
+        content?: string;
+        user?: RealTimeUser2;
+
+        relationships = {
+            user: () => this.belongsTo(RealTimeUser2, 'userId', '_id'),
+        } as {
+            user: () => QueryBuilder<RealTimeUser2>;
+        };
     }
 
     beforeEach(async () => {
@@ -61,14 +93,35 @@ describe('Model Real Time', () => {
 
     it('should emit change event when real time is enabled', async () => {
         setDocChangeEventListener((_id: string) => {
-            if (_id.includes('RealTimeUsers')) {
+            if (_id.includes('RealTimeUsers.ABC')) {
                 expect(_id).toEqual(user._id);
             }
         });
         const user = await RealTimeUser.create({
+            _id: 'RealTimeUsers.ABC',
             name: 'Title-Testing-1',
         });
         user.name = 'Title-Testing-2';
         await user.save();
+    });
+
+    it('should able to verify the model is need to reload', async () => {
+        setDocChangeEventListener((_id: string) => {
+            if (_id.includes('RealTimePosts')) {
+                const needReload = user.isOutdated(_id);
+                expect(needReload).toEqual(true);
+            }
+        });
+        const user = await RealTimeUser2.create({
+            _id: 'test-123',
+            name: 'Title-Testing-1',
+            posts: [
+                new RealTimePost({
+                    _id: 'RealTimePosts.ABC-1',
+                    title: 'Title-Testing-1',
+                }),
+            ],
+        }) as RealTimeUser2;
+        await new Promise(res => setTimeout(res, 100));
     });
 });

@@ -88,3 +88,22 @@ export function setRealtime(realTime: boolean) {
     }
 }
 
+export function needToReload(model: Model, changeDocId: string): boolean {
+    let needReload = false;
+    for (const key of Object.keys(model)) {
+        if (model[key as keyof typeof model] === changeDocId) {
+            needReload = true;
+            break;
+        }
+        if (model[key as keyof typeof model] instanceof Model) {
+            needReload = needToReload(model[key as keyof typeof model] as Model, changeDocId);
+            if (needReload) break;
+        }
+        if (model[key as keyof typeof model] instanceof Array && (model[key as keyof typeof model] as Model[]).length > 0 && (model[key as keyof typeof model] as Model[])[0] instanceof Model) {
+            needReload = (model[key as keyof typeof model] as Model[]).some((m) => needToReload(m, changeDocId));
+            if (needReload) break;
+        }
+    }
+    return needReload;
+}
+
