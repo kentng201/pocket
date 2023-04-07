@@ -119,7 +119,11 @@ describe('QueryBuilder Basic', () => {
                 },],
             },
         });
-
-
     });
+
+    it('should return undefined if query undefined doc', async () => {
+        const queryBuilder = new QueryBuilder(new User, undefined, 'test');
+        const result = await queryBuilder.find('Users.test-not-exist');
+        expect(result).toBeUndefined();
+    })
 });
