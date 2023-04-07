@@ -41,7 +41,7 @@ export class DatabaseManager {
             setRealtime(true);
         }
         if (config.password) {
-            PouchDB.plugin(require('crypto-pouch'));
+            PouchDB.plugin(require('comdb'))
         }
         return new Promise(async (resolve) => {
             let pouchConfig = {} as { adapter: string; auth?: { username: string; password: string; }; };
@@ -54,7 +54,7 @@ export class DatabaseManager {
             // @ts-ignore
             const pouchDb = new PouchDB<{ adapter: string; }>(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string };
             if (config.password) {
-                await (pouchDb as any).crypto(config.password);
+                await (pouchDb as any).setPassword(config.password);
             }
 
             if (!this.databases) this.databases = {};
