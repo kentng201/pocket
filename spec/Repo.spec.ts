@@ -131,6 +131,11 @@ describe('Repo', () => {
         }
     });
 
+    it('should return undefined when find document which does not exist', async () => {
+        const doc = await repo.getDoc('Users.NonExistingUser');
+        expect(doc).toEqual(undefined);
+    });
+
     it('should be able to create document via repo with api name', async () => {
         const apiUser = await userTestApiRepo.create({
             _id: 'test-api-user',

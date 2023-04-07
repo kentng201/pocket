@@ -28,6 +28,7 @@ export class Repo<T extends Model, K extends string[] = []> extends QueryBuilder
                 result._id = createdItem.id;
                 return result;
             }
+            return undefined;
         }
     }
 
