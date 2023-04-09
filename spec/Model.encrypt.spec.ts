@@ -3,6 +3,7 @@ import { setRealtime } from 'src/real-time/RealTimeModel';
 import { RepoManager } from 'src/manager/RepoManager';
 import { Repo } from 'src/repo/Repo';
 import { Model } from 'src/model/Model';
+import fs from 'fs';
 
 const dbName = 'model-encrypt';
 
@@ -83,5 +84,9 @@ describe('Model Encrypt', () => {
 
         const allUsersCount = await EncryptUser.count();
         expect(allUsersCount).toBe(11);
+    });
+
+    afterAll(() => {
+        fs.rmSync('model-encrypt-encrypted', { recursive: true, force: true, });
     });
 });

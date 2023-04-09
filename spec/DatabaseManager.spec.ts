@@ -56,9 +56,9 @@ describe('Database Manager', () => {
         expect(() => setEnvironement('browser')).toThrowError('self is not defined');
     });
 
-
     afterAll(() => {
         fs.rmSync('database-manager0', { recursive: true, force: true, });
         fs.rmSync('database-manager3', { recursive: true, force: true, });
+        fs.rmSync('database-password-encrypted', { recursive: true, force: true, });
     });
 });
