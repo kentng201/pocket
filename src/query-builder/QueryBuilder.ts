@@ -66,6 +66,7 @@ export enum RelationshipType {
 
 export class QueryBuilder<T extends Model, K extends string[] = []> {
     protected queries: PouchDB.Find.FindRequest<T> & { selector: { $and: PouchDB.Find.Selector[] } };
+    protected sorters?: Array<string | { [propName: string]: 'asc' | 'desc' }>;
 
     protected lastWhere?: ModelKey<T> | '$or';
     protected isOne?: boolean;
@@ -140,8 +141,9 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         if (args.length === 2) args = [args[0], '=', args[1],];
 
         if (args.length === 3) {
-            const query = toMangoQuery<T, ModelKey<T>, O>(args[0] as Key, args[1] as O, args[2] as OperatorValue<T, Key, O>);
-            this.queries.selector.$and.push(query);
+            const [field, operator, value,] = args as [ModelKey<T>, O, OperatorValue<T, Key, O>];
+            const newQuery = toMangoQuery(field, operator, value);
+            this.queries.selector.$and.push(newQuery);
             this.lastWhere = args[0] as ModelKey<T>;
             return this;
         } else {
@@ -237,14 +239,11 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
     }
 
 
-    sortBy(field: keyof T, order: 'asc' | 'desc') {
-        if ((this.db as PouchDB.Database & { adapter: string }).adapter === 'memory') {
-            return this;
+    sortBy(field: keyof T, order: 'asc' | 'desc' = 'asc') {
+        if (!this.sorters) {
+            this.sorters = [];
         }
-        if (!this.queries.sort) {
-            this.queries.sort = [];
-        }
-        this.queries.sort.push({ [field]: order, });
+        this.sorters.push({ [field]: order, });
         return this;
     }
 
@@ -258,6 +257,24 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         return this.queries;
     }
 
+    private sort(data: T[]) {
+        if (this.sorters) {
+            for (const sort of this.sorters) {
+                const [key, order,] = Object.entries(sort)[0];
+                data.sort((a, b) => {
+                    if (a[key as ModelKey<T>] > b[key as ModelKey<T>]) {
+                        return order === 'asc' ? 1 : -1;
+                    }
+                    if (a[key as ModelKey<T>] < b[key as ModelKey<T>]) {
+                        return order === 'asc' ? -1 : 1;
+                    }
+                    return 0;
+                });
+            }
+        }
+        return data;
+    }
+
     protected async bindRelationship(model: T) {
         if (this.relationships && model.relationships) {
             for (const r of this.relationships) {
@@ -269,21 +286,21 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
                         if (mainModel && mainModel instanceof Model) {
                             // @ts-ignore
                             const newMainModel = await new QueryBuilder(mainModel as typeof Model, [subRelationships,], this.dbName)
-                                // .sortBy('createdAt', 'asc')
+                                .sortBy('createdAt', 'asc')
                                 .bindRelationship(mainModel);
                             // @ts-ignore
                             model[mainRelationship as keyof T] = newMainModel;
                         } else if (mainModel && mainModel instanceof Array) {
                             // @ts-ignore
                             const newMainModels = await Promise.all(mainModel.map(async (m) => await new QueryBuilder(m as typeof Model, [subRelationships,], this.dbName)
-                                // .sortBy('createdAt', 'asc')
+                                .sortBy('createdAt', 'asc')
                                 .bindRelationship(m)));
                             // @ts-ignore
                             model[mainRelationship as keyof T] = newMainModels;
                         }
                     } else {
                         const queryBuilder = await model.relationships[r as string]() as QueryBuilder<T>;
-                        // queryBuilder.sortBy('createdAt', 'asc');
+                        queryBuilder.sortBy('createdAt', 'asc');
                         if (queryBuilder.isOne) {
                             Object.assign(model, { [r]: await queryBuilder.first(), });
                         } else {
@@ -319,6 +336,8 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
             _id: { $regex: `^${this.modelClass.cName}`, },
         });
         const data = await DatabaseManager.get(this.dbName).find(this.queries);
+        const sortedData = this.sort(data.docs as any);
+        data.docs = sortedData;
         const result = [] as T[];
         for (const item of data.docs) {
             const model = await this.cast(item as unknown as ModelType<T>);
