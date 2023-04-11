@@ -21,8 +21,7 @@ describe('QueryBuilder Sort By', () => {
             QBSUser.create({ username: 'Test4', nickname: '123', }),
             QBSUser.create({ username: 'Test5', nickname: '124', }),
         ]);
-        const users = await QBSUser.query().sortBy('username').sortBy('nickname', 'desc').get();
-        console.log('users: ', users)
+        const users = await QBSUser.query().orderBy('username').orderBy('nickname', 'desc').get();
         expect(users[0].username).toEqual('Test3');
         expect(users[1].username).toEqual('Test2');
         expect(users[2].username).toEqual('Test5');
