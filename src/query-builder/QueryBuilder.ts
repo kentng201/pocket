@@ -275,7 +275,7 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         return data;
     }
 
-    protected async bindRelationship(model: T) {
+    private async bindRelationship(model: T) {
         if (this.relationships && model.relationships) {
             for (const r of this.relationships) {
                 try {
