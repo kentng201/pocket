@@ -129,7 +129,7 @@ describe('Model Relationships', () => {
 
         user.posts![0].title = 'Hi world';
         await user.posts![0].save();
-        const postedUpdated = await RepoManager.get(new PostRelationship).getDoc(user.posts![0]._id) as any;
+        const postedUpdated = await RepoManager.get(new PostRelationship).getDoc(user.posts![0]._id);
         expect(postedUpdated).toEqual(jasmine.objectContaining({
             _id: user.posts![0]._id,
             _rev: user.posts![0]._rev,

@@ -107,9 +107,6 @@ export class DatabaseManager {
         const db = this.databases[dbName];
         if (db) {
             db.close();
-            if ((db as any).removeCrypto) {
-                (db as any).removeCrypto();
-            }
             delete this.databases[dbName];
         }
     }
