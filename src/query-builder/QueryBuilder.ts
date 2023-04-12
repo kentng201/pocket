@@ -284,19 +284,16 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
                         const subRelationships = r.split('.').slice(1).join('.');
                         const mainModel = model[mainRelationship as keyof T] as Model | Model[];
                         if (mainModel && mainModel instanceof Model) {
-                            // @ts-ignore
-                            const newMainModel = await new QueryBuilder(mainModel as typeof Model, [subRelationships,], this.dbName)
+                            const newMainModel = await new QueryBuilder(mainModel, [subRelationships,], this.dbName)
                                 .orderBy('createdAt', 'asc')
                                 .bindRelationship(mainModel);
-                            // @ts-ignore
-                            model[mainRelationship as keyof T] = newMainModel;
+                            const result = model[mainRelationship as keyof T];
+                            model[mainRelationship as keyof T] = newMainModel as ModelValue<T, keyof T>;
                         } else if (mainModel && mainModel instanceof Array) {
-                            // @ts-ignore
-                            const newMainModels = await Promise.all(mainModel.map(async (m) => await new QueryBuilder(m as typeof Model, [subRelationships,], this.dbName)
+                            const newMainModels = await Promise.all(mainModel.map(async (m) => await new QueryBuilder(m, [subRelationships,], this.dbName)
                                 .orderBy('createdAt', 'asc')
                                 .bindRelationship(m)));
-                            // @ts-ignore
-                            model[mainRelationship as keyof T] = newMainModels;
+                            model[mainRelationship as keyof T] = newMainModels as ModelValue<T, keyof T>;
                         }
                     } else {
                         const queryBuilder = await model.relationships[r as string]() as QueryBuilder<T>;
@@ -318,15 +315,11 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
     protected async cast(item?: ModelType<T>): Promise<T | undefined> {
         if (!item) return;
         let model;
-        try {
-            // @ts-ignore
-            model = new this.modelClass() as T;
-        } catch (error) {
-            // @ts-ignore
-            model = new this.modelClass.constructor() as T;
-        }
+        const klass = this.modelClass.getClass();
+        model = new klass() as T;
         model.fill(item);
         model._dirty = {};
+        model._before_dirty = {};
         model = await this.bindRelationship(model);
         return model;
     }

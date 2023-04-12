@@ -51,8 +51,7 @@ export class DatabaseManager {
             if (config.auth) {
                 pouchConfig.auth = config.auth;
             }
-            // @ts-ignore
-            const pouchDb = new PouchDB<{ adapter: string; }>(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string };
+            const pouchDb = new PouchDB(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string };
             if (config.password) {
                 await (pouchDb as any).setPassword(config.password);
             }

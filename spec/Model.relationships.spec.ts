@@ -170,9 +170,7 @@ describe('Model Relationships', () => {
         });
         expect(user.posts?.length).toBe(1);
 
-        // @ts-ignore
         const dbUser = await UserRelationship.with('posts', 'posts.attachments').find(user._id) as UserRelationship;
-        // @ts-ignore
         dbUser.posts![0].attachments?.sort((a, b) => a.name.localeCompare(b.name));
         const dbPost = dbUser.posts![0];
         expect(dbPost.attachments?.length).toBe(4);
