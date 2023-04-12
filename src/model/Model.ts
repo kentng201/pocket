@@ -40,7 +40,7 @@ export class Model {
     }
 
     public get cName() {
-        return this.getClass().collectionName || pluralize(this.constructor.name, 2);
+        return this.getClass().collectionName || pluralize(this.getClass().name, 2);
     }
     public get dName() {
         return this.getClass().dbName;
@@ -181,7 +181,7 @@ export class Model {
                     const children = this[field] as Model[];
                     const newChildren = [];
                     for (const child of children) {
-                        const newChild = new (child.constructor as ModelStatic<Model>)();
+                        const newChild = new (child.getClass() as ModelStatic<Model>)();
                         const foreignKey = query.getForeignKey() as ModelKey<Model>;
                         child[foreignKey] = this._id;
                         newChild.fill(child);
@@ -199,7 +199,7 @@ export class Model {
                     if (!child[foreignKey]) {
                         child[foreignKey] = this._id;
                     }
-                    const newChild = new (child.constructor as ModelStatic<Model>)();
+                    const newChild = new (child.getClass() as ModelStatic<Model>)();
                     newChild.fill(child);
                     await newChild.save();
                     newChild._dirty = {};
@@ -437,7 +437,7 @@ export class Model {
         if (this.formatResponse) {
             return this.formatResponse(replicatedModel);
         }
-        if (!replicatedModel) throw new Error(`${this.constructor.name}.formatResponse() must return an object`);
+        if (!replicatedModel) throw new Error(`${this.getClass().name}.formatResponse() must return an object`);
         return replicatedModel;
     }
     // end transformer for api response
