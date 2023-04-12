@@ -316,8 +316,7 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         if (!item) return;
         let model;
         const klass = this.modelClass.getClass();
-        model = new klass() as T;
-        model.fill(item);
+        model = new klass(item) as T;
         model._dirty = {};
         model._before_dirty = {};
         model = await this.bindRelationship(model);
