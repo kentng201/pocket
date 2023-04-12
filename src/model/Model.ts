@@ -35,17 +35,21 @@ export class Model {
     static timestamp?: boolean = true;
     static realtimeUpdate: boolean = true;
 
+    getClass(): typeof Model {
+        return this.constructor as typeof Model;
+    }
+
     public get cName() {
-        return (this.constructor as typeof Model).collectionName || pluralize(this.constructor.name, 2);
+        return this.getClass().collectionName || pluralize(this.constructor.name, 2);
     }
     public get dName() {
-        return (this.constructor as typeof Model).dbName;
+        return this.getClass().dbName;
     }
     public get rtUpdate() {
-        return (this.constructor as typeof Model).realtimeUpdate;
+        return this.getClass().realtimeUpdate;
     }
     public get needTimestamp() {
-        let timestamp = (this.constructor as typeof Model).timestamp;
+        let timestamp = this.getClass().timestamp;
         if (!timestamp) {
             timestamp = true;
         }
@@ -58,13 +62,13 @@ export class Model {
     static apiAuto?: APIAutoConfig;
 
     public get aName() {
-        return (this.constructor as typeof Model).apiName;
+        return this.getClass().apiName;
     }
     public get aResource() {
-        return (this.constructor as typeof Model).apiResource;
+        return this.getClass().apiResource;
     }
     public get aAuto() {
-        return (this.constructor as typeof Model).apiAuto;
+        return this.getClass().apiAuto;
     }
     // end of API feature
 
@@ -122,16 +126,13 @@ export class Model {
         return RepoManager.get(new this()) as Repo<T>;
     }
     static first<T extends Model>(this: ModelStatic<T>): Promise<T | undefined> {
-        // @ts-ignore
-        return (this as unknown as typeof Model).query<T>().first();
+        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName).first();
     }
-    static count<T extends Model>(): Promise<number> {
-        // @ts-ignore
-        return (this as unknown as typeof Model).query<T>().count();
+    static count<T extends Model>(this: ModelStatic<T>): Promise<number> {
+        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName).count();
     }
     static async all<T extends Model>(this: ModelStatic<T>): Promise<T[]> {
-        // @ts-ignore
-        const items = await (this as unknown as typeof Model).query<T>().get();
+        const items = await new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName).get();
         const result = [];
         for (const item of items) {
             const castedItem = new this(item) as T;
@@ -141,8 +142,7 @@ export class Model {
     }
 
     static async find<T extends Model>(this: ModelStatic<T>, primaryKey: string | string): Promise<T | undefined> {
-        // @ts-ignore
-        const item = await (this as unknown as typeof Model).repo<T>().getDoc(primaryKey);
+        const item = await RepoManager.get(new this()).getDoc(primaryKey);
         if (!item) return undefined;
         return new this(item) as T;
     }
@@ -157,7 +157,7 @@ export class Model {
         return model;
     }
     async update(attributes: Partial<ModelType<this>>): Promise<this> {
-        const guarded = (this.constructor as typeof Model).readonlyFields;
+        const guarded = this.getClass().readonlyFields;
         attributes._id = this._id;
         delete attributes.relationships;
         delete attributes._dirty;
@@ -246,29 +246,27 @@ export class Model {
         if (!this._id) {
             hasDocumentInDb = false;
         } else {
-            // @ts-ignore
-            hasDocumentInDb = await (this.constructor as unknown as typeof Model).repo<this>().getDoc(this._id);
+            hasDocumentInDb = await this.getClass().repo().getDoc(this._id);
         }
         // add static beforeSave function
-        if ((this.constructor as unknown as typeof Model).beforeSave) {
-            await (this.constructor as unknown as typeof Model).beforeSave(this);
+        if (this.getClass().beforeSave) {
+            await this.getClass().beforeSave(this);
         }
 
         if (this.needTimestamp) newAttributes.updatedAt = now;
         if (!hasDocumentInDb) {
             if (this.needTimestamp) newAttributes.createdAt = now;
             if (this.needTimestamp) newAttributes.updatedAt = now;
-            if ((this.constructor as unknown as typeof Model).beforeCreate) {
-                await (this.constructor as unknown as typeof Model).beforeCreate(this);
+            if (this.getClass().beforeCreate) {
+                await this.getClass().beforeCreate(this);
             }
-            // @ts-ignore
-            updatedResult = await (this.constructor as unknown as typeof Model).repo<this>().create(newAttributes);
+            updatedResult = await this.getClass().repo().create(newAttributes);
             this.fill({ _id: updatedResult.id, } as Partial<ModelType<this>>);
-            if ((this.constructor as unknown as typeof Model).afterCreate) {
-                await (this.constructor as unknown as typeof Model).afterCreate(this);
+            if (this.getClass().afterCreate) {
+                await this.getClass().afterCreate(this);
             }
         } else {
-            const guarded = (this.constructor as typeof Model).readonlyFields;
+            const guarded = this.getClass().readonlyFields;
             if (guarded && guarded.length > 0) {
                 for (const field of guarded) {
                     delete newAttributes[field as ModelKey<this>];
@@ -277,45 +275,41 @@ export class Model {
             }
             if (this.needTimestamp) newAttributes.updatedAt = now;
             newAttributes._id = this._id;
-            if ((this.constructor as unknown as typeof Model).beforeUpdate) {
-                await (this.constructor as unknown as typeof Model).beforeUpdate(this);
+            if (this.getClass().beforeUpdate) {
+                await this.getClass().beforeUpdate(this);
             }
-            // @ts-ignore
-            updatedResult = await (this.constructor as typeof Model).repo<this>().update(newAttributes);
+            updatedResult = await this.getClass().repo().update(newAttributes);
             this.fill({ _rev: updatedResult.rev, } as Partial<ModelType<this>>);
-            if ((this.constructor as unknown as typeof Model).afterCreate) {
-                await (this.constructor as unknown as typeof Model).afterCreate(this);
+            if (this.getClass().afterCreate) {
+                await this.getClass().afterCreate(this);
             }
         }
         this.fill({ ...newAttributes, _rev: updatedResult.rev, } as Partial<ModelType<this>>);
         await this.saveChildren();
 
         // add static afterSave function
-        if ((this.constructor as unknown as typeof Model).afterSave) {
-            await (this.constructor as unknown as typeof Model).afterSave(this);
+        if (this.getClass().afterSave) {
+            await this.getClass().afterSave(this);
         }
         this._dirty = {};
         this._before_dirty = {};
         return this;
     }
     async delete(): Promise<void> {
-        if ((this.constructor as unknown as typeof Model).beforeDelete) {
-            await (this.constructor as unknown as typeof Model).beforeDelete(this);
+        if (this.getClass().beforeDelete) {
+            await this.getClass().beforeDelete(this);
         }
-        // @ts-ignore
-        await (this.constructor as typeof Model).repo<this>().delete(this._id);
+        await this.getClass().repo().delete(this._id);
         Object.keys(this).forEach((key) => delete this[key as keyof this]);
-        if ((this.constructor as unknown as typeof Model).afterDelete) {
-            await (this.constructor as unknown as typeof Model).afterDelete(this);
+        if (this.getClass().afterDelete) {
+            await this.getClass().afterDelete(this);
         }
     }
     // end of CRUD operation
 
     // start of query builder
     static query<T extends Model>(this: ModelStatic<T>): QueryBuilder<T> {
-        const dbName = (this as unknown as typeof Model).dbName;
-        const model = new this;
-        return new QueryBuilder<T, []>(model, undefined, dbName);
+        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName);
     }
     static where<T extends Model>(this: ModelStatic<T>, condition: (query: QueryBuilder<T>) => void): QueryBuilder<T>;
     static where<T extends Model>(this: ModelStatic<T>, queryableModel: Partial<QueryableModel<T>>): QueryBuilder<T>;
@@ -334,11 +328,10 @@ export class Model {
         return new QueryBuilder<T, []>(model, relationships as unknown as ValidDotNotationArray<T, []>, (this as unknown as typeof Model).dbName);
     }
     async load<K extends string[]>(...relationships: string[]): Promise<this> {
-        // @ts-ignore
-        const newInstance = new this.constructor() as this;
+        const klass = this.getClass();
+        const newInstance = new klass() as this;
         const builder = new QueryBuilder(newInstance, relationships, this.dName);
         builder.where('_id', '=', this._id);
-        // @ts-ignore
         const loadedModel = await builder.first() as this;
         for (const relationship of relationships) {
             this[relationship as keyof this] = loadedModel[relationship as keyof this];
@@ -362,12 +355,10 @@ export class Model {
 
     // start api method
     public static api<Result, Params extends object>(apiPath: string, params: Params, method: APIMethod = 'POST'): Promise<Result> {
-        // @ts-ignore
-        return (this as unknown as typeof Model).repo<this>().api?.callApi(method, apiPath, params);
+        return this.repo().api?.callApi(method, apiPath, params) as Promise<Result>;
     }
     public api<Result>(apiPath: string, method: APIMethod = 'POST'): Promise<this | Result> {
-        // @ts-ignore
-        return (this.constructor as unknown as typeof Model).repo<this>().api?.callModelApi(method, apiPath, this.toJson());
+        return this.getClass().repo().api?.callModelApi(method, apiPath, this.toJson()) as Promise<this | Result>;
     }
     // end api method
 

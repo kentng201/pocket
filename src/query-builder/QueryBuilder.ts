@@ -308,7 +308,7 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
                         }
                     }
                 } catch (error) {
-                    throw new Error(`Relationship "${r as string}" does not exists in model ${model.constructor.name}`);
+                    throw new Error(`Relationship "${r as string}" does not exists in model ${model.getClass().name}`);
                 }
             }
         }
