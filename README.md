@@ -29,20 +29,28 @@ export default defineConfig({
 
 In vue.js, you can create a file `pocket.config.json` inside the `public` folder
 
+- modelTimestamp: if true, your model will have a createdAt and updatedAt field
+- realtimeUpdate: if true, your model will sync with other model with same _id
+- databases: an array of database configuration
+  - dbName: name of the database
+  - url: database url
+  - password: encrypt your database
+  - silentConnect: if true, the database will not connect to the server when the app starts
+
 ```json
 {
-    "modelTimestamp": true, // if true, your model will have a createdAt and updatedAt field
-    "realtimeUpdate": true, // if true, your model will sync with other model with same _id
+    "modelTimestamp": true,
+    "realtimeUpdate": true,
     "databases": [
         {
-            "dbName": "local", // name of the local database
-            "url": "test5", // local url name
-            "password": "234568", // encrypt your local database
+            "dbName": "local",
+            "url": "test5",
+            "password": "234568",
             "silentConnect": true
         },
         {
-            "dbName": "online", // name of online database
-            "url": "http://www.your-secret-db.com:5984/test5", // remote database path
+            "dbName": "online",
+            "url": "http://www.your-secret-db.com:5984/test5",
             "silentConnect": true,
             "auth": {
                 "username": "admin",
