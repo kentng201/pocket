@@ -33,6 +33,7 @@ In vue.js, you can create a file `pocket.config.json` inside the `public` folder
 - realtimeUpdate: if true, your model will sync with other model with same _id
 - databases: an array of database configuration
   - dbName: name of the database
+  - syncSetName: name of the sync set, all database with same syncSetName will sync with each other
   - url: database url
   - password: encrypt your database
   - silentConnect: if true, the database will not connect to the server when the app starts
@@ -44,12 +45,14 @@ In vue.js, you can create a file `pocket.config.json` inside the `public` folder
     "databases": [
         {
             "dbName": "local",
+            "syncSetName": "mainDb",
             "url": "test5",
             "password": "234568",
             "silentConnect": true
         },
         {
             "dbName": "online",
+            "syncSetName": "mainDb",
             "url": "http://www.your-secret-db.com:5984/test5",
             "silentConnect": true,
             "auth": {
