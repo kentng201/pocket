@@ -383,8 +383,9 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
     }
 
     async update(attributes: Partial<ModelType<T>>): Promise<PouchDB.Core.Response> {
-        const doc = await this.getDoc(attributes._id as string);
-        const result = await this.db.put({ ...doc, ...attributes, }, {
+        const doc = await this.find(attributes._id as string);
+        if (!doc) return { ok: false, } as PouchDB.Core.Response;
+        const result = await this.db.put({ ...doc.toJson(), ...attributes, }, {
             force: false,
         });
         if (this.apiInfo && this.apiInfo.apiAutoUpdate) {
@@ -394,11 +395,11 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
     }
 
     async delete(_id: string): Promise<PouchDB.Core.Response> {
-        const doc = await this.getDoc(_id);
+        const doc = await this.find(_id);
         if (!doc) {
             return Promise.reject(new Error('Document not found'));
         }
-        const result = await this.db.remove(doc);
+        const result = await this.db.remove(doc.toJson() as PouchDB.Core.RemoveDocument);
         if (this.apiInfo && this.apiInfo.apiAutoDelete) {
             await this.api?.delete(_id);
         }
