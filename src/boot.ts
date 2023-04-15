@@ -40,6 +40,12 @@ type SinglePocketConfig = {
         username: string;
         password: string;
     };
+
+    /**
+     * Name of the sync databases set you wish to sync with.
+     * e.g. if you have 2 databases, both set `syncSetName` to "mySyncSet", then they will be synced.
+     */
+    syncSetName?: string;
 };
 
 type MultiPocketConfig = {
@@ -83,7 +89,8 @@ export const boot = async () => {
     }
     try {
         if (config.databases) {
-            let tempDb = undefined;
+            let tempDb: any = {};
+
             const multiConfig = config as MultiPocketConfig & GlobalConfig;
             setEnvironement(is_browser ? 'browser' : 'node');
             setDefaultDbName(multiConfig.databases[0].dbName || 'default');
@@ -98,13 +105,17 @@ export const boot = async () => {
                     silentConnect: singleConfig.silentConnect,
                     auth: singleConfig.auth
                 });
-                if (tempDb) {
-
-                    if (tempDb !== dbName) {
-                        syncDatabases(tempDb, dbName);
+                if (singleConfig.syncSetName && tempDb[singleConfig.syncSetName]) {
+                    if (tempDb[singleConfig.syncSetName] !== dbName) {
+                        syncDatabases(tempDb[singleConfig.syncSetName], dbName);
                     }
+                    tempDb[singleConfig.syncSetName] = dbName;
+                } else {
+                    if (tempDb['default'] !== dbName) {
+                        syncDatabases(tempDb['default'], dbName);
+                    }
+                    tempDb['default'] = dbName;
                 }
-                tempDb = dbName;
             }
             setRealtime(multiConfig.realtimeUpdate || false);
         } else if (config.url) {
