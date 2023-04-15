@@ -18,11 +18,13 @@ export const DEFAULT_DB_NAME = 'default';
 export type PouchDBConfig = {
     /**
      * Database name, which can be used in the DatabaseManager.get() method.
+     * Default is 'default'.
      */
     dbName?: string;
 
     /**
      * Password to encrypt the database in your browser.
+     * If not set, the database will not be encrypted.
      */
     password?: string;
 
