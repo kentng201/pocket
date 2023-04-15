@@ -126,12 +126,9 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
     }
 
     async find(_id: string): Promise<T | undefined> {
-        try {
-            const doc = await this.db.get(_id);
-            return this.cast(doc as ModelType<T>);
-        } catch (e) {
-            return undefined;
-        }
+        const doc = await this.getDoc(_id);
+        if (doc) return this.cast(doc as ModelType<T>);
+        return undefined;
     }
 
     where(condition: (query: QueryBuilder<T>) => void): this;
