@@ -46,14 +46,21 @@ In vue.js, you can create a file `pocket.config.json` inside the `public` folder
         {
             "dbName": "local",
             "syncSetName": "mainDb",
-            "url": "test5",
+            "url": "mainDb",
             "password": "234568",
+            "silentConnect": true
+        },
+        {
+            "dbName": "userData",
+            "syncSetName": "user-data-do-not-sync",
+            "url": "userData",
+            "password": "809480",
             "silentConnect": true
         },
         {
             "dbName": "online",
             "syncSetName": "mainDb",
-            "url": "http://www.your-secret-db.com:5984/test5",
+            "url": "http://www.your-secret-db.com:5984/mainDb",
             "silentConnect": true,
             "auth": {
                 "username": "admin",
