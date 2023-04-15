@@ -25,33 +25,32 @@ export default defineConfig({
 })
 ```
 
-### Database Connection
+### Project Setup
 
-To connect to a database, specify the database and the adapter
+In vue.js, you can create a file `pocket.config.json` inside the `public` folder
 
-```typescript
-import { DatabaseManager, setEnvironement, setRealtime } from 'pocket';
-
-setEnvironement('browser'); // set environment to browser or node
-
-const databaseConfig = {
-    dbName: 'default', // database name, required when multiple database connection
-    adapter: 'idb', // available adapter: idb, memory
-    silentConnect: true, // if true, the database will connect without console.log
-};
-await DatabaseManager.connect('test', databaseConfig); // connect to local database named "test"
-
-setRealtime(true); // if you set real time to true, the object with same _id with sync each other 
-```
-
-You can set some default attributes of model
-
-```typescript
-import { setDefaultDbName, setDefaultNeedTimestamp, setDefaultNeedRealtimeUpdate } from 'pocket';
-
-setDefaultDbName('default'); // set default database name
-setDefaultNeedTimestamp(true); // set default need createdAt and updatedAt field
-setDefaultNeedRealtimeUpdate(true); // set default realtime update when related _id is changed
+```json
+{
+    "modelTimestamp": true, // if true, your model will have a createdAt and updatedAt field
+    "realtimeUpdate": true, // if true, your model will sync with other model with same _id
+    "databases": [
+        {
+            "dbName": "local", // name of the local database
+            "url": "test5", // local url name
+            "password": "234568", // encrypt your local database
+            "silentConnect": true
+        },
+        {
+            "dbName": "online", // name of online database
+            "url": "http://www.your-secret-db.com:5984/test5", // remote database path
+            "silentConnect": true,
+            "auth": {
+                "username": "admin",
+                "password": "mysecretpassword"
+            }
+        }
+    ]
+}
 ```
 
 ### Model
