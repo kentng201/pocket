@@ -105,13 +105,13 @@ export const boot = async () => {
                     silentConnect: singleConfig.silentConnect,
                     auth: singleConfig.auth
                 });
-                if (singleConfig.syncSetName && tempDb[singleConfig.syncSetName]) {
-                    if (tempDb[singleConfig.syncSetName] !== dbName) {
+                if (singleConfig.syncSetName) {
+                    if (tempDb[singleConfig.syncSetName] && tempDb[singleConfig.syncSetName] !== dbName) {
                         syncDatabases(tempDb[singleConfig.syncSetName], dbName);
                     }
                     tempDb[singleConfig.syncSetName] = dbName;
                 } else {
-                    if (tempDb['default'] !== dbName) {
+                    if (tempDb['default'] && tempDb['default'] !== dbName) {
                         syncDatabases(tempDb['default'], dbName);
                     }
                     tempDb['default'] = dbName;
