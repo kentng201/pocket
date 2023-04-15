@@ -61,7 +61,7 @@ type GlobalConfig = {
 };
 
 let configFilePath = process.cwd() + '/pocket.config.json';
-console.log('configFilePath: ', configFilePath);
+
 const is_browser = typeof window !== 'undefined' && window.localStorage
 const is_node = typeof process !== 'undefined';
 
@@ -83,23 +83,28 @@ export const boot = async () => {
     }
     try {
         if (config.databases) {
+            let tempDb = undefined;
             const multiConfig = config as MultiPocketConfig & GlobalConfig;
             setEnvironement(is_browser ? 'browser' : 'node');
             setDefaultDbName(multiConfig.databases[0].dbName || 'default');
             setDefaultNeedTimestamp(multiConfig.modelTimestamp || false);
             setDefaultNeedRealtimeUpdate(multiConfig.realtimeUpdate || false);
             for (const singleConfig of multiConfig.databases) {
+                const dbName = singleConfig.dbName || 'default';
                 await DatabaseManager.connect(singleConfig.url, {
-                    dbName: singleConfig.dbName || 'default',
+                    dbName,
                     password: singleConfig.password,
                     adapter: singleConfig.adapter,
                     silentConnect: singleConfig.silentConnect,
                     auth: singleConfig.auth
                 });
-                if (Object.keys(DatabaseManager.databases).length == 1) {
-                    const dbName = Object.keys(DatabaseManager.databases)[0];
-                    syncDatabases(dbName, singleConfig.dbName || 'default');
+                if (tempDb) {
+
+                    if (tempDb !== dbName) {
+                        syncDatabases(tempDb, dbName);
+                    }
                 }
+                tempDb = dbName;
             }
             setRealtime(multiConfig.realtimeUpdate || false);
         } else if (config.url) {
@@ -118,6 +123,5 @@ export const boot = async () => {
             setRealtime(singleConfig.realtimeUpdate || false);
         }
     } catch (error) {
-        console.log('error: ', error);
     }
 }
