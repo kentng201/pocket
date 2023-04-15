@@ -1,5 +1,4 @@
 import { QueryBuilder, Operator, OperatorValue, QueryableModel, RelationshipType } from 'src/query-builder/QueryBuilder';
-import { Repo } from 'src/repo/Repo';
 import { RepoManager } from 'src/manager/RepoManager';
 
 import { belongsTo } from 'src/relationships/BelongsTo';
@@ -122,8 +121,8 @@ export class Model {
     // end of object construction
 
     // start of CRUD operation
-    static repo<T extends Model>(this: ModelStatic<T>): Repo<T> {
-        return RepoManager.get(new this()) as Repo<T>;
+    static repo<T extends Model>(this: ModelStatic<T>): QueryBuilder<T> {
+        return RepoManager.get(new this()) as QueryBuilder<T>;
     }
     static first<T extends Model>(this: ModelStatic<T>): Promise<T | undefined> {
         return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName).first();

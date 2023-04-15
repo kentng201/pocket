@@ -1,11 +1,11 @@
 import { Model } from 'src/model/Model';
-import { Repo } from 'src/repo/Repo';
 import { APIResourceInfo, ApiHostManager } from './ApiHostManager';
+import { QueryBuilder } from '..';
 
 export class RepoManager {
-    private static repos: { [collectionName: string]: Repo<any> } = {};
+    private static repos: { [collectionName: string]: QueryBuilder<any> } = {};
 
-    static get<T extends Model>(model: T): Repo<T> {
+    static get<T extends Model>(model: T): QueryBuilder<T> {
         const dbName = model.dName;
         const apiName = model.aName;
         const apiInfo = apiName ? ApiHostManager.getApiInfo(apiName) : {};
@@ -27,7 +27,7 @@ export class RepoManager {
             )
             .length > 0;
         if (!this.repos[collectionName]) {
-            this.repos[collectionName] = new Repo<T>(
+            this.repos[collectionName] = new QueryBuilder<T>(
                 model, undefined, dbName, undefined, haveApiConfig ? apiResourceInfo : undefined
             );
         }

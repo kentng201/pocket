@@ -1,12 +1,12 @@
 {
     "name": "pocket",
-    "version": "0.2.23",
+    "version": "0.2.24",
     "description": "Pouch DB model library",
     "main": "dist/src/index.js",
     "types": "dist/src/index.d.ts",
     "private": true,
     "scripts": {
-        "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json && rm -Rf dist/mocks && rm -Rf dist/spec && npm pack",
+        "build": "tsc --declaration --declarationDir dist --emitDeclarationOnly && tsc --project tsconfig.json && tsc-alias -p tsconfig.json && rm -Rf dist/mocks && rm -Rf dist/spec && npm pack",
         "lint": "eslint src/**/*.ts",
         "repl": "ts-node -r tsconfig-paths/register",
         "test": "ts-node -r tsconfig-paths/register node_modules/jasmine/bin/jasmine --config=jasmine.json",

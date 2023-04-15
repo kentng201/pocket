@@ -2,7 +2,7 @@ import { Model } from 'src/model/Model';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { ApiHostManager } from 'src/manager/ApiHostManager';
 import { RepoManager } from 'src/manager/RepoManager';
-import { Repo } from 'src/repo/Repo';
+import { QueryBuilder } from 'src/index';
 
 describe('Repo', () => {
     class User extends Model {
@@ -21,14 +21,14 @@ describe('Repo', () => {
         password?: string;
     }
 
-    let repo: Repo<User>;
-    let userTestApiRepo: Repo<UserTestApi>;
+    let repo: QueryBuilder<User>;
+    let userTestApiRepo: QueryBuilder<UserTestApi>;
 
     beforeEach(async () => {
         await DatabaseManager.connect('repo', { dbName: 'repo', adapter: 'memory', silentConnect: true, });
+        ApiHostManager.addHost('http://pocket.test/');
         repo = RepoManager.get(new User);
         userTestApiRepo = RepoManager.get(new UserTestApi);
-        ApiHostManager.addHost('http://pocket.test/');
     });
 
     it('should be able to create document via repo', async () => {

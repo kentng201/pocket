@@ -1,7 +1,7 @@
 import { Model } from 'src/model/Model';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { RepoManager } from 'src/manager/RepoManager';
-import { Repo } from 'src/repo/Repo';
+import { QueryBuilder } from 'src/index';
 
 describe('Repo', () => {
     class User extends Model {
@@ -11,7 +11,7 @@ describe('Repo', () => {
         password?: string;
     }
 
-    let repo: Repo<User>;
+    let repo: QueryBuilder<User>;
 
     beforeEach(async () => {
         await DatabaseManager.connect('test-repo-listen-change', { dbName: 'test-repo-listen-change', adapter: 'memory', silentConnect: true, });

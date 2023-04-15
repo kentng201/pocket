@@ -1,9 +1,9 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { setRealtime } from 'src/real-time/RealTimeModel';
 import { RepoManager } from 'src/manager/RepoManager';
-import { Repo } from 'src/repo/Repo';
 import { Model } from 'src/model/Model';
 import fs from 'fs';
+import { QueryBuilder } from 'src/index';
 
 const dbName = 'model-encrypt';
 
@@ -19,7 +19,7 @@ describe('Model Encrypt', () => {
             return Math.random().toString();
         }
     }
-    let repo: Repo<EncryptUser>;
+    let repo: QueryBuilder<EncryptUser>;
 
 
     beforeEach(async () => {
