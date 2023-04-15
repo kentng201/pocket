@@ -16,10 +16,31 @@ export function setEnvironement(environement: 'browser' | 'node') {
 export const DEFAULT_DB_NAME = 'default';
 
 export type PouchDBConfig = {
+    /**
+     * Database name, which can be used in the DatabaseManager.get() method.
+     */
     dbName?: string;
+
+    /**
+     * Password to encrypt the database in your browser.
+     */
     password?: string;
+
+    /**
+     * Adapter to use. Default is 'idb' (IndexedDB) for the browser and 'leveldb' for NodeJS.
+     * 'memory' | 'http' | 'idb' | 'leveldb' | 'websql'
+     */
     adapter?: string;
+
+    /**
+     * If true, the connection will not be logged in the console.
+     * Default is false.
+     */
     silentConnect?: boolean;
+
+    /**
+     * Authentication for the online CouchDB.
+     */
     auth?: {
         username: string;
         password: string;

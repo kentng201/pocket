@@ -121,15 +121,31 @@ export class Model {
     // end of object construction
 
     // start of CRUD operation
+    /**
+     * @deprecated retuen query builder of the model
+     * @returns A query builder of that model
+     */
     static repo<T extends Model>(this: ModelStatic<T>): QueryBuilder<T> {
         return RepoManager.get(new this()) as QueryBuilder<T>;
     }
+    /**
+     * Get the first model in the collection
+     * @returns a model or undefined
+     */
     static first<T extends Model>(this: ModelStatic<T>): Promise<T | undefined> {
         return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName).first();
     }
+    /**
+     * Count all models
+     * @returns number of models
+     */
     static count<T extends Model>(this: ModelStatic<T>): Promise<number> {
         return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName).count();
     }
+    /**
+     * Get all models
+     * @returns an array of models
+     */
     static async all<T extends Model>(this: ModelStatic<T>): Promise<T[]> {
         const items = await new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName).get();
         const result = [];
@@ -140,11 +156,22 @@ export class Model {
         return result;
     }
 
+    /**
+     * Find a model by primary key
+     * @param primaryKey _id of the model
+     * @returns a model or undefined
+     */
     static async find<T extends Model>(this: ModelStatic<T>, primaryKey: string | string): Promise<T | undefined> {
         const item = await RepoManager.get(new this()).getDoc(primaryKey);
         if (!item) return undefined;
         return new this(item) as T;
     }
+
+    /**
+     * Create a new model
+     * @param attributes attributes of the model
+     * @returns a new model 
+     */
     static async create<T extends Model>(this: ModelStatic<T>, attributes: NewModelType<T>): Promise<T> {
         const model = new this() as T;
         if (model.needTimestamp) {
@@ -155,6 +182,11 @@ export class Model {
         await model.save();
         return model;
     }
+    /**
+     * Update an existing model
+     * @param attributes attributes of the model
+     * @returns this
+     */
     async update(attributes: Partial<ModelType<this>>): Promise<this> {
         const guarded = this.getClass().readonlyFields;
         attributes._id = this._id;
@@ -172,6 +204,11 @@ export class Model {
         await this.save();
         return this;
     }
+
+    /**
+     * Save the sub-models of this model
+     * @returns this
+     */
     async saveChildren(): Promise<this> {
         for (const field in this) {
             if (Array.isArray(this[field]) && (this[field] as Model[])[0] instanceof Model) {
@@ -209,6 +246,10 @@ export class Model {
         return this;
     }
 
+    /**
+     * Save a model into database
+     * @returns this
+     */
     async save(): Promise<this> {
         while (this._real_time_updating) {
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -294,6 +335,10 @@ export class Model {
         this._before_dirty = {};
         return this;
     }
+    /**
+     * Delete a model from database
+     * @returns void
+     */
     async delete(): Promise<void> {
         if (this.getClass().beforeDelete) {
             await this.getClass().beforeDelete(this);
@@ -322,10 +367,20 @@ export class Model {
     // end of query builder
 
     // start of relationship
+    /**
+     * Eager load relationships
+     * @param relationships all relationships to load, support dot notation
+     * @returns 
+     */
     static with<T extends Model, K extends string[]>(this: ModelStatic<T>, ...relationships: string[]): QueryBuilder<T> {
         const model = new this;
         return new QueryBuilder<T, []>(model, relationships as unknown as ValidDotNotationArray<T, []>, (this as unknown as typeof Model).dbName);
     }
+    /**
+     * Load relationships to current model
+     * @param relationships all relationships to load, support dot notation
+     * @returns 
+     */
     async load<K extends string[]>(...relationships: string[]): Promise<this> {
         const klass = this.getClass();
         const newInstance = new klass() as this;
@@ -353,9 +408,22 @@ export class Model {
     // end of relationship
 
     // start api method
+    /**
+     * Call backend API method for the resource
+     * @param apiPath Path name
+     * @param params Parameters
+     * @param method 'GET' | 'POST' | 'PUT' | 'DELETE'
+     * @returns 
+     */
     public static api<Result, Params extends object>(apiPath: string, params: Params, method: APIMethod = 'POST'): Promise<Result> {
         return this.repo().api?.callApi(method, apiPath, params) as Promise<Result>;
     }
+    /**
+     * Call backend API method for the resource with _id
+     * @param apiPath Path name
+     * @param method 'GET' | 'POST' | 'PUT' | 'DELETE'
+     * @returns 
+     */
     public api<Result>(apiPath: string, method: APIMethod = 'POST'): Promise<this | Result> {
         return this.getClass().repo().api?.callModelApi(method, apiPath, this.toJson()) as Promise<this | Result>;
     }
@@ -391,6 +459,10 @@ export class Model {
     }
     // end of lifecycle
 
+    /**
+     * Convert model to a plain object
+     * @returns javascript object
+     */
     public toJson(): Partial<ModelType<this>> {
         const json: Partial<this> = {};
         for (const field in this) {
@@ -445,14 +517,29 @@ export class Model {
     _dirty: { [key: string]: boolean } = {};
     _before_dirty: { [key: string]: any } = {};
 
+    /**
+     * Check if the model or attribute is dirty
+     * @param attribute can be undefined, if undefined, check if the model is dirty, otherwise check if the attribute is dirty
+     * @returns 
+     */
     isDirty(attribute?: ModelKey<this>): boolean {
         if (attribute) return !!this._dirty[attribute as string];
         // return this._dirty whereas the boolean value is true
         return Object.keys(this._dirty).some(key => this._dirty[key]);
     }
+    /**
+     * Get the value of the attribute before it is dirty
+     * @param attribute the attribute that which to check
+     * @returns 
+     */
     getBeforeDirtyValue<Key extends ModelKey<this>>(attribute: Key): ModelValue<this, Key> {
         return this._before_dirty[attribute as string];
     }
+    /**
+     * A method to check if this model is not the latest version with the database
+     * @param changeId 
+     * @returns 
+     */
     isOutdated(changeId: string): boolean {
         return needToReload(this, changeId);
     }
