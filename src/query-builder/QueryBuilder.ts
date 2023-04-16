@@ -51,6 +51,7 @@ function toMangoQuery<T extends Model, Key extends ModelKey<T>, O extends Operat
 }
 
 function idToMangoQuery<T extends Model, Key extends '_id', O extends Operator>(operator: O, value: any, cName: string): PouchDB.Find.Selector {
+    if (!value) return {};
     if (['=', '!=', '>', '>=', '<', '<=',].includes(operator)) {
         if (!value.includes(cName)) {
             value = `${cName}.${value}`;

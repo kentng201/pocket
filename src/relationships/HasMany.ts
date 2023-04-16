@@ -13,6 +13,7 @@ export function hasMany<T extends Model, R extends Model>(
 
     const builder = new QueryBuilder<R>(relationshipInstance, undefined, self.dName);
     builder.setRelationshipType(RelationshipType.HAS_MANY, localKey as string, foreignKey as string);
+    if (localKey === '_id') localKey = 'docId' as ModelKey<T>;
     builder.where(foreignKey, '=', self[localKey] as ModelValue<R, ModelKey<R>>);
     return builder;
 }

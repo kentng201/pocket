@@ -227,7 +227,7 @@ export class Model {
                     for (const child of children) {
                         const newChild = new (child.getClass() as ModelStatic<Model>)();
                         const foreignKey = query.getForeignKey() as ModelKey<Model>;
-                        child[foreignKey] = this._id;
+                        child[foreignKey] = this.docId;
                         newChild.fill(child);
                         await newChild.save();
                         newChild._dirty = {};
@@ -241,7 +241,7 @@ export class Model {
                     const child = this[field] as Model;
                     const foreignKey = query.getForeignKey() as ModelKey<Model>;
                     if (!child[foreignKey]) {
-                        child[foreignKey] = this._id;
+                        child[foreignKey] = this.docId;
                     }
                     const newChild = new (child.getClass() as ModelStatic<Model>)();
                     newChild.fill(child);

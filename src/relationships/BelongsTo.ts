@@ -12,6 +12,7 @@ export function belongsTo<T extends Model, R extends Model>(
     if (!foreignKey) foreignKey = '_id';
 
     const builder = new QueryBuilder<R>(relationshipInstance, undefined, self.dName, true);
+    if (localKey === '_id') localKey = 'docId' as ModelKey<T>;
     builder.where(foreignKey, '=', self[localKey] as ModelValue<R, ModelKey<R>>);
     builder.setRelationshipType(RelationshipType.BELONGS_TO, localKey as string, foreignKey as string);
     return builder;
