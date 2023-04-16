@@ -32,6 +32,7 @@ describe('Model Child', () => {
         }));
 
         const dbUser = await dbPost1.relationships.user().first();
+        console.log('dbUser: ', dbUser);
         expect(dbUser).toBeInstanceOf(ChildUser);
         expect(dbUser).toEqual(jasmine.objectContaining({
             name: user.name,

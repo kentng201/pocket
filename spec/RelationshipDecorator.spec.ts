@@ -22,11 +22,7 @@ describe('Relationship Decorator', () => {
             static dbName = dbName;
             name!: string;
 
-            @HasMany(() => DecoratorPost, '_id', 'userId') posts?: DecoratorPost[];
-
-            // relationships = {
-            //     posts: () => this.hasMany(DecoratorPost, '_id', 'userId')
-            // }
+            @HasMany('DecoratorPost', '_id', 'userId') posts?: DecoratorPost[];
         }
         const user = await DecoratorUser.create({ name: 'test', });
         await DecoratorPost.create({ userId: user.docId, });
