@@ -6,3 +6,6 @@ export * from 'src/query-builder/QueryBuilder';
 export * from 'src/real-time/RealTimeModel';
 export * from 'src/real-time/DatabaseSync';
 export * from 'src/boot';
+
+import { boot } from 'src/boot';
+export default boot;

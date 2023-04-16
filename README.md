@@ -76,14 +76,11 @@ Create a file `pocket.config.json` inside the `public` folder
 In React.js, update your `index.tsx` as per below
 
 ```tsx
-const setupDatabase = async (): Promise<void> => {
-  await boot();
-}
+import pocket from "pocket";
 
 export default function Home() {
-  const TEST_USER_NAME = 'Users.Test5';
   useEffect(() => {
-    setupDatabase().then(async () => {
+    pocket().then(async () => {
         // your query goes here
     });
   }, []);
@@ -99,9 +96,9 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import "./registerServiceWorker";
 import router from "./router";
-import { boot } from "pocket";
+import pocket from "pocket";
 
-boot().then(() => {
+pocket().then(() => {
     createApp(App).use(router).mount("#app");
 });
 ```
