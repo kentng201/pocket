@@ -3,6 +3,7 @@ import { BaseModel } from '../model/Model';
 import { singular } from 'pluralize';
 import { lowerCaseFirst } from 'src/helpers/stringHelper';
 import { ModelStatic } from 'src/definitions/Model';
+import { getModel } from 'src/model/ModelDecorator';
 
 export type RelationshipParams = [RelationshipType, ModelStatic<any>[], Array<string>];
 
@@ -26,8 +27,13 @@ export function getRelationships<T extends BaseModel>(model: T): ForeignTypeMapp
     return foreignKeys[model.cName] || {};
 }
 
-export function BelongsTo(relationshipFunc: Function, localKey?: string, foreignKey?: string) {
+export function BelongsTo(relationshipFunc: Function | string, localKey?: string, foreignKey?: string) {
+    if (typeof relationshipFunc === 'string') {
+        const relationshipName = relationshipFunc;
+        relationshipFunc = () => getModel(relationshipName);
+    }
     const relationship = relationshipFunc();
+    console.log('relationship: ', relationship);
     return function <T extends BaseModel>(target: T, propertyKey: string) {
         if (!target.relationships) {
             target.relationships = {};
@@ -38,7 +44,11 @@ export function BelongsTo(relationshipFunc: Function, localKey?: string, foreign
     };
 }
 
-export function HasOne(relationshipFunc: Function, localKey?: string, foreignKey?: string) {
+export function HasOne(relationshipFunc: Function | string, localKey?: string, foreignKey?: string) {
+    if (typeof relationshipFunc === 'string') {
+        const relationshipName = relationshipFunc;
+        relationshipFunc = () => getModel(relationshipName);
+    }
     const relationship = relationshipFunc();
     return function <T extends BaseModel>(target: T, propertyKey: string) {
         if (!target.relationships) {
@@ -51,7 +61,11 @@ export function HasOne(relationshipFunc: Function, localKey?: string, foreignKey
     };
 }
 
-export function HasMany(relationshipFunc: Function, localKey?: string, foreignKey?: string) {
+export function HasMany(relationshipFunc: Function | string, localKey?: string, foreignKey?: string) {
+    if (typeof relationshipFunc === 'string') {
+        const relationshipName = relationshipFunc;
+        relationshipFunc = () => getModel(relationshipName);
+    }
     const relationship = relationshipFunc();
     return function <T extends BaseModel>(target: T, propertyKey: string) {
         if (!target.relationships) {
@@ -64,8 +78,16 @@ export function HasMany(relationshipFunc: Function, localKey?: string, foreignKe
     };
 }
 
-export function BelongsToMany(relationshipFunc: Function, pivotFunc: Function, localKey?: string, foreignKey?: string) {
+export function BelongsToMany(relationshipFunc: Function | string, pivotFunc: Function | string, localKey?: string, foreignKey?: string) {
+    if (typeof relationshipFunc === 'string') {
+        const relationshipName = relationshipFunc;
+        relationshipFunc = () => getModel(relationshipName);
+    }
     const relationship = relationshipFunc();
+    if (typeof pivotFunc === 'string') {
+        const pivotName = pivotFunc;
+        pivotFunc = () => getModel(pivotName);
+    }
     const pivot = pivotFunc;
     return function <T extends BaseModel>(target: T, propertyKey: string) {
         if (!target.relationships) {
