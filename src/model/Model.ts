@@ -555,6 +555,12 @@ export class BaseModel {
     // end dirty maintenance
 }
 
-export const Model = new Proxy(BaseModel, {
+export const subclassRegistry = new Set<Function>();
 
+export const Model = new Proxy(BaseModel, {
+    construct(target, args, newTarget) {
+        const newClass = Reflect.construct(target, args, newTarget);
+        subclassRegistry.add(newClass);
+        return newClass;
+    }
 });
