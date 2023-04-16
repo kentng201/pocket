@@ -1,9 +1,11 @@
 import uuid from 'short-uuid';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { ModelKey, ModelType, ModelValue, NewModelType } from 'src/definitions/Model';
+import { RelationshipType } from 'src/definitions/RelationshipType';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { BaseModel } from 'src/model/Model';
+import { getRelationships } from 'src/relationships/RelationshipDecorator';
 import { ApiRepo } from 'src/repo/ApiRepo';
 
 const operators = ['=', '>', '>=', '<', '<=', '!=', 'in', 'not in', 'between', 'like',] as const;
@@ -87,14 +89,6 @@ function queryableValueToValue<T extends BaseModel, Key extends ModelKey<T>>(fie
         return toMangoQuery<T, Key, '='>(field, '=', value);
     }
 }
-
-export enum RelationshipType {
-    HAS_ONE = 'HAS_ONE',
-    HAS_MANY = 'HAS_MANY',
-    BELONGS_TO = 'BELONGS_TO',
-    BELONGS_TO_MANY = 'BELONGS_TO_MANY',
-}
-
 
 export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
     protected queries: PouchDB.Find.FindRequest<T> & { selector: { $and: PouchDB.Find.Selector[] } };
@@ -316,6 +310,28 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
     }
 
     private async bindRelationship(model: T) {
+        if (!model.relationships) model.relationships = {};
+        const relationships = getRelationships(model);
+        Object.keys(relationships).forEach((key) => {
+            const relationshipParams = relationships[key];
+            const queryBuilder = () => {
+                if (relationshipParams[0] === RelationshipType.BELONGS_TO) {
+                    return model.belongsTo(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
+                }
+                if (relationshipParams[0] === RelationshipType.HAS_MANY) {
+                    return model.hasMany(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
+                }
+                if (relationshipParams[0] === RelationshipType.HAS_ONE) {
+                    return model.hasOne(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
+                }
+                if (relationshipParams[0] === RelationshipType.BELONGS_TO_MANY) {
+                    return model.belongsToMany(relationshipParams[1][0], relationshipParams[1][1], relationshipParams[2][0], relationshipParams[2][1]);
+                }
+                return new QueryBuilder(this.modelClass);
+            };
+            model.relationships[key] = queryBuilder as any;
+        });
+
         if (this.relationships && model.relationships) {
             for (const r of this.relationships) {
                 try {

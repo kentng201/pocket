@@ -70,14 +70,14 @@ export class BaseModel {
         return this.getClass().apiAuto;
     }
     public get docId() {
-        return this._id.includes(this.cName + '.') ? this._id : this.cName + '.' + this._id;
+        return this._id?.includes(this.cName + '.') ? this._id : this.cName + '.' + this._id;
     }
     public get modelId() {
-        return this._id.includes(this.cName + '.') ? this._id.replace(this.cName + '.', '') : this._id;
+        return this._id?.includes(this.cName + '.') ? this._id.replace(this.cName + '.', '') : this._id;
     }
     // end of API feature
 
-    relationships?: { [relationshipName: string]: () => QueryBuilder<any> };
+    relationships!: { [relationshipName: string]: () => QueryBuilder<any> };
     public _id: string = '';
     public _rev: string = '';
     public _real_time_updating: boolean = false;
@@ -220,7 +220,7 @@ export class BaseModel {
     async saveChildren(): Promise<this> {
         for (const field in this) {
             if (Array.isArray(this[field]) && (this[field] as BaseModel[])[0] instanceof BaseModel) {
-                const query = this.relationships?.[field]?.();
+                const query = this.relationships[field]?.();
                 if (query?.getRelationshipType() === RelationshipType.HAS_MANY) {
                     const children = this[field] as BaseModel[];
                     const newChildren = [];
@@ -236,7 +236,7 @@ export class BaseModel {
                     this[field] = newChildren as ModelValue<this, typeof field>;
                 }
             } else if (this[field] instanceof BaseModel) {
-                const query = this.relationships?.[field]?.();
+                const query = this.relationships[field]?.();
                 if (query?.getRelationshipType() === RelationshipType.HAS_ONE) {
                     const child = this[field] as BaseModel;
                     const foreignKey = query.getForeignKey() as ModelKey<BaseModel>;
