@@ -1,5 +1,6 @@
-import { DatabaseManager, BaseModel, Model } from "src/index";
-import { HasMany } from "src/relationships/RelationshipDecorator";
+import { DatabaseManager, BaseModel, Model } from 'src/index';
+import { PocketModel } from 'src/model/ModelDecorator';
+import { HasMany } from 'src/relationships/RelationshipDecorator';
 
 const dbName = 'relationship-decorator';
 
@@ -9,24 +10,25 @@ describe('Relationship Decorator', () => {
     });
 
     it('should able to query post', async () => {
+        @PocketModel
         class DecoratorPost extends Model {
             static dbName = dbName;
 
             userId!: string;
         }
 
+        @PocketModel
         class DecoratorUser extends Model {
             static dbName = dbName;
             name!: string;
 
-            @HasMany(DecoratorPost, '_id', 'userId')
-            posts?: DecoratorPost[];
+            @HasMany(() => DecoratorPost, '_id', 'userId') posts?: DecoratorPost[];
 
             // relationships = {
             //     posts: () => this.hasMany(DecoratorPost, '_id', 'userId')
             // }
         }
-        const user = await DecoratorUser.create({ name: 'test' });
+        const user = await DecoratorUser.create({ name: 'test', });
         await DecoratorPost.create({ userId: user.docId, });
         await DecoratorPost.create({ userId: user.docId, });
         expect(user).toBeInstanceOf(DecoratorUser);
@@ -35,5 +37,5 @@ describe('Relationship Decorator', () => {
         expect(posts).toBeInstanceOf(Array);
         expect(posts?.length).toEqual(2);
         expect(posts?.[0]).toBeInstanceOf(DecoratorPost);
-    })
+    });
 });

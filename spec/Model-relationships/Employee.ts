@@ -1,8 +1,9 @@
-import { Model } from 'src/model/Model';
+import { BelongsTo, Model } from 'src/index';
+import { PocketModel } from 'src/model/ModelDecorator';
 import { UserRelationship } from './UserRelationship';
-import { BelongsTo } from 'src/index';
 
 const dbName = 'model-relationships';
+@PocketModel
 export class Employee extends Model {
     static dbName = dbName;
 
@@ -10,5 +11,5 @@ export class Employee extends Model {
     password?: string;
     userId!: string;
 
-    @BelongsTo(require('./UserRelationship').UserRelationship, '_id', 'userId') user?: UserRelationship;
+    @BelongsTo(() => UserRelationship, '_id', 'userId') user?: UserRelationship;
 }

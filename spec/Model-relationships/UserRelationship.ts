@@ -1,13 +1,14 @@
-import { Model } from 'src/model/Model';
-import { HasMany } from 'src/index';
+import { HasMany, Model } from 'src/index';
+import { PocketModel } from 'src/model/ModelDecorator';
 import { PostRelationship } from './PostRelationship';
 
 const dbName = 'model-relationships';
+@PocketModel
 export class UserRelationship extends Model {
     static dbName = dbName;
 
     name!: string;
     password?: string;
 
-    @HasMany(require('./PostRelationship').PostRelationship, '_id', 'userId') posts?: PostRelationship[];
+    @HasMany(() => PostRelationship, '_id', 'userId') posts?: PostRelationship[];
 }

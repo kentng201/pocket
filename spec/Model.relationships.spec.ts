@@ -1,14 +1,15 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { RepoManager } from 'src/manager/RepoManager';
-import { UserRelationship } from './Model-relationships/UserRelationship';
-import { PostRelationship } from './Model-relationships/PostRelationship';
-import { Attachment } from './Model-relationships/Attachment';
-import { Employee } from './Model-relationships/Employee';
+import { PocketModel } from 'src/model/ModelDecorator';
+import { BelongsTo, HasMany, Model } from 'src/index';
+import { UserRelationship } from './model-relationships/UserRelationship';
+import { PostRelationship } from './model-relationships/PostRelationship';
+import { Employee } from './model-relationships/Employee';
+import { Attachment } from './model-relationships/Attachment';
 
 const dbName = 'model-relationships';
 
 describe('Model Relationships', () => {
-
     beforeEach(async () => {
         await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
     });

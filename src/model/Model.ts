@@ -14,6 +14,7 @@ import { addWeakRef, needToReload } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { RelationshipType } from 'src/definitions/RelationshipType';
+import { getRelationships } from '..';
 
 export function setDefaultDbName(dbName: string): string {
     BaseModel.dbName = dbName;
@@ -177,6 +178,31 @@ export class BaseModel {
         return new this(item) as T;
     }
 
+    private updateForeignIdFields<Attributes>(attributes: Attributes): Attributes {
+        const relationships = getRelationships(this);
+        let fields = Object.keys(relationships).map((key) => {
+            if (relationships[key][0] === RelationshipType.BELONGS_TO) {
+                return {
+                    relationship: relationships[key][1][0],
+                    field: relationships[key][2][1],
+                };
+            }
+            return undefined;
+        });
+        fields = [...new Set(fields),];
+        const idFields = fields.filter((item) => item !== undefined && item.relationship !== undefined) as {
+            relationship: ModelStatic<BaseModel>;
+            field: string;
+        }[];
+        for (const idField of idFields) {
+            const foreignKeyField = attributes[idField.field as keyof typeof attributes] as string;
+            if (!foreignKeyField.includes((new idField.relationship).cName + '.')) {
+                attributes[idField.field as keyof typeof attributes] = ((new idField.relationship).cName + '.' + foreignKeyField) as Attributes[keyof Attributes];
+            }
+        }
+        return attributes;
+    }
+
     /**
      * Create a new model
      * @param attributes attributes of the model
@@ -188,6 +214,7 @@ export class BaseModel {
             attributes.createdAt = moment().toISOString();
             attributes.updatedAt = moment().toISOString();
         }
+        attributes = model.updateForeignIdFields(attributes);
         model.fill(attributes as ModelType<T>);
         await model.save();
         return model;

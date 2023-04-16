@@ -1,8 +1,9 @@
-import { BelongsTo } from 'src/index';
-import { Model } from 'src/model/Model';
+import { BelongsTo, Model } from 'src/index';
+import { PocketModel } from 'src/model/ModelDecorator';
 import { PostRelationship } from './PostRelationship';
 
 const dbName = 'model-relationships';
+@PocketModel
 export class Attachment extends Model {
     static dbName = dbName;
 
@@ -10,5 +11,5 @@ export class Attachment extends Model {
     url!: string;
     postId!: string;
 
-    @BelongsTo(require('./PostRelationship').PostRelationship, '_id', 'postId') post?: PostRelationship;
+    @BelongsTo(() => PostRelationship, '_id', 'postId') post?: PostRelationship;
 }

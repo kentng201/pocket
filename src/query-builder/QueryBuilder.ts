@@ -371,6 +371,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                         }
                     }
                 } catch (error) {
+                    console.log('error: ', error);
                     throw new Error(`Relationship "${r as string}" does not exists in model ${model.getClass().name}`);
                 }
             }
