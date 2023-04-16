@@ -1,19 +1,19 @@
 import { ModelKey } from 'src/definitions/Model';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
-import { Model } from '..';
+import { BaseModel, Model } from 'src/model/Model';
 import EventEmitter from 'events';
 
 export let isRealTime = false;
 
 const weakReferences: { [_id: string]: WeakRef<any>[] } = {};
 
-export function addWeakRef<T extends Model>(_id: string, doc: T) {
+export function addWeakRef<T extends BaseModel>(_id: string, doc: T) {
     if (!weakReferences[_id]) {
         weakReferences[_id] = [];
     }
     weakReferences[_id].push(new WeakRef(doc));
 }
-export function notifyWeakRef<T extends Model>(_id: string, doc: T) {
+export function notifyWeakRef<T extends BaseModel>(_id: string, doc: T) {
     if (!weakReferences[_id]) return;
     const newAttributes: Partial<T> = {};
     for (const field in doc) {
@@ -68,7 +68,7 @@ export function setRealtime(realTime: boolean) {
     const onRealTimeChange = (change: PouchDB.Core.ChangesResponseChange<any>) => {
         const _id = change.doc?._id;
         const doc = change.doc;
-        notifyWeakRef(_id, doc as Model);
+        notifyWeakRef(_id, doc as BaseModel);
         emitChangeEvent(_id);
     };
 
@@ -88,7 +88,7 @@ export function setRealtime(realTime: boolean) {
     }
 }
 
-export function needToReload(model: Model, changeDocId: string): boolean {
+export function needToReload(model: BaseModel, changeDocId: string): boolean {
     let needReload = false;
     for (const key of Object.keys(model)) {
         if (model.docId === changeDocId) {
@@ -100,11 +100,11 @@ export function needToReload(model: Model, changeDocId: string): boolean {
             break;
         }
         if (model[key as keyof typeof model] instanceof Model) {
-            needReload = needToReload(model[key as keyof typeof model] as Model, changeDocId);
+            needReload = needToReload(model[key as keyof typeof model] as BaseModel, changeDocId);
             if (needReload) break;
         }
-        if (model[key as keyof typeof model] instanceof Array && (model[key as keyof typeof model] as Model[]).length > 0 && (model[key as keyof typeof model] as Model[])[0] instanceof Model) {
-            needReload = (model[key as keyof typeof model] as Model[]).some((m) => needToReload(m, changeDocId));
+        if (model[key as keyof typeof model] instanceof Array && (model[key as keyof typeof model] as BaseModel[]).length > 0 && (model[key as keyof typeof model] as BaseModel[])[0] instanceof Model) {
+            needReload = (model[key as keyof typeof model] as BaseModel[]).some((m) => needToReload(m, changeDocId));
             if (needReload) break;
         }
     }

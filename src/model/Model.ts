@@ -15,27 +15,27 @@ import { APIMethod } from 'src/repo/ApiRepo';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 
 export function setDefaultDbName(dbName: string): string {
-    Model.dbName = dbName;
-    return Model.dbName;
+    BaseModel.dbName = dbName;
+    return BaseModel.dbName;
 }
 export function setDefaultNeedTimestamp(timestamp: boolean): boolean {
-    Model.timestamp = timestamp;
-    return Model.timestamp;
+    BaseModel.timestamp = timestamp;
+    return BaseModel.timestamp;
 }
 export function setDefaultNeedRealtimeUpdate(realtimeUpdate: boolean): boolean {
-    Model.realtimeUpdate = realtimeUpdate;
-    return Model.realtimeUpdate;
+    BaseModel.realtimeUpdate = realtimeUpdate;
+    return BaseModel.realtimeUpdate;
 }
 
-export class Model {
+export class BaseModel {
     static collectionName?: string;
     static dbName: string = 'default';
     static readonlyFields: string[] = [];
     static timestamp?: boolean = true;
     static realtimeUpdate: boolean = true;
 
-    getClass(): typeof Model {
-        return this.constructor as typeof Model;
+    getClass(): typeof BaseModel {
+        return this.constructor as typeof BaseModel;
     }
 
     public get cName() {
@@ -132,29 +132,29 @@ export class Model {
      * @deprecated retuen query builder of the model
      * @returns A query builder of that model
      */
-    static repo<T extends Model>(this: ModelStatic<T>): QueryBuilder<T> {
+    static repo<T extends BaseModel>(this: ModelStatic<T>): QueryBuilder<T> {
         return RepoManager.get(new this()) as QueryBuilder<T>;
     }
     /**
      * Get the first model in the collection
      * @returns a model or undefined
      */
-    static first<T extends Model>(this: ModelStatic<T>): Promise<T | undefined> {
-        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName).first();
+    static first<T extends BaseModel>(this: ModelStatic<T>): Promise<T | undefined> {
+        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof BaseModel).dbName).first();
     }
     /**
      * Count all models
      * @returns number of models
      */
-    static count<T extends Model>(this: ModelStatic<T>): Promise<number> {
-        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName).count();
+    static count<T extends BaseModel>(this: ModelStatic<T>): Promise<number> {
+        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof BaseModel).dbName).count();
     }
     /**
      * Get all models
      * @returns an array of models
      */
-    static async all<T extends Model>(this: ModelStatic<T>): Promise<T[]> {
-        const items = await new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName).get();
+    static async all<T extends BaseModel>(this: ModelStatic<T>): Promise<T[]> {
+        const items = await new QueryBuilder<T>(new this, undefined, (this as unknown as typeof BaseModel).dbName).get();
         const result = [];
         for (const item of items) {
             const castedItem = new this(item) as T;
@@ -168,7 +168,7 @@ export class Model {
      * @param primaryKey _id of the model
      * @returns a model or undefined
      */
-    static async find<T extends Model>(this: ModelStatic<T>, primaryKey?: string | string): Promise<T | undefined> {
+    static async find<T extends BaseModel>(this: ModelStatic<T>, primaryKey?: string | string): Promise<T | undefined> {
         if (!primaryKey) return undefined;
         const item = await RepoManager.get(new this()).getDoc(primaryKey);
         if (!item) return undefined;
@@ -180,7 +180,7 @@ export class Model {
      * @param attributes attributes of the model
      * @returns a new model 
      */
-    static async create<T extends Model>(this: ModelStatic<T>, attributes: NewModelType<T>): Promise<T> {
+    static async create<T extends BaseModel>(this: ModelStatic<T>, attributes: NewModelType<T>): Promise<T> {
         const model = new this() as T;
         if (model.needTimestamp) {
             attributes.createdAt = moment().toISOString();
@@ -219,14 +219,14 @@ export class Model {
      */
     async saveChildren(): Promise<this> {
         for (const field in this) {
-            if (Array.isArray(this[field]) && (this[field] as Model[])[0] instanceof Model) {
+            if (Array.isArray(this[field]) && (this[field] as BaseModel[])[0] instanceof BaseModel) {
                 const query = this.relationships?.[field]?.();
                 if (query?.getRelationshipType() === RelationshipType.HAS_MANY) {
-                    const children = this[field] as Model[];
+                    const children = this[field] as BaseModel[];
                     const newChildren = [];
                     for (const child of children) {
-                        const newChild = new (child.getClass() as ModelStatic<Model>)();
-                        const foreignKey = query.getForeignKey() as ModelKey<Model>;
+                        const newChild = new (child.getClass() as ModelStatic<BaseModel>)();
+                        const foreignKey = query.getForeignKey() as ModelKey<BaseModel>;
                         child[foreignKey] = this.docId;
                         newChild.fill(child);
                         await newChild.save();
@@ -235,15 +235,15 @@ export class Model {
                     }
                     this[field] = newChildren as ModelValue<this, typeof field>;
                 }
-            } else if (this[field] instanceof Model) {
+            } else if (this[field] instanceof BaseModel) {
                 const query = this.relationships?.[field]?.();
                 if (query?.getRelationshipType() === RelationshipType.HAS_ONE) {
-                    const child = this[field] as Model;
-                    const foreignKey = query.getForeignKey() as ModelKey<Model>;
+                    const child = this[field] as BaseModel;
+                    const foreignKey = query.getForeignKey() as ModelKey<BaseModel>;
                     if (!child[foreignKey]) {
                         child[foreignKey] = this.docId;
                     }
-                    const newChild = new (child.getClass() as ModelStatic<Model>)();
+                    const newChild = new (child.getClass() as ModelStatic<BaseModel>)();
                     newChild.fill(child);
                     await newChild.save();
                     newChild._dirty = {};
@@ -361,15 +361,15 @@ export class Model {
     // end of CRUD operation
 
     // start of query builder
-    static query<T extends Model>(this: ModelStatic<T>): QueryBuilder<T> {
-        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof Model).dbName);
+    static query<T extends BaseModel>(this: ModelStatic<T>): QueryBuilder<T> {
+        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof BaseModel).dbName);
     }
-    static where<T extends Model>(this: ModelStatic<T>, condition: (query: QueryBuilder<T>) => void): QueryBuilder<T>;
-    static where<T extends Model>(this: ModelStatic<T>, queryableModel: Partial<QueryableModel<T>>): QueryBuilder<T>;
-    static where<T extends Model, Key extends ModelKey<T>>(this: ModelStatic<T>, field: Key, value: OperatorValue<T, Key, '='>): QueryBuilder<T>;
-    static where<T extends Model, Key extends ModelKey<T>, O extends Operator>(this: ModelStatic<T>, field: Key, operator: O, value: OperatorValue<T, Key, O>): QueryBuilder<T>;
-    static where<T extends Model, Key extends ModelKey<T>, O extends Operator>(...args: (ModelKey<T> | O | OperatorValue<T, Key, O>)[]): QueryBuilder<T> {
-        const query = new QueryBuilder(new this, undefined, (this as unknown as typeof Model).dbName);
+    static where<T extends BaseModel>(this: ModelStatic<T>, condition: (query: QueryBuilder<T>) => void): QueryBuilder<T>;
+    static where<T extends BaseModel>(this: ModelStatic<T>, queryableModel: Partial<QueryableModel<T>>): QueryBuilder<T>;
+    static where<T extends BaseModel, Key extends ModelKey<T>>(this: ModelStatic<T>, field: Key, value: OperatorValue<T, Key, '='>): QueryBuilder<T>;
+    static where<T extends BaseModel, Key extends ModelKey<T>, O extends Operator>(this: ModelStatic<T>, field: Key, operator: O, value: OperatorValue<T, Key, O>): QueryBuilder<T>;
+    static where<T extends BaseModel, Key extends ModelKey<T>, O extends Operator>(...args: (ModelKey<T> | O | OperatorValue<T, Key, O>)[]): QueryBuilder<T> {
+        const query = new QueryBuilder(new this, undefined, (this as unknown as typeof BaseModel).dbName);
         // @ts-ignore
         return query.where(...args);
     }
@@ -381,9 +381,9 @@ export class Model {
      * @param relationships all relationships to load, support dot notation
      * @returns 
      */
-    static with<T extends Model, K extends string[]>(this: ModelStatic<T>, ...relationships: string[]): QueryBuilder<T> {
+    static with<T extends BaseModel, K extends string[]>(this: ModelStatic<T>, ...relationships: string[]): QueryBuilder<T> {
         const model = new this;
-        return new QueryBuilder<T, []>(model, relationships as unknown as ValidDotNotationArray<T, []>, (this as unknown as typeof Model).dbName);
+        return new QueryBuilder<T, []>(model, relationships as unknown as ValidDotNotationArray<T, []>, (this as unknown as typeof BaseModel).dbName);
     }
     /**
      * Load relationships to current model
@@ -402,16 +402,16 @@ export class Model {
         return this;
     }
 
-    belongsTo<R extends Model>(relationship: ModelStatic<R>, localKey?: string, foreignKey?: string): QueryBuilder<R> {
+    belongsTo<R extends BaseModel>(relationship: ModelStatic<R>, localKey?: string, foreignKey?: string): QueryBuilder<R> {
         return belongsTo<this, R>(this, relationship, localKey as ModelKey<this>, foreignKey as ModelKey<R>);
     }
-    hasOne<R extends Model>(relationship: ModelStatic<R>, localKey?: string, foreignKey?: string): QueryBuilder<R> {
+    hasOne<R extends BaseModel>(relationship: ModelStatic<R>, localKey?: string, foreignKey?: string): QueryBuilder<R> {
         return hasOne<this, R>(this, relationship, localKey as ModelKey<this>, foreignKey as ModelKey<R>);
     }
-    hasMany<R extends Model>(relationship: ModelStatic<R>, localKey?: string, foreignKey?: string): QueryBuilder<R> {
+    hasMany<R extends BaseModel>(relationship: ModelStatic<R>, localKey?: string, foreignKey?: string): QueryBuilder<R> {
         return hasMany<this, R>(this, relationship, localKey as ModelKey<this>, foreignKey as ModelKey<R>);
     }
-    async belongsToMany<R extends Model, P extends Model>(relationship: ModelStatic<R>, pivot: ModelStatic<P>, localKey?: string, foreignKey?: string): Promise<QueryBuilder<R>> {
+    async belongsToMany<R extends BaseModel, P extends BaseModel>(relationship: ModelStatic<R>, pivot: ModelStatic<P>, localKey?: string, foreignKey?: string): Promise<QueryBuilder<R>> {
         return await belongsToMany<this, R, P>(this, relationship, pivot, localKey as ModelKey<P>, foreignKey as ModelKey<P>);
     }
     // end of relationship
@@ -439,31 +439,31 @@ export class Model {
     // end api method
 
     // start of lifecycle
-    public static async beforeSave<Result, T extends Model>(model: T): Promise<Result | Model> {
+    public static async beforeSave<Result, T extends BaseModel>(model: T): Promise<Result | BaseModel> {
         return model;
     }
-    public static async afterSave<Result, T extends Model>(model: T): Promise<Result | Model> {
-        return model;
-    }
-
-    public static async beforeCreate<Result, T extends Model>(model: T): Promise<Result | Model> {
-        return model;
-    }
-    public static async afterCreate<Result, T extends Model>(model: T): Promise<Result | Model> {
+    public static async afterSave<Result, T extends BaseModel>(model: T): Promise<Result | BaseModel> {
         return model;
     }
 
-    public static async beforeUpdate<Result, T extends Model>(model: T): Promise<Result | Model> {
+    public static async beforeCreate<Result, T extends BaseModel>(model: T): Promise<Result | BaseModel> {
         return model;
     }
-    public static async afterUpdate<Result, T extends Model>(model: T): Promise<Result | Model> {
+    public static async afterCreate<Result, T extends BaseModel>(model: T): Promise<Result | BaseModel> {
         return model;
     }
 
-    public static async beforeDelete<Result, T extends Model>(model: T): Promise<Result | Model> {
+    public static async beforeUpdate<Result, T extends BaseModel>(model: T): Promise<Result | BaseModel> {
         return model;
     }
-    public static async afterDelete<Result, T extends Model>(model: T): Promise<Result | Model> {
+    public static async afterUpdate<Result, T extends BaseModel>(model: T): Promise<Result | BaseModel> {
+        return model;
+    }
+
+    public static async beforeDelete<Result, T extends BaseModel>(model: T): Promise<Result | BaseModel> {
+        return model;
+    }
+    public static async afterDelete<Result, T extends BaseModel>(model: T): Promise<Result | BaseModel> {
         return model;
     }
     // end of lifecycle
@@ -506,10 +506,10 @@ export class Model {
         delete replicatedModel.save;
         for (const key in replicatedModel) {
             let formattedResult;
-            if (Array.isArray(replicatedModel[key]) && (replicatedModel[key] as unknown as Model[])[0] instanceof Model) {
-                formattedResult = (replicatedModel[key] as unknown as Model[]).map(m => m.toResponse());
-            } else if (replicatedModel[key] instanceof Model) {
-                formattedResult = (replicatedModel[key] as unknown as Model).toResponse();
+            if (Array.isArray(replicatedModel[key]) && (replicatedModel[key] as unknown as BaseModel[])[0] instanceof BaseModel) {
+                formattedResult = (replicatedModel[key] as unknown as BaseModel[]).map(m => m.toResponse());
+            } else if (replicatedModel[key] instanceof BaseModel) {
+                formattedResult = (replicatedModel[key] as unknown as BaseModel).toResponse();
             }
             if (!formattedResult) continue;
             replicatedModel[key] = formattedResult;
@@ -554,3 +554,7 @@ export class Model {
     }
     // end dirty maintenance
 }
+
+export const Model = new Proxy(BaseModel, {
+
+});

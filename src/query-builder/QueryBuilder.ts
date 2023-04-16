@@ -3,21 +3,21 @@ import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { ModelKey, ModelType, ModelValue, NewModelType } from 'src/definitions/Model';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
-import { Model } from 'src/model/Model';
+import { BaseModel } from 'src/model/Model';
 import { ApiRepo } from 'src/repo/ApiRepo';
 
 const operators = ['=', '>', '>=', '<', '<=', '!=', 'in', 'not in', 'between', 'like',] as const;
 export type Operator = typeof operators[number];
-export type OperatorValue<T extends Model, Key extends keyof T, O extends Operator> =
+export type OperatorValue<T extends BaseModel, Key extends keyof T, O extends Operator> =
     O extends 'in' ? ModelValue<T, Key>[]
     : O extends 'not in' ? ModelValue<T, Key>[]
     : O extends 'between' ? [ModelValue<T, Key>, ModelValue<T, Key>]
     : O extends 'like' ? string
     : ModelValue<T, Key>;
-export type QueryableModel<T extends Model> = {
+export type QueryableModel<T extends BaseModel> = {
     [Key in ModelKey<T>]: OperatorValue<T, Key, Operator> | [Operator, OperatorValue<T, Key, Operator>];
 };
-export type QueryBuilderFunction<T extends Model> = (query: QueryBuilder<T>) => void;
+export type QueryBuilderFunction<T extends BaseModel> = (query: QueryBuilder<T>) => void;
 
 function toMangoOperator(operator: Operator): string {
     if (operator === '=') return '$eq';
@@ -32,7 +32,7 @@ function toMangoOperator(operator: Operator): string {
     if (operator === 'like') return '$regex';
     return '';
 }
-function toMangoQuery<T extends Model, Key extends ModelKey<T>, O extends Operator>(field: Key, operator: O, value: OperatorValue<T, Key, O>): PouchDB.Find.Selector {
+function toMangoQuery<T extends BaseModel, Key extends ModelKey<T>, O extends Operator>(field: Key, operator: O, value: OperatorValue<T, Key, O>): PouchDB.Find.Selector {
     if (['=', '!=', '>', '>=', '<', '<=',].includes(operator)) {
         return { [field]: { [toMangoOperator(operator)]: value, }, };
     }
@@ -50,7 +50,7 @@ function toMangoQuery<T extends Model, Key extends ModelKey<T>, O extends Operat
     return {};
 }
 
-function idToMangoQuery<T extends Model, Key extends '_id', O extends Operator>(operator: O, value: any, cName: string): PouchDB.Find.Selector {
+function idToMangoQuery<T extends BaseModel, Key extends '_id', O extends Operator>(operator: O, value: any, cName: string): PouchDB.Find.Selector {
     if (!value) return {};
     if (['=', '!=', '>', '>=', '<', '<=',].includes(operator)) {
         if (!value.includes(cName)) {
@@ -80,7 +80,7 @@ function idToMangoQuery<T extends Model, Key extends '_id', O extends Operator>(
     return toMangoQuery('_id', operator, value as any);
 }
 
-function queryableValueToValue<T extends Model, Key extends ModelKey<T>>(field: Key, value: ModelValue<T, Key>): PouchDB.Find.Selector {
+function queryableValueToValue<T extends BaseModel, Key extends ModelKey<T>>(field: Key, value: ModelValue<T, Key>): PouchDB.Find.Selector {
     if (value instanceof Array && operators.includes(value[0])) {
         return toMangoQuery<T, Key, typeof value[0]>(field, value[0], value[1]);
     } else {
@@ -96,7 +96,7 @@ export enum RelationshipType {
 }
 
 
-export class QueryBuilder<T extends Model, K extends string[] = []> {
+export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
     protected queries: PouchDB.Find.FindRequest<T> & { selector: { $and: PouchDB.Find.Selector[] } };
     protected sorters?: Array<string | { [propName: string]: 'asc' | 'desc' }>;
 
@@ -128,11 +128,11 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         if (this.apiInfo) this.api = new ApiRepo<T>(this.apiInfo);
     }
 
-    static query<T extends Model, K extends string[] = []>(modelClass: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string) {
+    static query<T extends BaseModel, K extends string[] = []>(modelClass: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string) {
         return new this(modelClass, relationships, dbName, false) as QueryBuilder<T, K>;
     }
 
-    static where<T extends Model, O extends Operator>(field: ModelKey<T>, operator: O, value: OperatorValue<T, ModelKey<T>, O>, modelClass: T) {
+    static where<T extends BaseModel, O extends Operator>(field: ModelKey<T>, operator: O, value: OperatorValue<T, ModelKey<T>, O>, modelClass: T) {
         const builder = this.query<T>(modelClass);
         return builder.where(field, operator, value);
     }
@@ -322,8 +322,8 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
                     if (r.includes('.')) {
                         const mainRelationship = r.split('.')[0];
                         const subRelationships = r.split('.').slice(1).join('.');
-                        const mainModel = model[mainRelationship as keyof T] as Model | Model[];
-                        if (mainModel && mainModel instanceof Model) {
+                        const mainModel = model[mainRelationship as keyof T] as BaseModel | BaseModel[];
+                        if (mainModel && mainModel instanceof BaseModel) {
                             const newMainModel = await new QueryBuilder(mainModel, [subRelationships,], this.dbName)
                                 .orderBy('createdAt', 'asc')
                                 .bindRelationship(mainModel);

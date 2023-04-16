@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { ModelType, NewModelType } from 'src/definitions/Model';
-import { Model } from 'src/model/Model';
+import { BaseModel } from 'src/model/Model';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
 
 export type APIMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
-export class ApiRepo<T extends Model> {
+export class ApiRepo<T extends BaseModel> {
     protected apiInfo: APIResourceInfo;
 
     constructor(apiInfo: APIResourceInfo) {
