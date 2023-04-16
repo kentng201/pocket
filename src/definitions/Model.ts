@@ -10,6 +10,8 @@ export type ModelStatic<T extends object> = {
 export type ModelType<T extends object> = FunctionlessModel<T> & {
     _id: string;
     _rev: string;
+    docId: string;
+    modelId: string;
     createdAt?: string;
     updatedAt?: string;
     cName?: unknown;
@@ -21,9 +23,11 @@ export type ModelType<T extends object> = FunctionlessModel<T> & {
     _real_time_updating?: boolean;
     _fallback_api_doc?: boolean;
 };
-export type NewModelType<T extends object> = Omit<ModelType<T>, '_id' | '_rev'> & {
+export type NewModelType<T extends object> = Omit<ModelType<T>, '_id' | '_rev' | 'docId' | 'modelId'> & {
     _id?: string;
     _rev?: string;
+    docId?: string;
+    modelId?: string;
 };
 export type ModelKey<T extends object> = keyof FunctionlessModel<T> | '_id';
 export type ModelValue<T extends object, Key extends keyof T> = T[Key];
