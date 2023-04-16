@@ -90,6 +90,7 @@ export class BaseModel {
     public fill(attributes: Partial<ModelType<this>>): void {
         if (attributes._id) attributes._id = attributes._id.replace(this.cName + '.', '');
         Object.assign(this, attributes);
+        if (!this.relationships) this.relationships = {};
         addWeakRef(this.docId, this);
     }
     constructor(attributes?: object) {
@@ -341,6 +342,7 @@ export class BaseModel {
             await this.getClass().afterSave(this);
         }
         this._id = this.modelId;
+        if (!this.relationships) this.relationships = {};
         this._dirty = {};
         this._before_dirty = {};
         return this;
