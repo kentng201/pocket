@@ -63,7 +63,7 @@ describe('Model API', () => {
 
     it('should be able to delete a model without call API, and should be able to fetch a fallback model with call API', async () => {
         const user = await ApiUser.create<ApiUser>({
-            _id: 'ApiUsers.api-user-test1',
+            _id: 'api-user-test1',
             name: 'John',
         });
         const id = user._id;
@@ -120,7 +120,7 @@ describe('Model API', () => {
     });
 
     it('should able to fallback as undefined when api not found the non_existed_user', async () => {
-        const user = await ApiUser.find<ApiUser>('ApiUsers.non_existed_user');
+        const user = await ApiUser.find<ApiUser>('non_existed_user');
         expect(user).toBeUndefined();
     });
 });

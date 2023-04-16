@@ -30,10 +30,10 @@ describe('DatabaseSync', () => {
         syncDatabases('test', 'test2');
 
         const user = await DatabaseSyncTestUser.create({
-            _id: 'SyncUsers.Test1',
+            _id: 'Test1',
             username: 'John',
         }) as DatabaseSyncTestUser;
-        const user2 = await DatabaseSyncTest2User.find('SyncUsers.Test1') as DatabaseSyncTestUser;
+        const user2 = await DatabaseSyncTest2User.find('Test1') as DatabaseSyncTestUser;
         expect(user._id).toEqual(user2._id);
         expect(user._rev).toEqual(user2._rev);
         expect(user.username).toEqual(user2.username);
