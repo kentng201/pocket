@@ -130,6 +130,33 @@ export class BaseModel {
     }
     // end of object construction
 
+    // start of foreign key handling
+    private updateForeignIdFields<Attributes>(attributes: Attributes): Attributes {
+        const relationships = getRelationships(this);
+        let fields = Object.keys(relationships).map((key) => {
+            if (relationships[key][0] === RelationshipType.BELONGS_TO) {
+                return {
+                    relationship: relationships[key][1][0],
+                    field: relationships[key][2][1],
+                };
+            }
+            return undefined;
+        });
+        fields = [...new Set(fields),];
+        const idFields = fields.filter((item) => item !== undefined && item.relationship !== undefined) as {
+            relationship: ModelStatic<BaseModel>;
+            field: string;
+        }[];
+        for (const idField of idFields) {
+            const foreignKeyField = attributes[idField.field as keyof typeof attributes] as string;
+            if (!foreignKeyField.includes((new idField.relationship).cName + '.')) {
+                attributes[idField.field as keyof typeof attributes] = ((new idField.relationship).cName + '.' + foreignKeyField) as Attributes[keyof Attributes];
+            }
+        }
+        return attributes;
+    }
+    // end of foreign key handling
+
     // start of CRUD operation
     /**
      * @deprecated retuen query builder of the model
@@ -177,32 +204,6 @@ export class BaseModel {
         if (!item) return undefined;
         return new this(item) as T;
     }
-
-    private updateForeignIdFields<Attributes>(attributes: Attributes): Attributes {
-        const relationships = getRelationships(this);
-        let fields = Object.keys(relationships).map((key) => {
-            if (relationships[key][0] === RelationshipType.BELONGS_TO) {
-                return {
-                    relationship: relationships[key][1][0],
-                    field: relationships[key][2][1],
-                };
-            }
-            return undefined;
-        });
-        fields = [...new Set(fields),];
-        const idFields = fields.filter((item) => item !== undefined && item.relationship !== undefined) as {
-            relationship: ModelStatic<BaseModel>;
-            field: string;
-        }[];
-        for (const idField of idFields) {
-            const foreignKeyField = attributes[idField.field as keyof typeof attributes] as string;
-            if (!foreignKeyField.includes((new idField.relationship).cName + '.')) {
-                attributes[idField.field as keyof typeof attributes] = ((new idField.relationship).cName + '.' + foreignKeyField) as Attributes[keyof Attributes];
-            }
-        }
-        return attributes;
-    }
-
     /**
      * Create a new model
      * @param attributes attributes of the model
