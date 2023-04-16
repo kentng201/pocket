@@ -353,7 +353,6 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                             const newMainModel = await new QueryBuilder(mainModel, [subRelationships,], this.dbName)
                                 .orderBy('createdAt', 'asc')
                                 .bindRelationship(mainModel);
-                            const result = model[mainRelationship as keyof T];
                             model[mainRelationship as keyof T] = newMainModel as ModelValue<T, keyof T>;
                         } else if (mainModel && mainModel instanceof Array) {
                             const newMainModels = await Promise.all(mainModel.map(async (m) => await new QueryBuilder(m, [subRelationships,], this.dbName)
@@ -371,7 +370,6 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                         }
                     }
                 } catch (error) {
-                    console.log('error: ', error);
                     throw new Error(`Relationship "${r as string}" does not exists in model ${model.getClass().name}`);
                 }
             }
