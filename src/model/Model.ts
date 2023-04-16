@@ -563,12 +563,5 @@ export class BaseModel {
     // end of join
 }
 
-export const subclassRegistry = new Set<Function>();
-
 export const Model = new Proxy(BaseModel, {
-    construct(target, args, newTarget) {
-        const newClass = Reflect.construct(target, args, newTarget);
-        subclassRegistry.add(newClass);
-        return newClass;
-    }
 });
