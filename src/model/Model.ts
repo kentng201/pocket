@@ -339,6 +339,7 @@ export class Model {
         if (this.getClass().afterSave) {
             await this.getClass().afterSave(this);
         }
+        this._id = this.modelId;
         this._dirty = {};
         this._before_dirty = {};
         return this;
