@@ -218,11 +218,14 @@ const users = await User.query().where((query) => {
 ### Relationship
 
 Pocket supported 4 types of relationships
+Note: To prevent circular dependency, you need to use `require` to import the model
 
 - belongsTo
 - hasOne
 - hasMany
 - belongsToMany
+
+`User.ts`
 
 ```typescript
 import { Model, HasMany, BelongsTo } from 'pocket';
@@ -230,16 +233,21 @@ class User extends Model {
     name!: string;
     password?: string;
 
-    @HasMany(Post, '_id', 'userId')
+    @HasMany(require('./Post').Post, '_id', 'userId')
     posts?: Post[];
 }
+```
 
+`Post.ts`
+
+```typescript
+import { Model, HasMany, BelongsTo } from 'pocket';
 class Post extends Model {
     title!: string;
     userId!: string;
     content?: string;
 
-    @BelongsTo(User)
+    @BelongsTo(require('./User').User)
     user?: User;
 }
 ```
