@@ -233,7 +233,7 @@ class User extends Model {
     name!: string;
     password?: string;
 
-    @HasMany(require('./Post').Post, '_id', 'userId')
+    @HasMany(() => Post, '_id', 'userId')
     posts?: Post[];
 }
 ```
@@ -247,7 +247,7 @@ class Post extends Model {
     userId!: string;
     content?: string;
 
-    @BelongsTo(require('./User').User)
+    @BelongsTo(() => User)
     user?: User;
 }
 ```
