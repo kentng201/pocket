@@ -15,6 +15,7 @@ export function hasOne<T extends BaseModel, R extends BaseModel>(
     const builder = new QueryBuilder<R>(relationshipInstance, undefined, self.dName, true);
     builder.setRelationshipType(RelationshipType.HAS_ONE, localKey as string, foreignKey as string);
     if (localKey === '_id') localKey = 'docId' as ModelKey<T>;
+    if (foreignKey === '_id') foreignKey = 'docId' as ModelKey<R>;
     builder.where(foreignKey, '=', self[localKey] as ModelValue<R, ModelKey<R>>);
     return builder;
 }
