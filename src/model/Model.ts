@@ -284,6 +284,31 @@ export class BaseModel {
         return this;
     }
 
+    bindRelationships(): this {
+        if (!this.relationships) this.relationships = {};
+        const relationships = getRelationships(this);
+        Object.keys(relationships).forEach((key) => {
+            const relationshipParams = relationships[key];
+            const queryBuilder = () => {
+                if (relationshipParams[0] === RelationshipType.BELONGS_TO) {
+                    return this.belongsTo(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
+                }
+                if (relationshipParams[0] === RelationshipType.HAS_MANY) {
+                    return this.hasMany(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
+                }
+                if (relationshipParams[0] === RelationshipType.HAS_ONE) {
+                    return this.hasOne(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
+                }
+                if (relationshipParams[0] === RelationshipType.BELONGS_TO_MANY) {
+                    return this.belongsToMany(relationshipParams[1][0], relationshipParams[1][1], relationshipParams[2][0], relationshipParams[2][1]);
+                }
+                return new QueryBuilder(this);
+            };
+            this.relationships[key] = queryBuilder as () => QueryBuilder<this, []>;
+        });
+        return this;
+    }
+
     /**
      * Save a model into database
      * @returns this
@@ -292,6 +317,7 @@ export class BaseModel {
         while (this._real_time_updating) {
             await new Promise((resolve) => setTimeout(resolve, 10));
         }
+        this.bindRelationships();
 
         const newAttributes: Partial<this> = {};
         for (const field in this) {

@@ -321,27 +321,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
 
     private async bindRelationship(model: T) {
         if (!model.relationships) model.relationships = {};
-        const relationships = getRelationships(model);
-        Object.keys(relationships).forEach((key) => {
-            const relationshipParams = relationships[key];
-            const queryBuilder = () => {
-                if (relationshipParams[0] === RelationshipType.BELONGS_TO) {
-                    return model.belongsTo(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
-                }
-                if (relationshipParams[0] === RelationshipType.HAS_MANY) {
-                    return model.hasMany(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
-                }
-                if (relationshipParams[0] === RelationshipType.HAS_ONE) {
-                    return model.hasOne(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
-                }
-                if (relationshipParams[0] === RelationshipType.BELONGS_TO_MANY) {
-                    return model.belongsToMany(relationshipParams[1][0], relationshipParams[1][1], relationshipParams[2][0], relationshipParams[2][1]);
-                }
-                return new QueryBuilder(this.modelClass);
-            };
-            model.relationships[key] = queryBuilder as any;
-        });
-
+        model.bindRelationships();
         if (this.relationships && model.relationships) {
             for (const r of this.relationships) {
                 try {
