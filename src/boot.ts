@@ -71,21 +71,27 @@ let configFilePath = process.cwd() + '/pocket.config.json';
 const is_browser = typeof window !== 'undefined' && window.localStorage
 const is_node = typeof process !== 'undefined';
 
-
+const FILE_NOT_FOUND_MSG = 'Cannot find pocket.config.json file. Please create one in the root of your project.';
 
 export const boot = async () => {
     let config;
     if (is_browser) {
         configFilePath = 'pocket.config.json';
-        const file = await fetch(configFilePath)
-        const result = await file.text();
-        config = JSON.parse(result);
+        try {
+            const file = await fetch(configFilePath)
+            const result = await file.text();
+            config = JSON.parse(result);
+        } catch (error) {
+            throw new Error(FILE_NOT_FOUND_MSG);
+        }
     }
     else if (is_node) {
-        configFilePath = process.cwd() + '/pocket.config.json';
-        const fs = require('fs');
-        const file = fs.readFileSync(configFilePath, 'utf8');
-        config = JSON.parse(file);
+        // temp remove buggy code
+        // configFilePath = process.cwd() + '/pocket.config.json';
+        // const fs = require('fs');
+        // const file = fs.readFileSync(configFilePath, 'utf8');
+        // config = JSON.parse(file);
+        config = {};
     }
     try {
         if (config.databases) {
@@ -134,5 +140,6 @@ export const boot = async () => {
             setRealtime(singleConfig.realtimeUpdate || false);
         }
     } catch (error) {
+        throw new Error(FILE_NOT_FOUND_MSG);
     }
 }
