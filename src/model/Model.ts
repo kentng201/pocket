@@ -69,6 +69,12 @@ export class Model {
     public get aAuto() {
         return this.getClass().apiAuto;
     }
+    public get docId() {
+        return this._id.includes(this.cName + '.') ? this._id : this.cName + '.' + this._id;
+    }
+    public get modelId() {
+        return this._id.includes(this.cName + '.') ? this._id.replace(this.cName + '.', '') : this._id;
+    }
     // end of API feature
 
     relationships?: { [relationshipName: string]: () => QueryBuilder<any> };
@@ -81,8 +87,9 @@ export class Model {
 
     // start of object construction
     public fill(attributes: Partial<ModelType<this>>): void {
+        if (attributes._id) attributes._id = attributes._id.replace(this.cName + '.', '');
         Object.assign(this, attributes);
-        addWeakRef(this._id, this);
+        addWeakRef(this.docId, this);
     }
     constructor(attributes?: object) {
         if (attributes) this.fill(attributes as unknown as ModelType<this>);
@@ -161,7 +168,8 @@ export class Model {
      * @param primaryKey _id of the model
      * @returns a model or undefined
      */
-    static async find<T extends Model>(this: ModelStatic<T>, primaryKey: string | string): Promise<T | undefined> {
+    static async find<T extends Model>(this: ModelStatic<T>, primaryKey?: string | string): Promise<T | undefined> {
+        if (!primaryKey) return undefined;
         const item = await RepoManager.get(new this()).getDoc(primaryKey);
         if (!item) return undefined;
         return new this(item) as T;
@@ -314,7 +322,7 @@ export class Model {
                 }
             }
             if (this.needTimestamp) newAttributes.updatedAt = now;
-            newAttributes._id = this._id;
+            newAttributes._id = this.cName + '.' + this._id;
             if (this.getClass().beforeUpdate) {
                 await this.getClass().beforeUpdate(this);
             }

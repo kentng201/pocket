@@ -94,7 +94,7 @@ describe('Model Real Time', () => {
     it('should emit change event when real time is enabled', async () => {
         setDocChangeEventListener((_id: string) => {
             if (_id.includes('RealTimeUsers.ABC')) {
-                expect(_id).toEqual(user._id);
+                expect(_id).toEqual('RealTimeUsers.' + user._id);
             }
         });
         const user = await RealTimeUser.create({

@@ -91,6 +91,10 @@ export function setRealtime(realTime: boolean) {
 export function needToReload(model: Model, changeDocId: string): boolean {
     let needReload = false;
     for (const key of Object.keys(model)) {
+        if (model.docId === changeDocId) {
+            needReload = true;
+            break;
+        }
         if (model[key as keyof typeof model] === changeDocId) {
             needReload = true;
             break;

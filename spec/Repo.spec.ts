@@ -105,7 +105,7 @@ describe('Repo', () => {
         }));
 
         try {
-            await repo.getDoc('Users.User3');
+            const test = await repo.getDoc('Users.User3');
         } catch (e) {
             expect(e).toEqual(jasmine.objectContaining({
                 status: 404,

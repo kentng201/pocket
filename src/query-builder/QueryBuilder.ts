@@ -49,6 +49,36 @@ function toMangoQuery<T extends Model, Key extends ModelKey<T>, O extends Operat
 
     return {};
 }
+
+function idToMangoQuery<T extends Model, Key extends '_id', O extends Operator>(operator: O, value: any, cName: string): PouchDB.Find.Selector {
+    if (['=', '!=', '>', '>=', '<', '<=',].includes(operator)) {
+        if (!value.includes(cName)) {
+            value = `${cName}.${value}`;
+        }
+    }
+    if (['in', 'not in',].includes(operator)) {
+        value = value.map((v: string) => {
+            if (!v.includes(cName)) {
+                return `${cName}.${v}`;
+            }
+            return v;
+        });
+    }
+    if (operator === 'between') {
+        const [fromValue, toValue,] = value as [string, string];
+        if (!fromValue.includes(cName)) {
+            value[0] = `${cName}.${fromValue}`;
+        }
+        if (!toValue.includes(cName)) {
+            value[1] = `${cName}.${toValue}`;
+        }
+    }
+    if (operator === 'like') {
+        value = `^${cName}.${value}`;
+    }
+    return toMangoQuery('_id', operator, value as any);
+}
+
 function queryableValueToValue<T extends Model, Key extends ModelKey<T>>(field: Key, value: ModelValue<T, Key>): PouchDB.Find.Selector {
     if (value instanceof Array && operators.includes(value[0])) {
         return toMangoQuery<T, Key, typeof value[0]>(field, value[0], value[1]);
@@ -125,7 +155,8 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         return this.foreignKey;
     }
 
-    async find(_id: string): Promise<T | undefined> {
+    async find(_id?: string): Promise<T | undefined> {
+        if (!_id) return undefined;
         const doc = await this.getDoc(_id);
         if (doc) return this.cast(doc as ModelType<T>);
         return undefined;
@@ -140,7 +171,12 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
 
         if (args.length === 3) {
             const [field, operator, value,] = args as [ModelKey<T>, O, OperatorValue<T, Key, O>];
-            const newQuery = toMangoQuery(field, operator, value);
+            let newQuery: PouchDB.Find.Selector;
+            if (field == '_id') {
+                newQuery = idToMangoQuery(operator, value, this.modelClass.cName);
+            } else {
+                newQuery = toMangoQuery(field as ModelKey<T>, operator, value);
+            }
             this.queries.selector.$and.push(newQuery);
             this.lastWhere = args[0] as ModelKey<T>;
             return this;
@@ -173,7 +209,12 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
 
         if (args.length === 3) {
             const [field, operator, value,] = args as [ModelKey<T>, O, OperatorValue<T, Key, O>];
-            const newQuery = toMangoQuery(field, operator, value);
+            let newQuery: PouchDB.Find.Selector;
+            if (field == '_id') {
+                newQuery = idToMangoQuery(operator, value, this.modelClass.cName);
+            } else {
+                newQuery = toMangoQuery(field as ModelKey<T>, operator, value);
+            }
             if (this.lastWhere === '$or') {
                 if (!lastQuery.$or) lastQuery.$or = [];
                 lastQuery.$or.push(newQuery);
@@ -346,7 +387,9 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         return (await this.get()).length;
     }
 
-    async getDoc(_id: string): Promise<PouchDB.Core.IdMeta & PouchDB.Core.GetMeta | undefined> {
+    async getDoc(_id?: string): Promise<PouchDB.Core.IdMeta & PouchDB.Core.GetMeta | undefined> {
+        if (!_id) return undefined;
+        if (!_id.includes(this.modelClass.cName + '.')) _id = this.modelClass.cName + '.' + _id;
         try {
             const result = await this.db.get(_id);
             return result;
@@ -399,7 +442,11 @@ export class QueryBuilder<T extends Model, K extends string[] = []> {
         if (!doc) {
             return Promise.reject(new Error('Document not found'));
         }
-        const result = await this.db.remove(doc.toJson() as PouchDB.Core.RemoveDocument);
+        const rawDoc = doc.toJson();
+        if (!rawDoc._id?.includes(this.modelClass.cName + '.')) {
+            rawDoc._id = this.modelClass.cName + '.' + rawDoc._id;
+        }
+        const result = await this.db.remove(rawDoc as PouchDB.Core.RemoveDocument);
         if (this.apiInfo && this.apiInfo.apiAutoDelete) {
             await this.api?.delete(_id);
         }

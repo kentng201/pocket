@@ -114,7 +114,7 @@ describe('Model Relationships', () => {
 
         const userCreated = await RepoManager.get(new UserRelationship).getDoc(user._id) as any;
         expect(userCreated).toEqual(jasmine.objectContaining({
-            _id: user._id,
+            _id: user.docId,
             _rev: user._rev,
             name: user.name,
         }));
@@ -131,7 +131,7 @@ describe('Model Relationships', () => {
         await user.posts![0].save();
         const postedUpdated = await RepoManager.get(new PostRelationship).getDoc(user.posts![0]._id);
         expect(postedUpdated).toEqual(jasmine.objectContaining({
-            _id: user.posts![0]._id,
+            _id: user.posts![0].docId,
             _rev: user.posts![0]._rev,
             title: user.posts![0].title,
             createdAt: user.posts![0].createdAt,
