@@ -27,7 +27,9 @@ export default defineConfig({
 
 ### Project Setup
 
-In vue.js, you can create a file `pocket.config.json` inside the `public` folder
+#### **Vue.js/React.js**
+
+Create a file `pocket.config.json` inside the `public` folder
 
 - modelTimestamp: if true, your model will have a createdAt and updatedAt field
 - realtimeUpdate: if true, your model will sync with other model with same _id
@@ -69,6 +71,39 @@ In vue.js, you can create a file `pocket.config.json` inside the `public` folder
         }
     ]
 }
+```
+
+In React.js, update your `index.tsx` as per below
+
+```tsx
+const setupDatabase = async (): Promise<void> => {
+  await boot();
+}
+
+export default function Home() {
+  const TEST_USER_NAME = 'Users.Test5';
+  useEffect(() => {
+    setupDatabase().then(async () => {
+        // your query goes here
+    });
+  }, []);
+
+  return ();
+}
+```
+
+In Vue.js, update your `main.ts` as per below
+
+```ts
+import { createApp } from "vue";
+import App from "./App.vue";
+import "./registerServiceWorker";
+import router from "./router";
+import { boot } from "pocket";
+
+boot().then(() => {
+    createApp(App).use(router).mount("#app");
+});
 ```
 
 ### Model
