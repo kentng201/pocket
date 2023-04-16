@@ -1,4 +1,4 @@
-import { QueryBuilder, Operator, OperatorValue, QueryableModel, RelationshipType } from 'src/query-builder/QueryBuilder';
+import { QueryBuilder, Operator, OperatorValue, QueryableModel } from 'src/query-builder/QueryBuilder';
 import { RepoManager } from 'src/manager/RepoManager';
 
 import { belongsTo } from 'src/relationships/BelongsTo';
@@ -13,6 +13,7 @@ import { APIAutoConfig } from 'src/definitions/APIAutoConfig';
 import { addWeakRef, needToReload } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
+import { RelationshipType } from 'src/definitions/RelationshipType';
 
 export function setDefaultDbName(dbName: string): string {
     BaseModel.dbName = dbName;

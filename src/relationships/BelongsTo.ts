@@ -1,8 +1,9 @@
 import { singular } from 'pluralize';
 import { ModelKey, ModelStatic, ModelValue } from 'src/definitions/Model';
+import { RelationshipType } from 'src/definitions/RelationshipType';
 import { lowerCaseFirst } from 'src/helpers/stringHelper';
 import { BaseModel } from 'src/model/Model';
-import { QueryBuilder, RelationshipType } from 'src/query-builder/QueryBuilder';
+import { QueryBuilder } from 'src/query-builder/QueryBuilder';
 
 export function belongsTo<T extends BaseModel, R extends BaseModel>(
     self: T, relationship: ModelStatic<R>, localKey?: ModelKey<T>, foreignKey?: ModelKey<R>
