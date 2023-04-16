@@ -563,5 +563,4 @@ export class BaseModel {
     // end of join
 }
 
-export const Model = new Proxy(BaseModel, {
-});
+export { BaseModel as Model };
