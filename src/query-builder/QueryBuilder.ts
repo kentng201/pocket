@@ -52,7 +52,7 @@ function toMangoQuery<T extends BaseModel, Key extends ModelKey<T>, O extends Op
     return {};
 }
 
-function idToMangoQuery<T extends BaseModel, Key extends '_id', O extends Operator>(operator: O, value: any, cName: string): PouchDB.Find.Selector {
+function idToMangoQuery<T extends BaseModel, Key extends ModelKey<T>, O extends Operator>(key: Key, operator: O, value: any, cName: string): PouchDB.Find.Selector {
     if (!value) return {};
     if (['=', '!=', '>', '>=', '<', '<=',].includes(operator)) {
         if (!value.includes(cName)) {
@@ -79,7 +79,7 @@ function idToMangoQuery<T extends BaseModel, Key extends '_id', O extends Operat
     if (operator === 'like') {
         value = `^${cName}.${value}`;
     }
-    return toMangoQuery('_id', operator, value as any);
+    return toMangoQuery(key as any, operator, value);
 }
 
 function queryableValueToValue<T extends BaseModel, Key extends ModelKey<T>>(field: Key, value: ModelValue<T, Key>): PouchDB.Find.Selector {
@@ -167,8 +167,13 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (args.length === 3) {
             const [field, operator, value,] = args as [ModelKey<T>, O, OperatorValue<T, Key, O>];
             let newQuery: PouchDB.Find.Selector;
-            if (field == '_id') {
-                newQuery = idToMangoQuery(operator, value, this.modelClass.cName);
+            const relationships = getRelationships(this.modelClass);
+            let idFields = Object.keys(relationships).map((r) => {
+                return relationships[r][2][2];
+            });
+            idFields = [];
+            if (field == '_id' || idFields.includes(field as string)) {
+                newQuery = idToMangoQuery(field as any, operator, value, this.modelClass.cName);
             } else {
                 newQuery = toMangoQuery(field as ModelKey<T>, operator, value);
             }
@@ -205,8 +210,13 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (args.length === 3) {
             const [field, operator, value,] = args as [ModelKey<T>, O, OperatorValue<T, Key, O>];
             let newQuery: PouchDB.Find.Selector;
-            if (field == '_id') {
-                newQuery = idToMangoQuery(operator, value, this.modelClass.cName);
+            const relationships = getRelationships(this.modelClass);
+            let idFields = Object.keys(relationships).map((r) => {
+                return relationships[r][2][2];
+            });
+            idFields = [];
+            if (field == '_id' || idFields.includes(field as string)) {
+                newQuery = idToMangoQuery(field as any, operator, value, this.modelClass.cName);
             } else {
                 newQuery = toMangoQuery(field as ModelKey<T>, operator, value);
             }
