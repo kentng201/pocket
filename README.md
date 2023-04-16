@@ -228,12 +228,13 @@ Note: To prevent circular dependency, you need to use `require` to import the mo
 `User.ts`
 
 ```typescript
-import { Model, HasMany, BelongsTo } from 'pocket';
+import { PocketModel, Model, HasMany } from 'pocket';
+@PocketModel
 class User extends Model {
     name!: string;
     password?: string;
 
-    @HasMany(() => Post, '_id', 'userId')
+    @HasMany('Post', '_id', 'userId')
     posts?: Post[];
 }
 ```
@@ -241,13 +242,15 @@ class User extends Model {
 `Post.ts`
 
 ```typescript
-import { Model, HasMany, BelongsTo } from 'pocket';
+import { PocketModel, Model, HasMany, BelongsTo } from 'pocket';
+
+@PocketModel
 class Post extends Model {
     title!: string;
     userId!: string;
     content?: string;
 
-    @BelongsTo(() => User)
+    @BelongsTo('User')
     user?: User;
 }
 ```
