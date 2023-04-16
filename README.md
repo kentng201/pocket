@@ -225,28 +225,22 @@ Pocket supported 4 types of relationships
 - belongsToMany
 
 ```typescript
-import { Model } from 'pocket';
+import { Model, HasMany, BelongsTo } from 'pocket';
 class User extends Model {
     name!: string;
     password?: string;
 
+    @HasMany(Post, '_id', 'userId')
     posts?: Post[];
-    relationships = {
-        posts: () => this.hasMany(Post, '_id', 'userId'),
-    } as {
-        posts: () => QueryBuilder<Post>;
-    };
 }
 
 class Post extends Model {
     title!: string;
     userId!: string;
     content?: string;
-    relationships = {
-        user: () => this.belongsTo(User),
-    } as {
-        user: () => QueryBuilder<User>;
-    };
+
+    @BelongsTo(User)
+    user?: User;
 }
 ```
 
@@ -257,8 +251,8 @@ const user = await User.create({
     name: 'John',
 });
 
-const post1 = await Post.create({ title: 'hello world', userId: user._id });
-const post2 = await Post.create({ title: 'nice to meet you, Malaysia', userId: user._id });
+const post1 = await Post.create({ title: 'hello world', userId: user.docId });
+const post2 = await Post.create({ title: 'nice to meet you, Malaysia', userId: user.docId });
 ```
 
 When you query the user with post, can use following methods
