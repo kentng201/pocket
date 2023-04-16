@@ -553,6 +553,14 @@ export class BaseModel {
         return needToReload(this, changeId);
     }
     // end dirty maintenance
+
+    // start of join
+    // TODO: add join methods
+    isJoinField(field: string): boolean {
+        return false;
+        // return this._join_fields[field] !== undefined;
+    }
+    // end of join
 }
 
 export const subclassRegistry = new Set<Function>();
