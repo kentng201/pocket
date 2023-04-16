@@ -1,68 +1,13 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { RepoManager } from 'src/manager/RepoManager';
-import { QueryBuilder } from 'src/query-builder/QueryBuilder';
-import { Model } from 'src/model/Model';
+import { UserRelationship } from './Model-relationships/UserRelationship';
+import { PostRelationship } from './Model-relationships/PostRelationship';
+import { Attachment } from './Model-relationships/Attachment';
+import { Employee } from './Model-relationships/Employee';
 
 const dbName = 'model-relationships';
 
 describe('Model Relationships', () => {
-    class UserRelationship extends Model {
-        static dbName = dbName;
-
-        name!: string;
-        password?: string;
-
-        posts?: PostRelationship[];
-        employee?: Employee;
-
-        relationships = {
-            posts: () => this.hasMany(PostRelationship, '_id', 'userId'),
-            employee: () => this.hasOne(Employee, '_id', 'userId'),
-        } as {
-            posts: () => QueryBuilder<PostRelationship>;
-            employee: () => QueryBuilder<Employee>;
-        };
-    }
-
-    class PostRelationship extends Model {
-        static dbName = dbName;
-
-        title!: string;
-        userId!: string;
-        content?: string;
-        attachments?: Attachment[];
-        relationships = {
-            user: () => this.belongsTo(UserRelationship, '_id', 'userId'),
-            attachments: () => this.hasMany(Attachment, '_id', 'postId'),
-        } as {
-            user: () => QueryBuilder<UserRelationship>;
-            attachments: () => QueryBuilder<Attachment>;
-        };
-    }
-
-    class Employee extends Model {
-        static dbName = dbName;
-
-        name!: string;
-        password?: string;
-        userId!: string;
-
-        user?: UserRelationship;
-        relationships = {
-            user: () => this.belongsTo(UserRelationship, '_id', 'userId'),
-        } as {
-            user: () => QueryBuilder<UserRelationship>;
-        };
-    }
-
-    class Attachment extends Model {
-        static dbName = dbName;
-
-        name!: string;
-        url!: string;
-        postId!: string;
-    }
-
 
     beforeEach(async () => {
         await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
