@@ -6,11 +6,11 @@ export type RelationshipParams = [RelationshipType, ModelStatic<BaseModel>[], Ar
 
 export type ForeignKeyModelMapper = {
     [model: string]: ForeignTypeMapper;
-}
+};
 
 export type ForeignTypeMapper = {
     [key: string]: RelationshipParams;
-}
+};
 
 export const foreignKeys: ForeignKeyModelMapper = {};
 
@@ -25,7 +25,7 @@ export function BelongsTo<R extends BaseModel>(relationship: ModelStatic<R>, loc
         }
         if (!foreignKeys[target.cName]) foreignKeys[target.cName] = {};
         if (!foreignKeys[target.cName][propertyKey]) {
-            foreignKeys[target.cName][propertyKey] = [RelationshipType.BELONGS_TO, [relationship], [localKey as string, foreignKey as string]];
+            foreignKeys[target.cName][propertyKey] = [RelationshipType.BELONGS_TO, [relationship,], [localKey as string, foreignKey as string,],];
         }
     };
 }
@@ -37,7 +37,7 @@ export function HasOne<R extends BaseModel>(relationship: ModelStatic<R>, localK
         }
         if (!foreignKeys[target.cName]) foreignKeys[target.cName] = {};
         if (!foreignKeys[target.cName][propertyKey]) {
-            foreignKeys[target.cName][propertyKey] = [RelationshipType.HAS_ONE, [relationship], [localKey as string, foreignKey as string]];
+            foreignKeys[target.cName][propertyKey] = [RelationshipType.HAS_ONE, [relationship,], [localKey as string, foreignKey as string,],];
         }
     };
 }
@@ -49,7 +49,7 @@ export function HasMany<R extends BaseModel>(relationship: ModelStatic<R>, local
         }
         if (!foreignKeys[target.cName]) foreignKeys[target.cName] = {};
         if (!foreignKeys[target.cName][propertyKey]) {
-            foreignKeys[target.cName][propertyKey] = [RelationshipType.HAS_MANY, [relationship], [localKey as string, foreignKey as string]];
+            foreignKeys[target.cName][propertyKey] = [RelationshipType.HAS_MANY, [relationship,], [localKey as string, foreignKey as string,],];
         }
     };
 }
@@ -61,7 +61,7 @@ export function BelongsToMany<R extends BaseModel, P extends BaseModel>(relation
         }
         if (!foreignKeys[target.cName]) foreignKeys[target.cName] = {};
         if (!foreignKeys[target.cName][propertyKey]) {
-            foreignKeys[target.cName][propertyKey] = [RelationshipType.BELONGS_TO_MANY, [relationship, pivot], [localKey as string, foreignKey as string]];
+            foreignKeys[target.cName][propertyKey] = [RelationshipType.BELONGS_TO_MANY, [relationship, pivot,], [localKey as string, foreignKey as string,],];
         }
     };
 }

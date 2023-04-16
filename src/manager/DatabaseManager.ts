@@ -64,7 +64,7 @@ export class DatabaseManager {
             setRealtime(true);
         }
         if (config.password) {
-            PouchDB.plugin(require('comdb'))
+            PouchDB.plugin(require('comdb'));
         }
         return new Promise(async (resolve) => {
             let pouchConfig = {} as { adapter: string; auth?: { username: string; password: string; }; };
