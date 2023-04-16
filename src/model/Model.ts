@@ -101,18 +101,18 @@ export class BaseModel {
                 //     throw new Error(`Cannot update reserved field ${key}`);
                 // }
 
-                if (!this._dirty) this._dirty = {};
-                if (!this._before_dirty) this._before_dirty = {};
+                if (!target._dirty) target._dirty = {};
+                if (!target._before_dirty) target._before_dirty = {};
 
                 if (key === '_dirty' || key === '_before_dirty' || key === 'relationships') {
                     target[key] = value;
                     return true;
                 }
-                if (this[key as ModelKey<this>] && this._before_dirty[key as string] === undefined) {
-                    this._before_dirty[key as string] = this[key as ModelKey<this>];
+                if (target[key as ModelKey<this>] && target._before_dirty[key as string] === undefined) {
+                    target._before_dirty[key as string] = target[key as ModelKey<this>];
                 }
                 target[key] = value;
-                this._dirty[key as string] = true;
+                target._dirty[key as string] = true;
 
                 return true;
             },
