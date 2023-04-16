@@ -10,5 +10,5 @@ export class UserRelationship extends Model {
     name!: string;
     password?: string;
 
-    @HasMany(() => PostRelationship, '_id', 'userId') posts?: PostRelationship[];
+    @HasMany('PostRelationship', '_id', 'userId') posts?: PostRelationship[];
 }

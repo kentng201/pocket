@@ -12,7 +12,7 @@ export function PocketModel<T extends typeof BaseModel>(model: T) {
     console.log(`Class ${model.name} registered`);
 }
 
-export function getModel(modelName: string): typeof BaseModel {
+export function getModelClass(modelName: string): typeof BaseModel {
     if (!classes[modelName]) throw new Error(`Model ${modelName} not found`);
     return classes[modelName];
 }

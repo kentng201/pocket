@@ -11,5 +11,5 @@ export class Attachment extends Model {
     url!: string;
     postId!: string;
 
-    @BelongsTo(() => PostRelationship, '_id', 'postId') post?: PostRelationship;
+    @BelongsTo('PostRelationship', '_id', 'postId') post?: PostRelationship;
 }

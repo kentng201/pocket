@@ -15,6 +15,7 @@ import { APIMethod } from 'src/repo/ApiRepo';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { RelationshipType } from 'src/definitions/RelationshipType';
 import { getRelationships } from '..';
+import { getModelClass } from './ModelDecorator';
 
 export function setDefaultDbName(dbName: string): string {
     BaseModel.dbName = dbName;
@@ -92,6 +93,7 @@ export class BaseModel {
         if (attributes._id) attributes._id = attributes._id.replace(this.cName + '.', '');
         Object.assign(this, attributes);
         if (!this.relationships) this.relationships = {};
+        this.bindRelationships();
         addWeakRef(this.docId, this);
     }
     constructor(attributes?: object) {
@@ -135,8 +137,10 @@ export class BaseModel {
         const relationships = getRelationships(this);
         let fields = Object.keys(relationships).map((key) => {
             if (relationships[key][0] === RelationshipType.BELONGS_TO) {
+                const relationshipName = relationships[key][1][0];
+                const relationship = getModelClass(relationshipName);
                 return {
-                    relationship: relationships[key][1][0],
+                    relationship,
                     field: relationships[key][2][1],
                 };
             }
@@ -290,17 +294,21 @@ export class BaseModel {
         Object.keys(relationships).forEach((key) => {
             const relationshipParams = relationships[key];
             const queryBuilder = () => {
+                const relationshipName = relationshipParams[1][0];
+                const relationship = getModelClass(relationshipName);
                 if (relationshipParams[0] === RelationshipType.BELONGS_TO) {
-                    return this.belongsTo(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
+                    return this.belongsTo(relationship, relationshipParams[2][0], relationshipParams[2][1]);
                 }
                 if (relationshipParams[0] === RelationshipType.HAS_MANY) {
-                    return this.hasMany(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
+                    return this.hasMany(relationship, relationshipParams[2][0], relationshipParams[2][1]);
                 }
                 if (relationshipParams[0] === RelationshipType.HAS_ONE) {
-                    return this.hasOne(relationshipParams[1][0], relationshipParams[2][0], relationshipParams[2][1]);
+                    return this.hasOne(relationship, relationshipParams[2][0], relationshipParams[2][1]);
                 }
                 if (relationshipParams[0] === RelationshipType.BELONGS_TO_MANY) {
-                    return this.belongsToMany(relationshipParams[1][0], relationshipParams[1][1], relationshipParams[2][0], relationshipParams[2][1]);
+                    const pivotName = relationshipParams[1][1];
+                    const pivot = getModelClass(pivotName);
+                    return this.belongsToMany(relationship, pivot, relationshipParams[2][0], relationshipParams[2][1]);
                 }
                 return new QueryBuilder(this);
             };
@@ -317,7 +325,6 @@ export class BaseModel {
         while (this._real_time_updating) {
             await new Promise((resolve) => setTimeout(resolve, 10));
         }
-        this.bindRelationships();
 
         const newAttributes: Partial<this> = {};
         for (const field in this) {

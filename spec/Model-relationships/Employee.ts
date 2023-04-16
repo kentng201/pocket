@@ -11,5 +11,5 @@ export class Employee extends Model {
     password?: string;
     userId!: string;
 
-    @BelongsTo(() => UserRelationship, '_id', 'userId') user?: UserRelationship;
+    @BelongsTo('UserRelationship', '_id', 'userId') user?: UserRelationship;
 }

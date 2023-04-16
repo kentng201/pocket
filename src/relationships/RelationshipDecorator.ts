@@ -1,11 +1,7 @@
 import { RelationshipType } from 'src/definitions/RelationshipType';
 import { BaseModel } from '../model/Model';
-import { singular } from 'pluralize';
-import { lowerCaseFirst } from 'src/helpers/stringHelper';
-import { ModelStatic } from 'src/definitions/Model';
-import { getModel } from 'src/model/ModelDecorator';
 
-export type RelationshipParams = [RelationshipType, ModelStatic<any>[], Array<string>];
+export type RelationshipParams = [RelationshipType, Array<string>, Array<string | undefined>];
 
 export type ForeignKeyModelMapper = {
     [model: string]: ForeignTypeMapper;
@@ -27,75 +23,38 @@ export function getRelationships<T extends BaseModel>(model: T): ForeignTypeMapp
     return foreignKeys[model.cName] || {};
 }
 
-export function BelongsTo(relationshipFunc: Function | string, localKey?: string, foreignKey?: string) {
-    if (typeof relationshipFunc === 'string') {
-        const relationshipName = relationshipFunc;
-        relationshipFunc = () => getModel(relationshipName);
-    }
-    const relationship = relationshipFunc();
-    console.log('relationship: ', relationship);
+export function BelongsTo(relationship: string, localKey?: string, foreignKey?: string) {
     return function <T extends BaseModel>(target: T, propertyKey: string) {
         if (!target.relationships) {
             target.relationships = {};
         }
-        if (!localKey) localKey = `${lowerCaseFirst(singular(new relationship().cName))}Id`;
-        if (!foreignKey) foreignKey = '_id';
-        setRelationship(target, propertyKey, [RelationshipType.BELONGS_TO, [relationship,], [localKey as string, foreignKey as string,],]);
+        setRelationship(target, propertyKey, [RelationshipType.BELONGS_TO, [relationship,], [localKey, foreignKey,],]);
     };
 }
 
-export function HasOne(relationshipFunc: Function | string, localKey?: string, foreignKey?: string) {
-    if (typeof relationshipFunc === 'string') {
-        const relationshipName = relationshipFunc;
-        relationshipFunc = () => getModel(relationshipName);
-    }
-    const relationship = relationshipFunc();
+export function HasOne(relationship: string, localKey?: string, foreignKey?: string) {
     return function <T extends BaseModel>(target: T, propertyKey: string) {
         if (!target.relationships) {
             target.relationships = {};
         }
-        if (!localKey) localKey = '_id';
-        if (!foreignKey) foreignKey = `${lowerCaseFirst(singular(target.cName))}Id`;
-        if (!foreignKeys[target.cName]) foreignKeys[target.cName] = {};
-        setRelationship(target, propertyKey, [RelationshipType.HAS_ONE, [relationship,], [localKey as string, foreignKey as string,],]);
+        setRelationship(target, propertyKey, [RelationshipType.HAS_ONE, [relationship,], [localKey, foreignKey,],]);
     };
 }
 
-export function HasMany(relationshipFunc: Function | string, localKey?: string, foreignKey?: string) {
-    if (typeof relationshipFunc === 'string') {
-        const relationshipName = relationshipFunc;
-        relationshipFunc = () => getModel(relationshipName);
-    }
-    const relationship = relationshipFunc();
+export function HasMany(relationship: string, localKey?: string, foreignKey?: string) {
     return function <T extends BaseModel>(target: T, propertyKey: string) {
         if (!target.relationships) {
             target.relationships = {};
         }
-        if (!localKey) localKey = '_id';
-        if (!foreignKey) foreignKey = `${lowerCaseFirst(singular(target.cName))}Id`;
-        if (!foreignKeys[target.cName]) foreignKeys[target.cName] = {};
-        setRelationship(target, propertyKey, [RelationshipType.HAS_MANY, [relationship,], [localKey as string, foreignKey as string,],]);
+        setRelationship(target, propertyKey, [RelationshipType.HAS_MANY, [relationship,], [localKey, foreignKey,],]);
     };
 }
 
-export function BelongsToMany(relationshipFunc: Function | string, pivotFunc: Function | string, localKey?: string, foreignKey?: string) {
-    if (typeof relationshipFunc === 'string') {
-        const relationshipName = relationshipFunc;
-        relationshipFunc = () => getModel(relationshipName);
-    }
-    const relationship = relationshipFunc();
-    if (typeof pivotFunc === 'string') {
-        const pivotName = pivotFunc;
-        pivotFunc = () => getModel(pivotName);
-    }
-    const pivot = pivotFunc;
+export function BelongsToMany(relationship: string, pivot: string, localKey?: string, foreignKey?: string) {
     return function <T extends BaseModel>(target: T, propertyKey: string) {
         if (!target.relationships) {
             target.relationships = {};
         }
-        if (!localKey) localKey = `${lowerCaseFirst(singular(target.cName))}Id`;
-        if (!foreignKey) foreignKey = `${lowerCaseFirst(singular(new relationship().cName))}Id`;
-        if (!foreignKeys[target.cName]) foreignKeys[target.cName] = {};
-        setRelationship(target, propertyKey, [RelationshipType.BELONGS_TO_MANY, [relationship, pivot,], [localKey as string, foreignKey as string,],]);
+        setRelationship(target, propertyKey, [RelationshipType.BELONGS_TO_MANY, [relationship, pivot,], [localKey, foreignKey,],]);
     };
 }

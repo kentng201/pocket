@@ -3,7 +3,7 @@ import { RepoManager } from 'src/manager/RepoManager';
 import { Model } from 'src/model/Model';
 
 describe('Model', () => {
-    class User extends Model {
+    class MUser extends Model {
         static dbName = 'model';
         static readonlyFields = ['username',];
 
@@ -21,7 +21,7 @@ describe('Model', () => {
     });
 
     it('should be able to create a new model', async () => {
-        const user = await User.create({
+        const user = await MUser.create({
             name: 'new-user',
         });
         expect(user).toBeTruthy();
@@ -32,11 +32,11 @@ describe('Model', () => {
     });
 
     it('should be able to find a model', async () => {
-        const createdUser = await User.create({
+        const createdUser = await MUser.create({
             name: 'new-user2',
         });
 
-        const user = await User.find(createdUser._id);
+        const user = await MUser.find(createdUser._id);
 
         expect(user).toBeTruthy();
         expect(user).toEqual(jasmine.objectContaining({
@@ -47,25 +47,25 @@ describe('Model', () => {
     });
 
     it('should be able to save a model', async () => {
-        const user = new User;
+        const user = new MUser;
         user.name = 'new-user3';
         user._id = 'new-user3';
         await user.save();
 
 
-        const savedUser = await User.find(user._id as string);
+        const savedUser = await MUser.find(user._id as string);
         expect(savedUser).toBeTruthy();
-        expect(savedUser).toBeInstanceOf(User);
+        expect(savedUser).toBeInstanceOf(MUser);
         expect(savedUser).toEqual(user);
     });
 
     it('should not be save the meta data into database', async () => {
-        const user = new User;
+        const user = new MUser;
         user.name = 'new-user4';
         user._id = 'new-user4';
         await user.save();
 
-        const doc = await RepoManager.get(new User).getDoc(user._id) as User;
+        const doc = await RepoManager.get(new MUser).getDoc(user._id) as MUser;
         expect(doc).toBeTruthy();
         expect(doc._dirty).not.toBeDefined();
         expect(doc.relationships).not.toBeDefined();
@@ -73,18 +73,18 @@ describe('Model', () => {
     });
 
     it('should be able to delete a model', async () => {
-        const user = await User.create({
+        const user = await MUser.create({
             name: 'new-user5',
         });
 
         await user.delete();
 
-        const deletedUser = await User.find(user._id as string);
+        const deletedUser = await MUser.find(user._id as string);
         expect(deletedUser).not.toBeTruthy();
     });
 
     it('should be able to check if a attribute is dirty', () => {
-        const user = new User;
+        const user = new MUser;
         user.name = 'new-user6';
         const nameIsDirty = user.isDirty('name');
         expect(nameIsDirty).toEqual(true);
@@ -97,7 +97,7 @@ describe('Model', () => {
         const OLD_USERNAME = 'old-username';
         const NEW_USERNAME = 'new-username';
 
-        const user = new User;
+        const user = new MUser;
         user.username = OLD_USERNAME;
         user.name = 'new-user7';
         await user.save();
@@ -106,12 +106,12 @@ describe('Model', () => {
         await user.save();
         expect(user.username).toEqual(OLD_USERNAME);
 
-        const dbUser = await User.find(user._id as string) as User;
+        const dbUser = await MUser.find(user._id as string) as MUser;
         expect(dbUser.username).toEqual(OLD_USERNAME);
     });
 
     it('should be able to replicate a model without _id', async () => {
-        const user = new User;
+        const user = new MUser;
         user.name = 'new-user8';
         await user.save();
 
@@ -128,7 +128,7 @@ describe('Model', () => {
     });
 
     it('should be able to check the dirty record based on first time unsave edit', async () => {
-        const user = new User;
+        const user = new MUser;
         user.name = 'new-user9';
         await user.save();
         user.name = 'test1';

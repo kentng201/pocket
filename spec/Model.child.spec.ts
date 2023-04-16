@@ -1,54 +1,11 @@
 import { DatabaseManager } from 'src/manager/DatabaseManager';
-import { QueryBuilder } from 'src/query-builder/QueryBuilder';
-import { Model } from 'src/model/Model';
+import { ChildUser } from './model-child/ChildUser';
+import { ChildPost } from './model-child/ChildPost';
+import { ChildIdentityCard } from './model-child/ChildIdentityCard';
 
 const dbName = 'model-child';
 
 describe('Model Child', () => {
-    class ChildUser extends Model {
-        static dbName = dbName;
-        static collectionName = 'Users';
-
-        name!: string;
-        password?: string;
-
-        posts?: Post[];
-        identityCard?: IdentityCard;
-
-        relationships = {
-            posts: () => this.hasMany(Post, '_id', 'userId'),
-            identityCard: () => this.hasOne(IdentityCard, '_id', 'userId'),
-        } as {
-            posts: () => QueryBuilder<Post>;
-            identityCard: () => QueryBuilder<IdentityCard>;
-        };
-    }
-
-    class Post extends Model {
-        static dbName = dbName;
-
-        title!: string;
-        userId!: string;
-        content?: string;
-        user?: ChildUser;
-        relationships = {
-            user: () => this.belongsTo(ChildUser),
-        } as {
-            user: () => QueryBuilder<ChildUser>;
-        };
-    }
-
-    class IdentityCard extends Model {
-        static dbName = dbName;
-
-        userId!: string;
-        number!: string;
-        relationships = {
-            user: () => this.belongsTo(ChildUser, 'userId', '_id'),
-        } as {
-            user: () => QueryBuilder<ChildUser>;
-        };
-    }
 
     beforeEach(async () => {
         await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
@@ -58,17 +15,17 @@ describe('Model Child', () => {
         const user = await ChildUser.create({
             name: 'John',
             posts: [
-                new Post({ title: 'hello world', }),
-                new Post({ title: 'hi world', }),
+                new ChildPost({ title: 'hello world', }),
+                new ChildPost({ title: 'hi world', }),
             ],
         });
         expect(user).toBeInstanceOf(ChildUser);
 
-        const posts = user.posts as Post[];
+        const posts = user.posts as ChildPost[];
 
         const post1 = posts[0];
-        const dbPost1 = await Post.find(post1._id) as Post;
-        expect(dbPost1).toBeInstanceOf(Post);
+        const dbPost1 = await ChildPost.find(post1.docId) as ChildPost;
+        expect(dbPost1).toBeInstanceOf(ChildPost);
         expect(dbPost1).toEqual(jasmine.objectContaining({
             title: post1.title,
             userId: user.docId,
@@ -82,18 +39,18 @@ describe('Model Child', () => {
 
 
         const post2 = posts[0];
-        const dbPost2 = await Post.find(post2._id);
-        expect(dbPost2).toBeInstanceOf(Post);
+        const dbPost2 = await ChildPost.find(post2._id);
+        expect(dbPost2).toBeInstanceOf(ChildPost);
         expect(dbPost2).toEqual(jasmine.objectContaining({
             title: post2.title,
         }));
 
         await user.update({
-            identityCard: new IdentityCard({ number: '123456', }),
+            identityCard: new ChildIdentityCard({ number: '123456', }),
         });
-        const card = user.identityCard as IdentityCard;
-        const dbCard = await IdentityCard.find(card._id);
-        expect(card).toBeInstanceOf(IdentityCard);
+        const card = user.identityCard as ChildIdentityCard;
+        const dbCard = await ChildIdentityCard.find(card._id);
+        expect(card).toBeInstanceOf(ChildIdentityCard);
         expect(dbCard).toEqual(jasmine.objectContaining({
             _id: card._id,
             number: card.number,
