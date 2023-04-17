@@ -69,12 +69,9 @@ export function getForeignIdFields<T extends BaseModel>(model: T): Array<Foreign
 
 
 export function convertIdFieldsToDocIds<T extends BaseModel, Attributes extends Partial<BaseModel>>(attributes: Attributes, model: T): Attributes {
-    const idFields = getForeignIdFields(model);
+    const idFields = [...getForeignIdFields(model), ...getLocalIdFields(model),];
     for (const idField of idFields) {
-        if (idField.field === '_id') {
-            console.log('_id found');
-            continue;
-        }
+        if (idField.field === '_id') continue;
         const relationship = new idField.relationship;
         const prefix = relationship.cName + '.';
         const foreignKeyField = attributes[idField.field as keyof typeof attributes] as string;
@@ -86,12 +83,9 @@ export function convertIdFieldsToDocIds<T extends BaseModel, Attributes extends 
     return attributes;
 }
 export function convertIdFieldsToModelIds<T extends BaseModel, Attributes extends Partial<BaseModel>>(attributes: Attributes, model: T): Attributes {
-    const idFields = getLocalIdFields(model);
+    const idFields = [...getForeignIdFields(model), ...getLocalIdFields(model),];
     for (const idField of idFields) {
-        if (idField.field === '_id') {
-            console.log('_id found');
-            continue;
-        }
+        if (idField.field === '_id') continue;
         const relationship = new idField.relationship;
         const prefix = relationship.cName + '.';
         const foreignKeyField = attributes[idField.field as keyof typeof attributes] as string;

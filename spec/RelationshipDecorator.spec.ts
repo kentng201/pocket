@@ -37,7 +37,6 @@ describe('Relationship Decorator', () => {
         expect(posts?.[0]).toBeInstanceOf(DecoratorPost);
 
         await user.save();
-        console.log('user: ', user);
         const post1 = await DecoratorPost.find(user.posts![0]._id);
         expect(post1).toEqual(user.posts![0]);
     });
