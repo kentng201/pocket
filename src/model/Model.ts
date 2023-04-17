@@ -14,7 +14,7 @@ import { addWeakRef, needToReload } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { RelationshipType } from 'src/definitions/RelationshipType';
-import { getIdFields, getRelationships } from '..';
+import { convertIdFieldsToDocIds, convertIdFieldsToModelIds, getRelationships } from '..';
 import { getModelClass } from './ModelDecorator';
 
 export function setDefaultDbName(dbName: string): string {
@@ -95,6 +95,7 @@ export class BaseModel {
         if (!this.relationships) this.relationships = {};
         this.bindRelationships();
         addWeakRef(this.docId, this);
+        addWeakRef(this.modelId, this);
     }
     constructor(attributes?: object) {
         if (attributes) this.fill(attributes as unknown as ModelType<this>);
@@ -133,27 +134,19 @@ export class BaseModel {
     // end of object construction
 
     // start of foreign key handling
-    private setForeignFieldsToDocId<Attributes extends BaseModel>(attributes: Attributes): Attributes {
-        attributes._id = attributes.docId;
-        const idFields = getIdFields(this);
-        for (const idField of idFields) {
-            const foreignKeyField = attributes[idField.field as keyof typeof attributes] as string;
-            if (!foreignKeyField.includes((new idField.relationship).cName + '.')) {
-                attributes[idField.field as keyof typeof attributes] = ((new idField.relationship).docId) as Attributes[keyof Attributes];
-            }
-        }
-        return attributes;
+    public setForeignFieldsToDocId(): this {
+        const result = convertIdFieldsToDocIds(this, this);
+        this.fill(result);
+        this._dirty = {};
+        this._before_dirty = {};
+        return this;
     }
-    private setForeignFieldsToModelId<Attributes extends BaseModel>(attributes: Attributes): Attributes {
-        attributes._id = attributes.modelId;
-        const idFields = getIdFields(this);
-        for (const idField of idFields) {
-            const foreignKeyField = attributes[idField.field as keyof typeof attributes] as string;
-            if (foreignKeyField.includes((new idField.relationship).cName + '.')) {
-                attributes[idField.field as keyof typeof attributes] = ((new idField.relationship).modelId) as Attributes[keyof Attributes];
-            }
-        }
-        return attributes;
+    public setForeignFieldsToModelId(): this {
+        const result = convertIdFieldsToModelIds(this, this);
+        this.fill(result);
+        this._dirty = {};
+        this._before_dirty = {};
+        return this;
     }
     // end of foreign key handling
 
@@ -202,7 +195,9 @@ export class BaseModel {
         if (!primaryKey) return undefined;
         const item = await RepoManager.get(new this()).getDoc(primaryKey);
         if (!item) return undefined;
-        return new this(item) as T;
+        const model = new this(item) as T;
+        model.setForeignFieldsToModelId();
+        return model;
     }
     /**
      * Create a new model
@@ -321,7 +316,7 @@ export class BaseModel {
             await new Promise((resolve) => setTimeout(resolve, 10));
         }
 
-        const newAttributes: Partial<this> = {};
+        let newAttributes: Partial<this> = {};
         for (const field in this) {
             if (typeof field === 'function') continue;
             if (field === '_dirty') continue;
@@ -345,6 +340,7 @@ export class BaseModel {
             }
             newAttributes[field] = this[field];
         }
+        newAttributes = convertIdFieldsToDocIds(newAttributes, this);
         const now = moment().toISOString();
         let updatedResult;
 
@@ -380,7 +376,7 @@ export class BaseModel {
                 }
             }
             if (this.needTimestamp) newAttributes.updatedAt = now;
-            newAttributes._id = this.cName + '.' + this._id;
+            newAttributes._id = this.docId;
             if (this.getClass().beforeUpdate) {
                 await this.getClass().beforeUpdate(this);
             }
@@ -397,8 +393,10 @@ export class BaseModel {
         if (this.getClass().afterSave) {
             await this.getClass().afterSave(this);
         }
+        this.fill({ ...newAttributes, _rev: updatedResult.rev, } as Partial<ModelType<this>>);
         this._id = this.modelId;
-        if (!this.relationships) this.relationships = {};
+        this.setForeignFieldsToModelId();
+        if (!this.relationships) this.bindRelationships();
         this._dirty = {};
         this._before_dirty = {};
         return this;

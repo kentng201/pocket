@@ -5,7 +5,7 @@ import { RelationshipType } from 'src/definitions/RelationshipType';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { BaseModel } from 'src/model/Model';
-import { getRelationships } from 'src/relationships/RelationshipDecorator';
+import { getForeignIdFields, getLocalIdFields, getRelationships } from 'src/relationships/RelationshipDecorator';
 import { ApiRepo } from 'src/repo/ApiRepo';
 
 const operators = ['=', '>', '>=', '<', '<=', '!=', 'in', 'not in', 'between', 'like',] as const;
@@ -167,13 +167,13 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (args.length === 3) {
             const [field, operator, value,] = args as [ModelKey<T>, O, OperatorValue<T, Key, O>];
             let newQuery: PouchDB.Find.Selector;
-            const relationships = getRelationships(this.modelClass);
-            let idFields = Object.keys(relationships).map((r) => {
-                return relationships[r][2][2];
-            });
-            idFields = [];
-            if (field == '_id' || idFields.includes(field as string)) {
-                newQuery = idToMangoQuery(field as any, operator, value, this.modelClass.cName);
+            const idFields = getForeignIdFields(this.modelClass);
+            const hasRelationship = idFields.find((f) => f.field === field);
+            if (field == '_id') {
+                newQuery = idToMangoQuery('_id', operator, value, this.modelClass.cName);
+            } else if (hasRelationship) {
+                const cName = new hasRelationship.relationship().cName;
+                newQuery = idToMangoQuery(field as any, operator, value, cName);
             } else {
                 newQuery = toMangoQuery(field as ModelKey<T>, operator, value);
             }
@@ -210,13 +210,13 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (args.length === 3) {
             const [field, operator, value,] = args as [ModelKey<T>, O, OperatorValue<T, Key, O>];
             let newQuery: PouchDB.Find.Selector;
-            const relationships = getRelationships(this.modelClass);
-            let idFields = Object.keys(relationships).map((r) => {
-                return relationships[r][2][2];
-            });
-            idFields = [];
-            if (field == '_id' || idFields.includes(field as string)) {
-                newQuery = idToMangoQuery(field as any, operator, value, this.modelClass.cName);
+            const idFields = getForeignIdFields(this.modelClass);
+            const hasRelationship = idFields.find((f) => f.field === field);
+            if (field == '_id') {
+                newQuery = idToMangoQuery('_id', operator, value, this.modelClass.cName);
+            } else if (hasRelationship) {
+                const cName = new hasRelationship.relationship().cName;
+                newQuery = idToMangoQuery(field as any, operator, value, cName);
             } else {
                 newQuery = toMangoQuery(field as ModelKey<T>, operator, value);
             }
@@ -365,6 +365,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         model._dirty = {};
         model._before_dirty = {};
         model = await this.bindRelationship(model);
+        model.setForeignFieldsToModelId();
         return model;
     }
 

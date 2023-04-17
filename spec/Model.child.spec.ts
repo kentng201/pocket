@@ -24,15 +24,14 @@ describe('Model Child', () => {
         const posts = user.posts as ChildPost[];
 
         const post1 = posts[0];
-        const dbPost1 = await ChildPost.find(post1.docId) as ChildPost;
+        const dbPost1 = await ChildPost.find(post1._id) as ChildPost;
         expect(dbPost1).toBeInstanceOf(ChildPost);
         expect(dbPost1).toEqual(jasmine.objectContaining({
             title: post1.title,
-            userId: user.docId,
+            userId: user._id,
         }));
 
         const dbUser = await dbPost1.relationships.user().first();
-        console.log('dbUser: ', dbUser);
         expect(dbUser).toBeInstanceOf(ChildUser);
         expect(dbUser).toEqual(jasmine.objectContaining({
             name: user.name,
