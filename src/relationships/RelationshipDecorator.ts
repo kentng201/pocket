@@ -1,5 +1,7 @@
 import { RelationshipType } from 'src/definitions/RelationshipType';
 import { BaseModel } from '../model/Model';
+import { ModelStatic } from 'src/definitions/Model';
+import { getModelClass } from '..';
 
 export type RelationshipParams = [RelationshipType, Array<string>, Array<string | undefined>];
 
@@ -19,8 +21,31 @@ export function setRelationship(target: BaseModel, propertyKey: string, params: 
     foreignKeys[target.cName][propertyKey] = params;
 }
 
-export function getRelationships<T extends BaseModel>(model: T): ForeignTypeMapper {
+export function getRelationships<T extends BaseModel>(model: T) {
     return foreignKeys[model.cName] || {};
+}
+
+type ForeignIdMeta = {
+    relationship: ModelStatic<BaseModel>;
+    field: string;
+};
+
+export function getIdFields<T extends BaseModel>(model: T): Array<ForeignIdMeta> {
+    const relationships = getRelationships(model);
+    let fields = Object.keys(relationships).map((key) => {
+        if (relationships[key][0] === RelationshipType.BELONGS_TO) {
+            const relationshipName = relationships[key][1][0];
+            const relationship = getModelClass(relationshipName);
+            return {
+                relationship,
+                field: relationships[key][2][1],
+            };
+        }
+        return undefined;
+    });
+    fields = [...new Set(fields),];
+    const idFields = fields.filter((item) => item !== undefined && item.relationship !== undefined) as ForeignIdMeta[];
+    return idFields;
 }
 
 export function BelongsTo(relationship: string, localKey?: string, foreignKey?: string) {
