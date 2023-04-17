@@ -14,7 +14,7 @@ import { addWeakRef, needToReload } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { RelationshipType } from 'src/definitions/RelationshipType';
-import { getRelationships } from '..';
+import { getIdFields, getRelationships } from '..';
 import { getModelClass } from './ModelDecorator';
 
 export function setDefaultDbName(dbName: string): string {
@@ -133,28 +133,24 @@ export class BaseModel {
     // end of object construction
 
     // start of foreign key handling
-    private updateForeignIdFields<Attributes>(attributes: Attributes): Attributes {
-        const relationships = getRelationships(this);
-        let fields = Object.keys(relationships).map((key) => {
-            if (relationships[key][0] === RelationshipType.BELONGS_TO) {
-                const relationshipName = relationships[key][1][0];
-                const relationship = getModelClass(relationshipName);
-                return {
-                    relationship,
-                    field: relationships[key][2][1],
-                };
-            }
-            return undefined;
-        });
-        fields = [...new Set(fields),];
-        const idFields = fields.filter((item) => item !== undefined && item.relationship !== undefined) as {
-            relationship: ModelStatic<BaseModel>;
-            field: string;
-        }[];
+    private setForeignFieldsToDocId<Attributes extends BaseModel>(attributes: Attributes): Attributes {
+        attributes._id = attributes.docId;
+        const idFields = getIdFields(this);
         for (const idField of idFields) {
             const foreignKeyField = attributes[idField.field as keyof typeof attributes] as string;
             if (!foreignKeyField.includes((new idField.relationship).cName + '.')) {
-                attributes[idField.field as keyof typeof attributes] = ((new idField.relationship).cName + '.' + foreignKeyField) as Attributes[keyof Attributes];
+                attributes[idField.field as keyof typeof attributes] = ((new idField.relationship).docId) as Attributes[keyof Attributes];
+            }
+        }
+        return attributes;
+    }
+    private setForeignFieldsToModelId<Attributes extends BaseModel>(attributes: Attributes): Attributes {
+        attributes._id = attributes.modelId;
+        const idFields = getIdFields(this);
+        for (const idField of idFields) {
+            const foreignKeyField = attributes[idField.field as keyof typeof attributes] as string;
+            if (foreignKeyField.includes((new idField.relationship).cName + '.')) {
+                attributes[idField.field as keyof typeof attributes] = ((new idField.relationship).modelId) as Attributes[keyof Attributes];
             }
         }
         return attributes;
@@ -219,7 +215,6 @@ export class BaseModel {
             attributes.createdAt = moment().toISOString();
             attributes.updatedAt = moment().toISOString();
         }
-        attributes = model.updateForeignIdFields(attributes);
         model.fill(attributes as ModelType<T>);
         await model.save();
         return model;
