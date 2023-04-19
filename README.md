@@ -62,7 +62,7 @@ Create a file `pocket.config.json` inside the `public` folder
         {
             "dbName": "online",
             "syncSetName": "mainDb",
-            "url": "http://www.your-secret-db.com:5984/mainDb",
+            "url": "${ONLINE_REMOTE}:5984/mainDb",
             "silentConnect": true,
             "auth": {
                 "username": "admin",
@@ -73,11 +73,21 @@ Create a file `pocket.config.json` inside the `public` folder
 }
 ```
 
+You can either defined the variable inside the .env file or window object
+`.env`
+
+```env
+# put this line into .env file
+ONLINE_REMOTE=http://www.your-secret-db.com
+...
+```
+
 In React.js, update your `index.tsx` as per below
 
 ```tsx
 import pocket from "pocket";
 
+window.ONLINE_REMOTE = 'http://www.your-secret-db.com:5984';
 export default function Home() {
   useEffect(() => {
     pocket().then(async () => {
@@ -98,6 +108,7 @@ import "./registerServiceWorker";
 import router from "./router";
 import pocket from "pocket";
 
+window.ONLINE_REMOTE = 'http://www.your-secret-db.com:5984';
 pocket().then(() => {
     createApp(App).use(router).mount("#app");
 });
