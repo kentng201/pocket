@@ -465,3 +465,9 @@ npm run test
 ```
 
 Then it will run through all the test suite.
+
+### Debugging
+
+To debug, you can use debugger in the Visual Studio Code
+Go to VS Code, and click on the debug icon on the left side
+In "RUN AND DEBUG" session, open to the desire test spec file in vscode, and click play button beside "Jasmine Current File"
