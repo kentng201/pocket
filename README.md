@@ -454,3 +454,14 @@ You can also use the `api` to call the API manually
 await user.setRandomPassword(); // this will called API: POST http://pocket.test/api/users/1/random-password
 await user.save(); // this will update both pouch db and API
 ```
+
+### Testing
+
+The project is using Node js version 19 to done
+But, you need to make your Node js version to 14.0.0 in order to run the test case
+
+```bash
+npm run test
+```
+
+Then it will run through all the test suite.
