@@ -51,7 +51,7 @@ type SinglePocketConfig = {
 type MultiPocketConfig = {
     databases: SinglePocketConfig[];
 
-}
+};
 
 type GlobalConfig = {
     /**
@@ -68,24 +68,48 @@ type GlobalConfig = {
 
 let configFilePath = process.cwd() + '/pocket.config.json';
 
-const is_browser = typeof window !== 'undefined' && window.localStorage
-const is_node = typeof process !== 'undefined';
+const isBrowser = typeof window !== 'undefined' && window.localStorage;
+const isNode = typeof process !== 'undefined';
 
 const FILE_NOT_FOUND_MSG = 'Cannot find pocket.config.json file. Please create one in the root of your project.';
 
+function replaceEnvVariable<Config extends SinglePocketConfig | MultiPocketConfig>(config: Config): Config {
+    const env = process.env;
+    const browserWindow = isBrowser ? window : {};
+
+    for (const key in config) {
+        if (Object.prototype.hasOwnProperty.call(config, key)) {
+            const element = config[key as keyof typeof config] as string | Array<MultiPocketConfig>;
+            if (typeof element === 'string') {
+                // @ts-ignore
+                config[key] = element.replace(/\${(.*?)}/g, (match, p1) => env[p1]);
+                // @ts-ignore
+                config[key] = element.replace(/\${(.*?)}/g, (match, p1) => browserWindow[p1]);
+            }
+            else if (Array.isArray(element)) {
+                console.log('element: ', element);
+                config[key] = element.map((item) => {
+                    return replaceEnvVariable(item);
+                }) as any;
+            }
+        }
+    }
+    return config;
+}
+
 export const boot = async () => {
     let config;
-    if (is_browser) {
+    if (isBrowser) {
         configFilePath = 'pocket.config.json';
         try {
-            const file = await fetch(configFilePath)
+            const file = await fetch(configFilePath);
             const result = await file.text();
             config = JSON.parse(result);
         } catch (error) {
             throw new Error(FILE_NOT_FOUND_MSG);
         }
     }
-    else if (is_node) {
+    else if (isNode) {
         // temp remove buggy code
         // configFilePath = process.cwd() + '/pocket.config.json';
         // const fs = require('fs');
@@ -93,12 +117,16 @@ export const boot = async () => {
         // config = JSON.parse(file);
         config = {};
     }
+
+
+    config = replaceEnvVariable(config);
+
     try {
         if (config.databases) {
-            let tempDb: any = {};
+            const tempDb: any = {};
 
             const multiConfig = config as MultiPocketConfig & GlobalConfig;
-            setEnvironement(is_browser ? 'browser' : 'node');
+            setEnvironement(isBrowser ? 'browser' : 'node');
             setDefaultDbName(multiConfig.databases[0].dbName || 'default');
             setDefaultNeedTimestamp(multiConfig.modelTimestamp || false);
             setDefaultNeedRealtimeUpdate(multiConfig.realtimeUpdate || false);
@@ -109,7 +137,7 @@ export const boot = async () => {
                     password: singleConfig.password,
                     adapter: singleConfig.adapter,
                     silentConnect: singleConfig.silentConnect,
-                    auth: singleConfig.auth
+                    auth: singleConfig.auth,
                 });
                 if (singleConfig.syncSetName) {
                     if (tempDb[singleConfig.syncSetName] && tempDb[singleConfig.syncSetName] !== dbName) {
@@ -126,7 +154,7 @@ export const boot = async () => {
             setRealtime(multiConfig.realtimeUpdate || false);
         } else if (config.url) {
             const singleConfig = config as SinglePocketConfig & GlobalConfig;
-            setEnvironement(is_browser ? 'browser' : 'node');
+            setEnvironement(isBrowser ? 'browser' : 'node');
             setDefaultDbName(singleConfig.dbName || 'default');
             setDefaultNeedTimestamp(singleConfig.modelTimestamp || false);
             setDefaultNeedRealtimeUpdate(singleConfig.realtimeUpdate || false);
@@ -135,11 +163,11 @@ export const boot = async () => {
                 password: singleConfig.password,
                 adapter: singleConfig.adapter,
                 silentConnect: singleConfig.silentConnect,
-                auth: singleConfig.auth
+                auth: singleConfig.auth,
             });
             setRealtime(singleConfig.realtimeUpdate || false);
         }
     } catch (error) {
         throw new Error(FILE_NOT_FOUND_MSG);
     }
-}
+};
