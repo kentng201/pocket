@@ -2,7 +2,7 @@ import { QueryBuilder, Operator, OperatorValue, QueryableModel } from 'src/query
 import { RepoManager } from 'src/manager/RepoManager';
 
 import { belongsTo } from 'src/relationships/BelongsTo';
-import { hasOne } from 'src/relationships/hasOne';
+import { hasOne } from 'src/relationships/HasOne';
 import { hasMany } from 'src/relationships/HasMany';
 import { belongsToMany } from 'src/relationships/BelongsToMany';
 

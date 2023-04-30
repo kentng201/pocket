@@ -1,7 +1,7 @@
 import { singular } from 'pluralize';
 import { ModelKey, ModelStatic, ModelValue } from 'src/definitions/Model';
 import { RelationshipType } from 'src/definitions/RelationshipType';
-import { lowerCaseFirst } from 'src/helpers/stringHelper';
+import { lowerCaseFirst } from 'src/helpers/StringHelper';
 import { BaseModel } from 'src/model/Model';
 import { QueryBuilder } from 'src/query-builder/QueryBuilder';
 
