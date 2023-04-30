@@ -211,6 +211,8 @@ export class BaseModel {
             attributes.updatedAt = moment().toISOString();
         }
         model.fill(attributes as ModelType<T>);
+        const hasDocumentInDb = await model.getClass().find(attributes._id);
+        if (hasDocumentInDb) throw new Error('Document already exists');
         await model.save();
         return model;
     }
