@@ -63,7 +63,6 @@ describe('Model API', () => {
 
     it('should be able to delete a model without call API, and should be able to fetch a fallback model with call API', async () => {
         const user = await ApiUser.create<ApiUser>({
-            _id: 'api-user-test1',
             name: 'John',
         });
         const id = user._id;
