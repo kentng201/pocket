@@ -109,12 +109,10 @@ export const boot = async () => {
         }
     }
     else if (isNode) {
-        // temp remove buggy code
-        // configFilePath = process.cwd() + '/pocket.config.json';
-        // const fs = require('fs');
-        // const file = fs.readFileSync(configFilePath, 'utf8');
-        // config = JSON.parse(file);
-        config = {};
+        configFilePath = process.cwd() + '/pocket.config.json';
+        const fs = require('fs');
+        const file = fs.readFileSync(configFilePath, 'utf8');
+        config = JSON.parse(file);
     }
 
 
