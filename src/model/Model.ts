@@ -329,7 +329,9 @@ export class BaseModel {
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;
             if (this._dirty && !this._dirty[field]) continue;
-            if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
+            if (this[field] instanceof BaseModel) continue;
+            if (Array.isArray(this[field]) && (this[field] as any)[0] instanceof BaseModel) continue;
+
             if (typeof this[field] === 'object' && this[field] !== null) {
                 let hasFunction = false;
                 for (const key in this[field]) {
