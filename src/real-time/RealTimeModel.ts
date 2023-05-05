@@ -75,7 +75,7 @@ export function setRealtime(realTime: boolean) {
 
     if (isRealTime) {
         Object.values(DatabaseManager.databases).forEach((db) => {
-            db.changes({
+            db?.changes({
                 since: 'now',
                 include_docs: true,
                 live: true,
@@ -83,7 +83,7 @@ export function setRealtime(realTime: boolean) {
         });
     } else {
         Object.values(DatabaseManager.databases).forEach((db) => {
-            db.removeListener('change', onRealTimeChange);
+            db?.removeListener('change', onRealTimeChange);
         });
     }
 }

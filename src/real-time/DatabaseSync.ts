@@ -4,12 +4,14 @@ export function syncDatabases(...dbNames: string[]) {
     const databases = dbNames.map(dbName => DatabaseManager.get(dbName));
     let tempDb: PouchDB.Database;
     databases.forEach(db => {
-        if (tempDb) {
+        if (tempDb && db) {
             tempDb.sync(db, {
                 live: true,
                 retry: true,
             });
         }
-        tempDb = db;
+        if (db) {
+            tempDb = db;
+        }
     });
 }

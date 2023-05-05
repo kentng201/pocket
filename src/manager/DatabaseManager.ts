@@ -50,7 +50,7 @@ export type PouchDBConfig = {
 };
 
 export class DatabaseManager {
-    public static databases: { [dbName: string]: PouchDB.Database } = {};
+    public static databases: { [dbName: string]: PouchDB.Database | null } = {};
 
     public static async connect(url: string, config: PouchDBConfig) {
         if (!PouchDB) {
@@ -67,29 +67,37 @@ export class DatabaseManager {
             PouchDB.plugin(require('comdb'));
         }
         return new Promise(async (resolve) => {
-            let pouchConfig = {} as { adapter: string; auth?: { username: string; password: string; }; };
-            if (config.adapter) {
-                pouchConfig = { adapter: config.adapter, };
-            }
-            if (config.auth) {
-                pouchConfig.auth = config.auth;
-            }
-            const pouchDb = new PouchDB(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string };
-            if (config.password) {
-                await (pouchDb as any).setPassword(config.password);
-            }
+            try {
 
-            if (!this.databases) this.databases = {};
-            if (!config.dbName) {
-                config.dbName = DEFAULT_DB_NAME;
-            }
-            this.databases[config.dbName] = pouchDb;
+                let pouchConfig = {} as { adapter: string; auth?: { username: string; password: string; }; };
+                if (config.adapter) {
+                    pouchConfig = { adapter: config.adapter, };
+                }
+                if (config.auth) {
+                    pouchConfig.auth = config.auth;
+                }
+                const pouchDb = new PouchDB(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string };
+                if (config.password) {
+                    await (pouchDb as any).setPassword(config.password);
+                }
 
-            if (!config.silentConnect) {
-                console.log(`- Connected to PouchDB/CouchDB "${config.dbName}": ${url}`);
-                console.log(`- Adapter: ${pouchDb.adapter}`);
+                if (!this.databases) this.databases = {};
+                if (!config.dbName) {
+                    config.dbName = DEFAULT_DB_NAME;
+                }
+                this.databases[config.dbName] = pouchDb;
+
+                if (!config.silentConnect) {
+                    console.log(`- Connected to PouchDB/CouchDB "${config.dbName}": ${url}`);
+                    console.log(`- Adapter: ${pouchDb.adapter}`);
+                }
+                resolve(true);
+            } catch (error) {
+                console.warn(`- Database "${config.dbName}" not found, please check below`);
+                console.warn(error);
+                this.databases[config.dbName as string] = null;
+                resolve(false);
             }
-            resolve(true);
 
         });
     }

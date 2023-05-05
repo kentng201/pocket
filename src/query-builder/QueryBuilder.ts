@@ -373,7 +373,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         this.queries.selector.$and.push({
             _id: { $regex: `^${this.model.cName}`, },
         });
-        const data = await DatabaseManager.get(this.dbName).find(this.queries);
+        const data = await DatabaseManager.get(this.dbName)?.find(this.queries) as PouchDB.Find.FindResponse<{}>;
         const sortedData = this.sort(data.docs as any);
         data.docs = sortedData;
         const result = [] as T[];
@@ -446,7 +446,6 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
 
     async delete() {
         const getResult = await this.get();
-        console.log('getResult: ', getResult);
         const idDeleteResult: { [id: string]: boolean } = {};
         await Promise.all(getResult.map(async (item) => {
             try {

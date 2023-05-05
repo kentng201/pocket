@@ -87,8 +87,8 @@ describe('Model Real Time', () => {
 
     it('should not have any real time listner when real time is disabled', async () => {
         setRealtime(false);
-        const availableEvents = DatabaseManager.get('real-time-model').eventNames();
-        expect(availableEvents.length).toEqual(0);
+        const availableEvents = DatabaseManager.get('real-time-model')?.eventNames();
+        expect(availableEvents?.length).toEqual(0);
     });
 
     it('should emit change event when real time is enabled', async () => {
