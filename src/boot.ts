@@ -2,6 +2,7 @@ import { DatabaseManager, setEnvironement } from './manager/DatabaseManager';
 import { setDefaultDbName, setDefaultNeedRealtimeUpdate, setDefaultNeedTimestamp } from './model/Model';
 import { setRealtime } from './real-time/RealTimeModel';
 import { syncDatabases } from './real-time/DatabaseSync';
+import Persistor from './helpers/Persistor';
 
 type SinglePocketConfig = {
 
@@ -73,6 +74,9 @@ const isNode = typeof process !== 'undefined';
 
 const FILE_NOT_FOUND_MSG = 'Cannot find pocket.config.json file. Please create one in the root of your project.';
 
+class ConfigPersistor extends Persistor {
+}
+
 function replaceEnvVariable<Config extends SinglePocketConfig | MultiPocketConfig>(config: Config): Config {
     const env = process.env;
     const browserWindow = isBrowser ? window : {};
@@ -104,17 +108,22 @@ export const boot = async () => {
             const file = await fetch(configFilePath);
             const result = await file.text();
             config = JSON.parse(result);
+            ConfigPersistor.set(config);
         } catch (error) {
-            throw new Error(FILE_NOT_FOUND_MSG);
+            config = ConfigPersistor.get();
         }
     }
     else if (isNode) {
-        configFilePath = process.cwd() + '/pocket.config.json';
-        const fs = require('fs');
-        const file = fs.readFileSync(configFilePath, 'utf8');
-        config = JSON.parse(file);
+        try {
+            configFilePath = process.cwd() + '/pocket.config.json';
+            const fs = require('fs');
+            const file = fs.readFileSync(configFilePath, 'utf8');
+            config = JSON.parse(file);
+            ConfigPersistor.set(config);
+        } catch (error) {
+            config = ConfigPersistor.get();
+        }
     }
-
 
     config = replaceEnvVariable(config);
 
