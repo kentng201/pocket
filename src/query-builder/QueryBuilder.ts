@@ -96,7 +96,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
 
     protected lastWhere?: ModelKey<T> | '$or';
     protected isOne?: boolean;
-    protected modelClass: T;
+    protected model: T;
     protected dbName?: string;
     protected relationships?: ValidDotNotationArray<T, K>;
     protected db: PouchDB.Database;
@@ -107,12 +107,12 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
     protected localKey?: string;
     protected foreignKey?: string;
 
-    constructor(modelClass: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string, isOne?: boolean, apiInfo?: APIResourceInfo) {
-        if (modelClass.cName === undefined) {
+    constructor(model: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string, isOne?: boolean, apiInfo?: APIResourceInfo) {
+        if (model.cName === undefined) {
             throw new Error('QueryBuilder create error: collectionName not found');
         }
         this.dbName = dbName;
-        this.modelClass = modelClass;
+        this.model = model;
         this.relationships = (relationships || []) as ValidDotNotationArray<T, K>;
         this.queries = { selector: { $and: [], }, };
         this.isOne = isOne;
@@ -122,12 +122,12 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (this.apiInfo) this.api = new ApiRepo<T>(this.apiInfo);
     }
 
-    static query<T extends BaseModel, K extends string[] = []>(modelClass: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string) {
-        return new this(modelClass, relationships, dbName, false) as QueryBuilder<T, K>;
+    static query<T extends BaseModel, K extends string[] = []>(model: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string) {
+        return new this(model, relationships, dbName, false) as QueryBuilder<T, K>;
     }
 
-    static where<T extends BaseModel, O extends Operator>(field: ModelKey<T>, operator: O, value: OperatorValue<T, ModelKey<T>, O>, modelClass: T) {
-        const builder = this.query<T>(modelClass);
+    static where<T extends BaseModel, O extends Operator>(field: ModelKey<T>, operator: O, value: OperatorValue<T, ModelKey<T>, O>, model: T) {
+        const builder = this.query<T>(model);
         return builder.where(field, operator, value);
     }
 
@@ -167,10 +167,10 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (args.length === 3) {
             const [field, operator, value,] = args as [ModelKey<T>, O, OperatorValue<T, Key, O>];
             let newQuery: PouchDB.Find.Selector;
-            const idFields = getForeignIdFields(this.modelClass);
+            const idFields = getForeignIdFields(this.model);
             const hasRelationship = idFields.find((f) => f.field === field);
             if (field == '_id') {
-                newQuery = idToMangoQuery('_id', operator, value, this.modelClass.cName);
+                newQuery = idToMangoQuery('_id', operator, value, this.model.cName);
             } else if (hasRelationship) {
                 const cName = new hasRelationship.relationship().cName;
                 newQuery = idToMangoQuery(field as any, operator, value, cName);
@@ -210,10 +210,10 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (args.length === 3) {
             const [field, operator, value,] = args as [ModelKey<T>, O, OperatorValue<T, Key, O>];
             let newQuery: PouchDB.Find.Selector;
-            const idFields = getForeignIdFields(this.modelClass);
+            const idFields = getForeignIdFields(this.model);
             const hasRelationship = idFields.find((f) => f.field === field);
             if (field == '_id') {
-                newQuery = idToMangoQuery('_id', operator, value, this.modelClass.cName);
+                newQuery = idToMangoQuery('_id', operator, value, this.model.cName);
             } else if (hasRelationship) {
                 const cName = new hasRelationship.relationship().cName;
                 newQuery = idToMangoQuery(field as any, operator, value, cName);
@@ -257,7 +257,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
 
     whereCondition(condition: QueryBuilderFunction<T> | Partial<ModelType<T>>, type: '$and' | '$or'): this {
         if (typeof condition === 'function') {
-            const newQueryBuilder = new QueryBuilder<T, []>(this.modelClass, [] as ValidDotNotationArray<T, []>, this.dbName);
+            const newQueryBuilder = new QueryBuilder<T, []>(this.model, [] as ValidDotNotationArray<T, []>, this.dbName);
             (condition as QueryBuilderFunction<T>)(newQueryBuilder);
             this.queries.selector.$and = this.queries.selector.$and.concat(newQueryBuilder.queries.selector.$and || []);
         } else if (typeof condition === 'object') {
@@ -360,7 +360,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
     protected async cast(item?: ModelType<T>): Promise<T | undefined> {
         if (!item) return;
         let model;
-        const klass = this.modelClass.getClass();
+        const klass = this.model.getClass();
         model = new klass(item) as T;
         model._dirty = {};
         model._before_dirty = {};
@@ -371,7 +371,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
 
     async get(): Promise<T[]> {
         this.queries.selector.$and.push({
-            _id: { $regex: `^${this.modelClass.cName}`, },
+            _id: { $regex: `^${this.model.cName}`, },
         });
         const data = await DatabaseManager.get(this.dbName).find(this.queries);
         const sortedData = this.sort(data.docs as any);
@@ -396,7 +396,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
 
     async getDoc(_id?: string): Promise<PouchDB.Core.IdMeta & PouchDB.Core.GetMeta | undefined> {
         if (!_id) return undefined;
-        if (!_id.includes(this.modelClass.cName + '.')) _id = this.modelClass.cName + '.' + _id;
+        if (!_id.includes(this.model.cName + '.')) _id = this.model.cName + '.' + _id;
         try {
             const result = await this.db.get(_id);
             return result;
@@ -405,8 +405,8 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                 const result = await this.api?.get(_id);
                 if (!result) return undefined;
                 delete (result as any)._rev;
-                if (_id.includes(this.modelClass.cName)) {
-                    _id = _id.replace(`${this.modelClass.cName}.`, '');
+                if (_id.includes(this.model.cName)) {
+                    _id = _id.replace(`${this.model.cName}.`, '');
                 }
                 const createdItem = await this.create({ ...result, _id, } as NewModelType<T>, true);
                 result._fallback_api_doc = true;
@@ -422,8 +422,8 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (!attributes._id) {
             attributes._id = String(uuid.generate());
         }
-        if (!attributes._id.includes(this.modelClass.cName)) {
-            attributes._id = `${this.modelClass.cName}.${attributes._id}`;
+        if (!attributes._id.includes(this.model.cName)) {
+            attributes._id = `${this.model.cName}.${attributes._id}`;
         }
         const result = await this.db.post(attributes);
         if (this.apiInfo && this.apiInfo.apiAutoCreate && !fallbackCreate) {
@@ -444,14 +444,14 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return result;
     }
 
-    async delete(_id: string): Promise<PouchDB.Core.Response> {
+    async delete(_id: string) {
         const doc = await this.find(_id);
         if (!doc) {
             return Promise.reject(new Error('Document not found'));
         }
         const rawDoc = doc.toJson();
-        if (!rawDoc._id?.includes(this.modelClass.cName + '.')) {
-            rawDoc._id = this.modelClass.cName + '.' + rawDoc._id;
+        if (!rawDoc._id?.includes(this.model.cName + '.')) {
+            rawDoc._id = this.model.cName + '.' + rawDoc._id;
         }
         const result = await this.db.remove(rawDoc as PouchDB.Core.RemoveDocument);
         if (this.apiInfo && this.apiInfo.apiAutoDelete) {
