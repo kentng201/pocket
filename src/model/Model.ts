@@ -413,7 +413,7 @@ export class BaseModel {
         if (this.getClass().beforeDelete) {
             await this.getClass().beforeDelete(this);
         }
-        await this.getClass().repo().delete(this._id);
+        await this.getClass().repo().deleteOne(this._id);
         Object.keys(this).forEach((key) => delete this[key as keyof this]);
         if (this.getClass().afterDelete) {
             await this.getClass().afterDelete(this);

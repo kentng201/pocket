@@ -444,7 +444,22 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return result;
     }
 
-    async delete(_id: string) {
+    async delete() {
+        const getResult = await this.get();
+        console.log('getResult: ', getResult);
+        const idDeleteResult: { [id: string]: boolean } = {};
+        await Promise.all(getResult.map(async (item) => {
+            try {
+                idDeleteResult[item._id as string] = true;
+                await item.delete();
+            } catch (error) {
+                idDeleteResult[item._id as string] = false;
+            }
+        }));
+        return idDeleteResult;
+    }
+
+    async deleteOne(_id: string) {
         const doc = await this.find(_id);
         if (!doc) {
             return Promise.reject(new Error('Document not found'));

@@ -125,5 +125,5 @@ describe('QueryBuilder Basic', () => {
         const queryBuilder = new QueryBuilder(new User, undefined, 'test');
         const result = await queryBuilder.find('test-not-exist');
         expect(result).toBeUndefined();
-    })
+    });
 });

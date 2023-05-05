@@ -16,7 +16,7 @@ describe('Model', () => {
     }
 
     beforeEach(async () => {
-        await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true });
+        await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
     });
 
     it('should not be able to save new reference', async () => {
@@ -24,7 +24,7 @@ describe('Model', () => {
         user.name = 'John';
         await user.save();
 
-        const clonedUser = { ...user };
+        const clonedUser = { ...user, };
         await user.delete();
 
         const savingClonedUser = new User;

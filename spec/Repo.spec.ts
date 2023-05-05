@@ -98,7 +98,7 @@ describe('Repo', () => {
             _id: 'Users.User3',
             name: 'John',
         }));
-        const result = await repo.delete('User3');
+        const result = await repo.deleteOne('User3');
         expect(result).toEqual(jasmine.objectContaining({
             ok: true,
             id: 'Users.User3',
@@ -125,7 +125,7 @@ describe('Repo', () => {
 
     it('should not be able to delete document via repo if it does not exist', async () => {
         try {
-            await repo.delete('Users.User5');
+            await repo.deleteOne('Users.User5');
         } catch (e) {
             expect(e).toEqual(new Error('Document not found'));
         }

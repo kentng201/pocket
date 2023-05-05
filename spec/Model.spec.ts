@@ -135,4 +135,20 @@ describe('Model', () => {
         user.name = 'test2';
         expect(user.getBeforeDirtyValue('name')).toEqual('new-user9');
     });
+
+    it('should be able to delete multiple user', async () => {
+        const ids = [];
+        for (let i = 0; i < 10; i++) {
+            const user = await MUser.create({
+                name: `new-user${i}`,
+            });
+            ids.push(user._id);
+        }
+        const result = await MUser.where('_id', 'in', ids).delete();
+        const deleteResult = {} as any;
+        for (const id of ids) {
+            deleteResult[id] = true;
+        }
+        expect(result).toEqual(deleteResult);
+    });
 });
