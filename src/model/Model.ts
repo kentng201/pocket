@@ -117,8 +117,14 @@ export class BaseModel {
                 if (target[key as ModelKey<this>] && target._before_dirty[key as string] === undefined) {
                     target._before_dirty[key as string] = target[key as ModelKey<this>];
                 }
-                target[key] = value;
-                target._dirty[key as string] = true;
+                try {
+
+                    target[key] = value;
+                    target._dirty[key as string] = true;
+                } catch (e) {
+                    // try fix that the target[key] might only have getter
+                    return true;
+                }
 
                 return true;
             },
