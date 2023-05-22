@@ -140,7 +140,7 @@ describe('Model', () => {
         const ids = [];
         for (let i = 0; i < 10; i++) {
             const user = await MUser.create({
-                name: `new-user${i}`,
+                name: `new-user-test${i}`,
             });
             ids.push(user._id);
         }
@@ -150,5 +150,15 @@ describe('Model', () => {
             deleteResult[id] = true;
         }
         expect(result).toEqual(deleteResult);
+    });
+
+    it('should be able to search with case insensitve', async () => {
+        await MUser.create({
+            name: 'new-user10',
+            username: 'Raymond',
+        });
+        const searchedUsers = await MUser.where('username', 'like', 'raymond').get();
+        expect(searchedUsers.length).toEqual(1);
+        expect(searchedUsers[0].username).toEqual('Raymond');
     });
 });
