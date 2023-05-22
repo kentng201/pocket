@@ -89,11 +89,12 @@ function replaceEnvVariable<Config extends SinglePocketConfig | MultiPocketConfi
                 config[key] = element.replace(/\${(.*?)}/g, (match, p1) => env[p1]);
                 // @ts-ignore
                 config[key] = element.replace(/\${(.*?)}/g, (match, p1) => browserWindow[p1]);
-            }
-            else if (Array.isArray(element)) {
+            } else if (Array.isArray(element)) {
                 config[key] = element.map((item) => {
                     return replaceEnvVariable(item);
                 }) as any;
+            } else if (typeof element === 'object') {
+                config[key] = replaceEnvVariable(element);
             }
         }
     }
