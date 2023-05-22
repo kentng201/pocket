@@ -5,7 +5,7 @@ import { RelationshipType } from 'src/definitions/RelationshipType';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { BaseModel } from 'src/model/Model';
-import { getForeignIdFields, getLocalIdFields, getRelationships } from 'src/relationships/RelationshipDecorator';
+import { getForeignIdFields } from 'src/relationships/RelationshipDecorator';
 import { ApiRepo } from 'src/repo/ApiRepo';
 
 const operators = ['=', '>', '>=', '<', '<=', '!=', 'in', 'not in', 'between', 'like',] as const;
@@ -46,7 +46,7 @@ function toMangoQuery<T extends BaseModel, Key extends ModelKey<T>, O extends Op
         return { [field]: { $gte: fromValue, $lte: toValue, }, };
     }
     if (operator === 'like') {
-        return { [field]: { $regex: value, }, };
+        return { [field]: { $regex: RegExp(value as string, 'i'), }, };
     }
 
     return {};
