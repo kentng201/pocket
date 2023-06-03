@@ -305,15 +305,29 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (this.sorters) {
             for (const sort of this.sorters) {
                 const [key, order,] = Object.entries(sort)[0];
-                data.sort((a, b) => {
-                    if (a[key as ModelKey<T>] > b[key as ModelKey<T>]) {
-                        return order === 'asc' ? 1 : -1;
-                    }
-                    if (a[key as ModelKey<T>] < b[key as ModelKey<T>]) {
-                        return order === 'asc' ? -1 : 1;
-                    }
-                    return 0;
-                });
+                if (!key.includes('.')) {
+                    data.sort((a, b) => {
+                        if (a[key as ModelKey<T>] > b[key as ModelKey<T>]) {
+                            return order === 'asc' ? 1 : -1;
+                        }
+                        if (a[key as ModelKey<T>] < b[key as ModelKey<T>]) {
+                            return order === 'asc' ? -1 : 1;
+                        }
+                        return 0;
+                    });
+                } else {
+                    const mainKey = key.split('.')[0];
+                    const subKey = key.split('.').slice(1).join('.');
+                    data.sort((a, b) => {
+                        if (a[mainKey as keyof T][subKey as keyof T[keyof T]] > b[mainKey as keyof T][subKey as keyof T[keyof T]]) {
+                            return order === 'asc' ? 1 : -1;
+                        }
+                        if (a[mainKey as keyof T][subKey as keyof T[keyof T]] < b[mainKey as keyof T][subKey as keyof T[keyof T]]) {
+                            return order === 'asc' ? -1 : 1;
+                        }
+                        return 0;
+                    });
+                }
             }
         }
         return data;
