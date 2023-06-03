@@ -91,6 +91,17 @@ export class BaseModel {
     // start of object construction
     public fill(attributes: Partial<ModelType<this>>): void {
         if (attributes._id) attributes._id = attributes._id.replace(this.cName + '.', '');
+
+        // convert function string to function
+        for (const key in attributes) {
+            // @ts-ignore
+            if (typeof attributes[key as keyof ModelType<this>] === 'string' && attributes[key as keyof ModelType<this>]?.includes('=>')) {
+                const funcString = attributes[key as keyof ModelType<this>] as string;
+                const func = new Function('return ' + funcString)();
+                attributes[key as keyof ModelType<this>] = func;
+            }
+        }
+
         Object.assign(this, attributes);
         if (!this.relationships) this.relationships = {};
         this.bindRelationships();
@@ -326,7 +337,6 @@ export class BaseModel {
 
         let newAttributes: Partial<this> = {};
         for (const field in this) {
-            if (typeof field === 'function') continue;
             if (field === '_dirty') continue;
             if (field === '_before_dirty') continue;
             if (field === '_real_time_updating') continue;
@@ -337,17 +347,6 @@ export class BaseModel {
             if (this._dirty && !this._dirty[field]) continue;
             if (this[field] instanceof BaseModel) continue;
             if (Array.isArray(this[field]) && (this[field] as any)[0] instanceof BaseModel) continue;
-
-            if (typeof this[field] === 'object' && this[field] !== null) {
-                let hasFunction = false;
-                for (const key in this[field]) {
-                    if (typeof this[field][key] === 'function') {
-                        hasFunction = true;
-                        break;
-                    }
-                }
-                if (hasFunction) continue;
-            }
             newAttributes[field] = this[field];
         }
         newAttributes = convertIdFieldsToDocIds(newAttributes, this);
@@ -542,7 +541,6 @@ export class BaseModel {
     public toJson(): Partial<ModelType<this>> {
         const json: Partial<this> = {};
         for (const field in this) {
-            if (typeof field === 'function') continue;
             if (field === '_dirty') continue;
             if (field === '_before_dirty') continue;
             if (field === '_real_time_updating') continue;
@@ -551,16 +549,6 @@ export class BaseModel {
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;
             if (this.relationships && Object.keys(this.relationships).includes(field)) continue;
-            if (typeof this[field] === 'object' && this[field] !== null) {
-                let hasFunction = false;
-                for (const key in this[field]) {
-                    if (typeof this[field][key] === 'function') {
-                        hasFunction = true;
-                        break;
-                    }
-                }
-                if (hasFunction) continue;
-            }
             json[field as keyof this] = this[field];
         }
         return json;

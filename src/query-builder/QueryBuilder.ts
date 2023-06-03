@@ -439,7 +439,13 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (!attributes._id.includes(this.model.cName)) {
             attributes._id = `${this.model.cName}.${attributes._id}`;
         }
-        const result = await this.db.post(attributes);
+        const newAttr = {} as NewModelType<T>;
+        for (const key in attributes) {
+            if (typeof attributes[key as keyof NewModelType<T>] === 'function') {
+                newAttr[key as keyof NewModelType<T>] = (attributes[key as keyof NewModelType<T>] as Function).toString() as any;
+            }
+        }
+        const result = await this.db.post({ ...attributes, ...newAttr, });
         if (this.apiInfo && this.apiInfo.apiAutoCreate && !fallbackCreate) {
             await this.api?.create(attributes);
         }
@@ -449,7 +455,13 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
     async update(attributes: Partial<ModelType<T>>): Promise<PouchDB.Core.Response> {
         const doc = await this.find(attributes._id as string);
         if (!doc) return { ok: false, } as PouchDB.Core.Response;
-        const result = await this.db.put({ ...doc.toJson(), ...attributes, }, {
+        const newAttr = {} as NewModelType<T>;
+        for (const key in attributes) {
+            if (typeof attributes[key as keyof NewModelType<T>] === 'function') {
+                newAttr[key as keyof NewModelType<T>] = (attributes[key as keyof NewModelType<T>] as Function).toString() as any;
+            }
+        }
+        const result = await this.db.put({ ...doc.toJson(), ...attributes, ...newAttr, }, {
             force: false,
         });
         if (this.apiInfo && this.apiInfo.apiAutoUpdate) {
