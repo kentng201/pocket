@@ -1,6 +1,6 @@
 {
     "name": "pocket",
-    "version": "0.2.30",
+    "version": "0.2.31",
     "description": "Pouch DB model library",
     "main": "dist/src/index.js",
     "types": "dist/src/index.d.ts",
@@ -12,7 +12,6 @@
         "test": "ts-node -r tsconfig-paths/register node_modules/jasmine/bin/jasmine --config=jasmine.json",
         "coverage": "nyc -r text -e .ts --exclude \"spec/**/*.spec.ts\" npm run test"
     },
-    "postinstall": "patch-package",
     "keywords": [
         "Pouch DB",
         "Model",
