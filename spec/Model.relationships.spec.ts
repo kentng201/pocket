@@ -88,6 +88,7 @@ describe('Model Relationships', () => {
         await PostRelationship.create({ title: 'hello world', userId: user.id, });
         await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user.id, });
         const dbUser = await UserRelationship.with('posts').find(user.id);
+        console.log('dbUser: ', dbUser);
 
         expect(dbUser?.posts?.length).toBe(2);
         expect(dbUser).toEqual(jasmine.objectContaining({

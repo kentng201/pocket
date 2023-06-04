@@ -25,6 +25,7 @@ export function notifyWeakRef<T extends BaseModel>(_id: string, doc: T) {
         if (field === 'relationships') continue;
         if (field === 'needTimestamp') continue;
         if (field === 'cName') continue;
+        if (field === '_id') continue;
         if (doc.relationships && Object.keys(doc.relationships).includes(field)) continue;
         if (typeof doc[field] === 'object' && doc[field] !== null) {
             let hasFunction = false;

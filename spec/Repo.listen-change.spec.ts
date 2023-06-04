@@ -27,12 +27,12 @@ describe('Repo', () => {
             if (change.doc?._id === 'Users.TestListenChangeUser') {
                 if (change.doc?._rev.includes('1-')) {
                     expect(change.doc).toEqual(jasmine.objectContaining({
-                        id: 'Users.TestListenChangeUser',
+                        _id: 'Users.TestListenChangeUser',
                         name: 'John',
                     }));
                 } else if (change.doc?._rev.includes('2-')) {
                     expect(change.doc).toEqual(jasmine.objectContaining({
-                        id: 'Users.TestListenChangeUser',
+                        _id: 'Users.TestListenChangeUser',
                         name: 'John Doe',
                     }));
                 }
