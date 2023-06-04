@@ -511,7 +511,6 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         }
         const rawDoc = doc.toJson() as T & { _id?: string, };
         rawDoc._id = this.model.cName + '.' + id;
-        console.log('newIdDoc: ', rawDoc);
         const result = await this.db.remove(rawDoc as PouchDB.Core.RemoveDocument);
         if (this.apiInfo && this.apiInfo.apiAutoDelete) {
             await this.api?.delete(id);

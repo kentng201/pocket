@@ -58,10 +58,8 @@ describe('Model Encrypt', () => {
             id: 'TestEncryptUser',
             name: 'John',
         });
-        console.log('user: ', user);
         expect(user.id).toBe('TestEncryptUser');
         const anotherUser = await EncryptUser.find(user.id) as EncryptUser;
-        console.log('anotherUser: ', anotherUser);
         user.name = 'Jane';
         await user.save();
 

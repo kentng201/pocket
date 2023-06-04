@@ -449,7 +449,6 @@ export class BaseModel {
      */
     static with<T extends BaseModel, K extends string[]>(this: ModelStatic<T>, ...relationships: string[]): QueryBuilder<T> {
         const model = new this;
-        console.log('relationships: ', relationships);
         return new QueryBuilder<T, []>(model, relationships as unknown as ValidDotNotationArray<T, []>, (this as unknown as typeof BaseModel).dbName);
     }
     /**
