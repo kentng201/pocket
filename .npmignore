@@ -110,6 +110,7 @@ out
 
 # testing
 spec/
+debug/
 
 # mocking
 mocks/
