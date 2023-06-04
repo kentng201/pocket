@@ -26,9 +26,9 @@ describe('Model', () => {
         });
         expect(user).toBeTruthy();
         expect(user).toEqual(jasmine.objectContaining({
-            _rev: jasmine.stringMatching('1-'),
             name: 'new-user',
         }));
+        expect(user._meta._rev).toEqual(jasmine.stringMatching('1-'));
     });
 
     it('should be able to find a model', async () => {
@@ -41,9 +41,9 @@ describe('Model', () => {
         expect(user).toBeTruthy();
         expect(user).toEqual(jasmine.objectContaining({
             id: createdUser.id,
-            _rev: createdUser._rev,
             name: createdUser.name,
         }));
+        expect(user?._meta._rev).toEqual(createdUser._meta._rev);
     });
 
     it('should be able to save a model', async () => {
@@ -123,7 +123,7 @@ describe('Model', () => {
             updatedAt: user.updatedAt,
         }));
         expect(replicatedUser.id).not.toBeDefined();
-        expect(replicatedUser._rev).not.toBeDefined();
+        expect(replicatedUser._meta._rev).not.toBeDefined();
         expect(replicatedUser.password).toBeTruthy();
     });
 

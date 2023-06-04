@@ -400,7 +400,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         });
         const data = await DatabaseManager.get(this.dbName)?.find(this.queries) as PouchDB.Find.FindResponse<{}>;
         const sortedData = this.sort(data.docs as any);
-        data.docs = sortedData as (T & { _id: string })[];
+        data.docs = sortedData as (T & { _id: string, _rev: string })[];
         const result = [] as T[];
         for (const item of data.docs) {
             const model = await this.cast(item as unknown as ModelType<T>);
@@ -438,9 +438,10 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                 const createdItem = await this.create({ ...result, id, } as NewModelType<T>, true);
                 result._meta = {} as any;
                 result._meta._fallback_api_doc = true;
-                result._rev = createdItem.rev;
+                result._meta._rev = createdItem.rev;
                 result.id = createdItem.id;
                 delete (result as any)._id;
+                delete (result as any)._rev;
                 return result as any;
             }
             return undefined;
@@ -479,8 +480,10 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                 newAttr[key as keyof NewModelType<T>] = (attributes[key as keyof NewModelType<T>] as Function).toString() as any;
             }
         }
-        const attr = { ...doc.toJson(), ...attributes, ...newAttr, } as Partial<T> & { _id?: string, };
+        const attr = { ...doc.toJson(), ...attributes, ...newAttr, } as Partial<T> & { _id?: string, _rev?: string, };
         attr._id = attr.id as string;
+        if (!doc._meta._rev) throw new Error('Document revision not found');
+        attr._rev = doc._meta._rev;
         delete attr.id;
         const result = await this.db.put(attr, {
             force: false,
@@ -510,8 +513,9 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (!doc) {
             return Promise.reject(new Error('Document not found'));
         }
-        const rawDoc = doc.toJson() as T & { _id?: string, };
+        const rawDoc = doc.toJson() as T & { _id?: string, _rev?: string, };
         rawDoc._id = this.model.cName + '.' + id;
+        rawDoc._rev = doc._meta._rev;
         const result = await this.db.remove(rawDoc as PouchDB.Core.RemoveDocument);
         if (this.apiInfo && this.apiInfo.apiAutoDelete) {
             await this.api?.delete(id);

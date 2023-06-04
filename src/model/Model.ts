@@ -88,8 +88,8 @@ export class BaseModel {
         _fallback_api_doc: boolean;
         _dirty: { [key: string]: boolean };
         _before_dirty: { [key: string]: any };
+        _rev: string;
     };
-    public _rev: string = '';
     public createdAt?: string;
     public updatedAt?: string;
 
@@ -111,6 +111,8 @@ export class BaseModel {
         if (!this._meta) this._meta = {} as this['_meta'];
         if (!this._meta._dirty) this._meta._dirty = {};
         if (!this._meta._before_dirty) this._meta._before_dirty = {};
+        this._meta._rev = (this as any)._rev;
+        delete (this as any)._rev;
         for (const key of Object.keys(attributes)) {
             this._meta._before_dirty[key] = this[key as keyof this];
             this._meta._dirty[key] = true;
@@ -120,9 +122,13 @@ export class BaseModel {
         addWeakRef(this.docId, this);
         addWeakRef(this.modelId, this);
     }
-    constructor(attributes?: object) {
-        if (attributes) this.fill(attributes as unknown as ModelType<this>);
+    constructor(attributes?: any) {
         if (!this._meta) this._meta = {} as this['_meta'];
+        if (attributes) this.fill(attributes as unknown as ModelType<this>);
+        if (attributes && attributes._rev) {
+            this._meta._rev = attributes._rev;
+            delete attributes._rev;
+        }
         const handler = {
             set: <Key extends ModelKey<this>>(target: this, key: Key, value: ModelValue<this, Key>) => {
                 // prevent update reserved fields
@@ -143,7 +149,6 @@ export class BaseModel {
                     target._meta._before_dirty[key as string] = target[key as ModelKey<this>];
                 }
                 try {
-
                     target[key] = value;
                     target._meta._dirty[key as string] = true;
                 } catch (e) {
@@ -159,24 +164,28 @@ export class BaseModel {
     public replicate(): this {
         const replicatedModel = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
         delete replicatedModel.id;
-        delete replicatedModel._rev;
+        delete replicatedModel._meta._rev;
         return replicatedModel;
     }
     // end of object construction
 
     // start of foreign key handling
     public setForeignFieldsToDocId(): this {
+        const meta = { ...this._meta, };
         const result = convertIdFieldsToDocIds(this, this);
         this.fill(result);
-        this._meta._dirty = {};
-        this._meta._before_dirty = {};
+        meta._dirty = {};
+        meta._before_dirty = {};
+        this._meta = meta;
         return this;
     }
     public setForeignFieldsToModelId(): this {
+        const meta = { ...this._meta, };
         const result = convertIdFieldsToModelIds(this, this);
         this.fill(result);
-        this._meta._dirty = {};
-        this._meta._before_dirty = {};
+        meta._dirty = {};
+        meta._before_dirty = {};
+        this._meta = meta;
         return this;
     }
     // end of foreign key handling
@@ -256,7 +265,6 @@ export class BaseModel {
         const guarded = this.getClass().readonlyFields;
         attributes.id = this.id;
         delete attributes.relationships;
-        delete attributes._dirty;
         if (this.needTimestamp) attributes.updatedAt = moment().toISOString();
         let updateAttributes: Partial<ModelType<this>> = {};
         updateAttributes = {} as Partial<ModelType<this>>;
@@ -287,7 +295,10 @@ export class BaseModel {
                         child[foreignKey] = this.docId;
                         newChild.fill(child);
                         await newChild.save();
-                        newChild._meta._dirty = {};
+                        const meta = { ...newChild._meta, };
+                        meta._dirty = {};
+                        meta._before_dirty = {};
+                        newChild._meta = meta;
                         newChildren.push(newChild);
                     }
                     this[field] = newChildren as ModelValue<this, typeof field>;
@@ -303,7 +314,10 @@ export class BaseModel {
                     const newChild = new (child.getClass() as ModelStatic<BaseModel>)();
                     newChild.fill(child);
                     await newChild.save();
-                    newChild._meta._dirty = {};
+                    const meta = { ...newChild._meta, };
+                    meta._dirty = {};
+                    meta._before_dirty = {};
+                    newChild._meta = meta;
                     this[field] = newChild as ModelValue<this, typeof field>;
                 }
             }
@@ -349,7 +363,7 @@ export class BaseModel {
             await new Promise((resolve) => setTimeout(resolve, 10));
         }
 
-        let newAttributes: Partial<this> = {};
+        let newAttributes: Partial<this> & { _rev?: string } = {};
         for (const field in this) {
             if (field === '_meta') continue;
             if (field === 'relationships') continue;
@@ -401,11 +415,11 @@ export class BaseModel {
                 await this.getClass().beforeUpdate(this);
             }
             updatedResult = await this.getClass().repo().update(newAttributes);
-            this.fill({ _rev: updatedResult.rev, } as Partial<ModelType<this>>);
             if (this.getClass().afterCreate) {
                 await this.getClass().afterCreate(this);
             }
         }
+        delete newAttributes._rev;
         this.fill({ ...newAttributes, _rev: updatedResult.rev, } as Partial<ModelType<this>>);
         await this.saveChildren();
 

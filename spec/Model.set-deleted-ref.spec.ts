@@ -29,9 +29,9 @@ describe('Model', () => {
 
         const savingClonedUser = new User;
         savingClonedUser.fill(clonedUser);
-        delete (savingClonedUser as any)._rev;
+        delete (savingClonedUser as any)._meta._rev;
         await savingClonedUser.save();
-        expect(savingClonedUser._rev).not.toBe(clonedUser._rev);
+        expect(savingClonedUser._meta._rev).not.toBe(clonedUser._meta._rev);
 
     });
 });

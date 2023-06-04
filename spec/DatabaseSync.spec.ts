@@ -35,7 +35,7 @@ describe('DatabaseSync', () => {
         }) as DatabaseSyncTestUser;
         const user2 = await DatabaseSyncTest2User.find('Test1') as DatabaseSyncTestUser;
         expect(user.id).toEqual(user2.id);
-        expect(user._rev).toEqual(user2._rev);
+        expect(user._meta._rev).toEqual(user2._meta._rev);
         expect(user.username).toEqual(user2.username);
     });
 });

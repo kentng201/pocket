@@ -32,20 +32,20 @@ describe('Model Relationships', () => {
         const dbPost1Index = user.posts?.findIndex((p) => p.id === post1.id) as number;
         expect(user.posts?.[dbPost1Index]).toEqual(jasmine.objectContaining({
             id: post1.id,
-            _rev: post1._rev,
             title: post1.title,
             createdAt: post1.createdAt,
             updatedAt: post1.updatedAt,
         }));
+        expect(user.posts?.[dbPost1Index]._meta._rev).toBe(post1._meta._rev);
 
         const dbPost2Index = user.posts?.findIndex((p) => p.id === post2.id) as number;
         expect(user.posts?.[dbPost2Index]).toEqual(jasmine.objectContaining({
             id: post2.id,
-            _rev: post2._rev,
             title: post2.title,
             createdAt: post2.createdAt,
             updatedAt: post2.updatedAt,
         }));
+        expect(user.posts?.[dbPost2Index]._meta._rev).toBe(post2._meta._rev);
     });
 
     it('should not save relationship detail within the model', async () => {
@@ -59,9 +59,9 @@ describe('Model Relationships', () => {
         const userCreated = await RepoManager.get(new UserRelationship).getDoc(user.id) as any;
         expect(userCreated).toEqual(jasmine.objectContaining({
             id: user.docId,
-            _rev: user._rev,
             name: user.name,
         }));
+        expect(userCreated._rev).toBe(user._meta._rev);
         expect(userCreated.posts).toBeUndefined();
     });
 
@@ -76,7 +76,7 @@ describe('Model Relationships', () => {
         const postedUpdated = await RepoManager.get(new PostRelationship).getDoc(user.posts![0].id);
         expect(postedUpdated).toEqual(jasmine.objectContaining({
             id: user.posts![0].docId,
-            _rev: user.posts![0]._rev,
+            _rev: user.posts![0]._meta._rev,
             title: user.posts![0].title,
             createdAt: user.posts![0].createdAt,
             updatedAt: user.posts![0].updatedAt,
@@ -92,11 +92,11 @@ describe('Model Relationships', () => {
         expect(dbUser?.posts?.length).toBe(2);
         expect(dbUser).toEqual(jasmine.objectContaining({
             id: user.id,
-            _rev: user._rev,
             name: user.name,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
         }));
+        expect(dbUser?._meta._rev).toBe(user._meta._rev);
     });
 
     it('should able to load multi level sub-relationship', async () => {

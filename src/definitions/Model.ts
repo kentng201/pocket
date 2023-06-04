@@ -9,7 +9,6 @@ export type ModelStatic<T extends object> = {
 };
 export type ModelType<T extends object> = FunctionlessModel<T> & {
     id: string;
-    _rev: string;
     docId: string;
     modelId: string;
     createdAt?: string;
@@ -18,14 +17,16 @@ export type ModelType<T extends object> = FunctionlessModel<T> & {
     dName?: unknown;
     needTimestamp?: unknown;
     relationships?: { [relationshipName: string]: () => Promise<object> | object | void };
-    _dirty?: { [key: string]: boolean };
-    _before_dirty?: { [key: string]: any };
-    _real_time_updating?: boolean;
-    _fallback_api_doc?: boolean;
+    _meta: {
+        _dirty?: { [key: string]: boolean };
+        _before_dirty?: { [key: string]: any };
+        _real_time_updating?: boolean;
+        _fallback_api_doc?: boolean;
+        _rev: string;
+    };
 };
-export type NewModelType<T extends object> = Omit<ModelType<T>, 'id' | '_rev' | 'docId' | 'modelId'> & {
+export type NewModelType<T extends object> = Omit<ModelType<T>, 'id' | '_meta' | 'docId' | 'modelId'> & {
     id?: string;
-    _rev?: string;
     docId?: string;
     modelId?: string;
 };

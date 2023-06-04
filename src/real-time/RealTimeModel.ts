@@ -41,10 +41,10 @@ export function notifyWeakRef<T extends BaseModel>(_id: string, doc: T) {
         const sameIdDoc = ref.deref();
         if (!sameIdDoc) return;
         if (!sameIdDoc.rtUpdate) return;
-        if (sameIdDoc && sameIdDoc instanceof Model && sameIdDoc._rev != doc._rev) {
+        if (sameIdDoc && sameIdDoc instanceof Model && sameIdDoc._meta && sameIdDoc._meta._rev != (doc as any)._rev) {
             if (!sameIdDoc._meta) sameIdDoc._meta = {} as Model['_meta'];
             sameIdDoc._meta._real_time_updating = true;
-            sameIdDoc._rev = doc._rev;
+            sameIdDoc._meta._rev = (doc as any)._rev;
             sameIdDoc.fill(newAttributes);
             sameIdDoc._meta._real_time_updating = false;
             sameIdDoc._meta._dirty = {};
