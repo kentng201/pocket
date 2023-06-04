@@ -24,11 +24,11 @@ describe('Model Child', () => {
         const posts = user.posts as ChildPost[];
 
         const post1 = posts[0];
-        const dbPost1 = await ChildPost.find(post1._id) as ChildPost;
+        const dbPost1 = await ChildPost.find(post1.id) as ChildPost;
         expect(dbPost1).toBeInstanceOf(ChildPost);
         expect(dbPost1).toEqual(jasmine.objectContaining({
             title: post1.title,
-            userId: user._id,
+            userId: user.id,
         }));
 
         const dbUser = await dbPost1.relationships.user().first();
@@ -39,7 +39,7 @@ describe('Model Child', () => {
 
 
         const post2 = posts[0];
-        const dbPost2 = await ChildPost.find(post2._id);
+        const dbPost2 = await ChildPost.find(post2.id);
         expect(dbPost2).toBeInstanceOf(ChildPost);
         expect(dbPost2).toEqual(jasmine.objectContaining({
             title: post2.title,
@@ -49,10 +49,10 @@ describe('Model Child', () => {
             identityCard: new ChildIdentityCard({ number: '123456', }),
         });
         const card = user.identityCard as ChildIdentityCard;
-        const dbCard = await ChildIdentityCard.find(card._id);
+        const dbCard = await ChildIdentityCard.find(card.id);
         expect(card).toBeInstanceOf(ChildIdentityCard);
         expect(dbCard).toEqual(jasmine.objectContaining({
-            _id: card._id,
+            id: card.id,
             number: card.number,
         }));
     });

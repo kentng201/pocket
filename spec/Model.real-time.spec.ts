@@ -25,7 +25,7 @@ describe('Model Real Time', () => {
         posts?: RealTimePost[];
 
         relationships = {
-            posts: () => this.hasMany(RealTimePost, '_id', 'userId'),
+            posts: () => this.hasMany(RealTimePost, 'id', 'userId'),
         } as {
             posts: () => QueryBuilder<RealTimePost>;
         };
@@ -41,7 +41,7 @@ describe('Model Real Time', () => {
         user?: RealTimeUser2;
 
         relationships = {
-            user: () => this.belongsTo(RealTimeUser2, 'userId', '_id'),
+            user: () => this.belongsTo(RealTimeUser2, 'userId', 'id'),
         } as {
             user: () => QueryBuilder<RealTimeUser2>;
         };
@@ -54,10 +54,10 @@ describe('Model Real Time', () => {
     it('should be real time synced when there is change', async () => {
         setRealtime(true);
         const originalUser = await RealTimeUser.create({
-            _id: 'real-time',
+            id: 'real-time',
             name: 'Title-1',
         });
-        const newUser = await RealTimeUser.find(originalUser._id) as RealTimeUser;
+        const newUser = await RealTimeUser.find(originalUser.id) as RealTimeUser;
         newUser.name = 'Title-2';
         newUser.setRandomPassword();
         await newUser.save();
@@ -69,7 +69,7 @@ describe('Model Real Time', () => {
         await new Promise(res => setTimeout(res, 10)); // wait 10 milli-second for every module up-to-date
         expect(newUser).toEqual(originalUser);
 
-        const anotherUser = await RealTimeUser.find(newUser._id) as RealTimeUser;
+        const anotherUser = await RealTimeUser.find(newUser.id) as RealTimeUser;
         newUser.name = 'Title-4';
         await newUser.save();
         await new Promise(res => setTimeout(res, 10)); // wait 10 milli-second for every module up-to-date
@@ -92,13 +92,13 @@ describe('Model Real Time', () => {
     });
 
     it('should emit change event when real time is enabled', async () => {
-        setDocChangeEventListener((_id: string) => {
-            if (_id.includes('RealTimeUsers.ABC')) {
-                expect(_id).toEqual('RealTimeUsers.' + user._id);
+        setDocChangeEventListener((id: string) => {
+            if (id.includes('RealTimeUsers.ABC')) {
+                expect(id).toEqual('RealTimeUsers.' + user.id);
             }
         });
         const user = await RealTimeUser.create({
-            _id: 'RealTimeUsers.ABC',
+            id: 'RealTimeUsers.ABC',
             name: 'Title-Testing-1',
         });
         user.name = 'Title-Testing-2';
@@ -106,18 +106,18 @@ describe('Model Real Time', () => {
     });
 
     it('should able to verify the model is need to reload', async () => {
-        setDocChangeEventListener((_id: string) => {
-            if (_id.includes('RealTimePosts')) {
-                const needReload = user.isOutdated(_id);
+        setDocChangeEventListener((id: string) => {
+            if (id.includes('RealTimePosts')) {
+                const needReload = user.isOutdated(id);
                 expect(needReload).toEqual(true);
             }
         });
         const user = await RealTimeUser2.create({
-            _id: 'test-123',
+            id: 'test-123',
             name: 'Title-Testing-1',
             posts: [
                 new RealTimePost({
-                    _id: 'RealTimePosts.ABC-1',
+                    id: 'RealTimePosts.ABC-1',
                     title: 'Title-Testing-1',
                 }),
             ],

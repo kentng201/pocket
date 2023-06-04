@@ -42,12 +42,12 @@ describe('Model Encrypt', () => {
             if (change.doc?._id === 'EncryptUsers.TestEncryptUser') {
                 if (change.doc?._rev.includes('1-')) {
                     expect(change.doc).toEqual(jasmine.objectContaining({
-                        _id: 'EncryptUsers.TestEncryptUser',
+                        id: 'EncryptUsers.TestEncryptUser',
                         name: 'John',
                     }));
                 } else {
                     expect(change.doc).toEqual(jasmine.objectContaining({
-                        _id: 'EncryptUsers.TestEncryptUser',
+                        id: 'EncryptUsers.TestEncryptUser',
                         name: 'Jane',
                     }));
                 }
@@ -55,11 +55,11 @@ describe('Model Encrypt', () => {
         });
 
         const user = await EncryptUser.create({
-            _id: 'TestEncryptUser',
+            id: 'TestEncryptUser',
             name: 'John',
         });
-        expect(user._id).toBe('TestEncryptUser');
-        const anotherUser = await EncryptUser.find(user._id) as EncryptUser;
+        expect(user.id).toBe('TestEncryptUser');
+        const anotherUser = await EncryptUser.find(user.id) as EncryptUser;
         user.name = 'Jane';
         await user.save();
 

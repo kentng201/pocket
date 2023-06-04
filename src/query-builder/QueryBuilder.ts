@@ -415,7 +415,9 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         if (!id) return undefined;
         if (!id.includes(this.model.cName + '.')) id = this.model.cName + '.' + id;
         try {
-            const result = await this.db.get(id);
+            const result = await this.db.get(id) as PouchDB.Core.IdMeta & PouchDB.Core.GetMeta & { id: string };
+            result.id = result._id;
+            delete (result as any)._id;
             return result;
         } catch (e) {
             if (this.apiInfo && this.apiInfo.apiFallbackGet) {
@@ -448,8 +450,8 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                 newAttr[key as keyof NewModelType<T>] = (attributes[key as keyof NewModelType<T>] as Function).toString() as any;
             }
         }
-        const attr = { ...attributes, ...newAttr, } as NewModelType<T> & { id?: string, };
-        attr.id = attr.id as string;
+        const attr = { ...attributes, ...newAttr, } as NewModelType<T> & { _id?: string, };
+        attr._id = attr.id as string;
         delete attr.id;
         const result = await this.db.post(attr);
         if (this.apiInfo && this.apiInfo.apiAutoCreate && !fallbackCreate) {
@@ -467,12 +469,12 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                 newAttr[key as keyof NewModelType<T>] = (attributes[key as keyof NewModelType<T>] as Function).toString() as any;
             }
         }
-        const result = await this.db.put({ ...doc.toJson(), ...attributes, ...newAttr, }, {
+        const attr = { ...doc.toJson(), ...attributes, ...newAttr, } as Partial<T> & { _id?: string, };
+        attr._id = attr.id as string;
+        delete attr.id;
+        const result = await this.db.put(attr, {
             force: false,
         });
-        const attr = { ...doc, ...attributes, } as Partial<T> & { id?: string, };
-        attr.id = attr.id as string;
-        delete attr.id;
         if (this.apiInfo && this.apiInfo.apiAutoUpdate) {
             await this.api?.update(attr);
         }

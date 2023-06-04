@@ -33,7 +33,7 @@ describe('Repo', () => {
 
     it('should be able to create document via repo', async () => {
         const result = await repo.create({
-            _id: 'User0',
+            id: 'User0',
             name: 'John',
         });
         expect(result).toEqual(jasmine.objectContaining({
@@ -43,14 +43,14 @@ describe('Repo', () => {
 
         const doc = await repo.getDoc('User0');
         expect(doc).toEqual(jasmine.objectContaining({
-            _id: 'Users.User0',
+            id: 'Users.User0',
             name: 'John',
         }));
     });
 
     it('should be able to create document via repo without model name prefix', async () => {
         const result = await repo.create({
-            _id: 'User1',
+            id: 'User1',
             name: 'John',
         });
         expect(result).toEqual(jasmine.objectContaining({
@@ -60,19 +60,19 @@ describe('Repo', () => {
 
         const doc = await repo.getDoc('User1');
         expect(doc).toEqual(jasmine.objectContaining({
-            _id: 'Users.User1',
+            id: 'Users.User1',
             name: 'John',
         }));
     });
 
     it('should be able to update document via repo', async () => {
         await repo.create({
-            _id: 'User2',
+            id: 'User2',
             name: 'Jane',
         });
         const doc = await repo.getDoc('User2');
         expect(doc).toEqual(jasmine.objectContaining({
-            _id: 'Users.User2',
+            id: 'Users.User2',
             name: 'Jane',
         }));
         const result = await repo.update({ ...doc, name: 'Jack', });
@@ -83,19 +83,19 @@ describe('Repo', () => {
 
         const updatedDoc = await repo.getDoc('User2');
         expect(updatedDoc).toEqual(jasmine.objectContaining({
-            _id: 'Users.User2',
+            id: 'Users.User2',
             name: 'Jack',
         }));
     });
 
     it('should be able to delete document via repo', async () => {
         await repo.create({
-            _id: 'User3',
+            id: 'User3',
             name: 'John',
         });
         const doc = await repo.getDoc('User3');
         expect(doc).toEqual(jasmine.objectContaining({
-            _id: 'Users.User3',
+            id: 'Users.User3',
             name: 'John',
         }));
         const result = await repo.deleteOne('User3');
@@ -138,7 +138,7 @@ describe('Repo', () => {
 
     it('should be able to create document via repo with api name', async () => {
         const apiUser = await userTestApiRepo.create({
-            _id: 'test-api-user',
+            id: 'test-api-user',
             name: 'John',
         });
         expect(apiUser).toEqual(jasmine.objectContaining({

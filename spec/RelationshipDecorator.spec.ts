@@ -16,7 +16,7 @@ describe('Relationship Decorator', () => {
 
             userId!: string;
 
-            @BelongsTo('DecoratorUser', 'userId', '_id') user?: DecoratorUser;
+            @BelongsTo('DecoratorUser', 'userId', 'id') user?: DecoratorUser;
         }
 
         @PocketModel
@@ -24,11 +24,11 @@ describe('Relationship Decorator', () => {
             static dbName = dbName;
             name!: string;
 
-            @HasMany('DecoratorPost', '_id', 'userId') posts?: DecoratorPost[];
+            @HasMany('DecoratorPost', 'id', 'userId') posts?: DecoratorPost[];
         }
         const user = await DecoratorUser.create({ name: 'test', });
-        await DecoratorPost.create({ userId: user._id, });
-        await DecoratorPost.create({ userId: user._id, });
+        await DecoratorPost.create({ userId: user.id, });
+        await DecoratorPost.create({ userId: user.id, });
         expect(user).toBeInstanceOf(DecoratorUser);
         await user.load('posts');
         const posts = user.posts;
@@ -37,7 +37,7 @@ describe('Relationship Decorator', () => {
         expect(posts?.[0]).toBeInstanceOf(DecoratorPost);
 
         await user.save();
-        const post1 = await DecoratorPost.find(user.posts![0]._id);
+        const post1 = await DecoratorPost.find(user.posts![0].id);
         expect(post1).toEqual(user.posts![0]);
     });
 });

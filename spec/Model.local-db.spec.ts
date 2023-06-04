@@ -20,7 +20,7 @@ describe('Model Local DB', () => {
             name: 'new-user2',
         });
 
-        const userFromMangoQuery = await LocalUser.query().where('_id', '=', createdUser._id).first();
+        const userFromMangoQuery = await LocalUser.query().where('id', '=', createdUser.id).first();
         expect(userFromMangoQuery).toBeTruthy();
         expect(userFromMangoQuery).toEqual(createdUser);
     });

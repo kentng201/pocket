@@ -36,11 +36,11 @@ describe('Model', () => {
             name: 'new-user2',
         });
 
-        const user = await MUser.find(createdUser._id);
+        const user = await MUser.find(createdUser.id);
 
         expect(user).toBeTruthy();
         expect(user).toEqual(jasmine.objectContaining({
-            _id: createdUser._id,
+            id: createdUser.id,
             _rev: createdUser._rev,
             name: createdUser.name,
         }));
@@ -49,11 +49,11 @@ describe('Model', () => {
     it('should be able to save a model', async () => {
         const user = new MUser;
         user.name = 'new-user3';
-        user._id = 'new-user3';
+        user.id = 'new-user3';
         await user.save();
 
 
-        const savedUser = await MUser.find(user._id as string);
+        const savedUser = await MUser.find(user.id as string);
         expect(savedUser).toBeTruthy();
         expect(savedUser).toBeInstanceOf(MUser);
         expect(savedUser).toEqual(user);
@@ -62,10 +62,10 @@ describe('Model', () => {
     it('should not be save the meta data into database', async () => {
         const user = new MUser;
         user.name = 'new-user4';
-        user._id = 'new-user4';
+        user.id = 'new-user4';
         await user.save();
 
-        const doc = await RepoManager.get(new MUser).getDoc(user._id) as MUser;
+        const doc = await RepoManager.get(new MUser).getDoc(user.id) as unknown as MUser;
         expect(doc).toBeTruthy();
         expect(doc._dirty).not.toBeDefined();
         expect(doc.relationships).not.toBeDefined();
@@ -79,7 +79,7 @@ describe('Model', () => {
 
         await user.delete();
 
-        const deletedUser = await MUser.find(user._id as string);
+        const deletedUser = await MUser.find(user.id as string);
         expect(deletedUser).not.toBeTruthy();
     });
 
@@ -106,11 +106,11 @@ describe('Model', () => {
         await user.save();
         expect(user.username).toEqual(OLD_USERNAME);
 
-        const dbUser = await MUser.find(user._id as string) as MUser;
+        const dbUser = await MUser.find(user.id as string) as MUser;
         expect(dbUser.username).toEqual(OLD_USERNAME);
     });
 
-    it('should be able to replicate a model without _id', async () => {
+    it('should be able to replicate a model without id', async () => {
         const user = new MUser;
         user.name = 'new-user8';
         await user.save();
@@ -122,7 +122,7 @@ describe('Model', () => {
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
         }));
-        expect(replicatedUser._id).not.toBeDefined();
+        expect(replicatedUser.id).not.toBeDefined();
         expect(replicatedUser._rev).not.toBeDefined();
         expect(replicatedUser.password).toBeTruthy();
     });
@@ -142,9 +142,9 @@ describe('Model', () => {
             const user = await MUser.create({
                 name: `new-user-test${i}`,
             });
-            ids.push(user._id);
+            ids.push(user.id);
         }
-        const result = await MUser.where('_id', 'in', ids).delete();
+        const result = await MUser.where('id', 'in', ids).delete();
         const deleteResult = {} as any;
         for (const id of ids) {
             deleteResult[id] = true;

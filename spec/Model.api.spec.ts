@@ -65,7 +65,7 @@ describe('Model API', () => {
         const user = await ApiUser.create<ApiUser>({
             name: 'John',
         });
-        const id = user._id;
+        const id = user.id;
         await user.delete();
 
         const userFallback = await ApiUser.find<ApiUser>(id);
@@ -98,7 +98,7 @@ describe('Model API', () => {
         });
 
         const repo = ApiUser.repo();
-        const apiDeleteResult = await (repo.api as ApiRepo<ApiUser>).delete(user._id);
+        const apiDeleteResult = await (repo.api as ApiRepo<ApiUser>).delete(user.id);
         expect(apiDeleteResult).toBeTruthy();
     });
 
@@ -108,7 +108,7 @@ describe('Model API', () => {
         });
 
         const repo = ApiUser.repo();
-        const apiSoftDeleteResult = await (repo.api as ApiRepo<ApiUser>).softDelete(user._id);
+        const apiSoftDeleteResult = await (repo.api as ApiRepo<ApiUser>).softDelete(user.id);
         expect(apiSoftDeleteResult).toBeTruthy();
     });
 

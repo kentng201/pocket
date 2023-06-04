@@ -18,10 +18,10 @@ describe('Model Not Real Time', () => {
     it('should be real time synced when there is change', async () => {
         setRealtime(true);
         const originalUser = await NotRealTimeUser.create<NotRealTimeUser>({
-            _id: 'real-time',
+            id: 'real-time',
             name: 'Title-1',
         });
-        const fetchedUser = await NotRealTimeUser.find(originalUser._id) as NotRealTimeUser;
+        const fetchedUser = await NotRealTimeUser.find(originalUser.id) as NotRealTimeUser;
         originalUser.name = 'Title-2';
         await originalUser.save();
         await new Promise(res => setTimeout(res, 100)); // wait 10 milli-second for every module up-to-date

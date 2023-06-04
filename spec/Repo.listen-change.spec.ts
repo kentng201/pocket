@@ -27,12 +27,12 @@ describe('Repo', () => {
             if (change.doc?._id === 'Users.TestListenChangeUser') {
                 if (change.doc?._rev.includes('1-')) {
                     expect(change.doc).toEqual(jasmine.objectContaining({
-                        _id: 'Users.TestListenChangeUser',
+                        id: 'Users.TestListenChangeUser',
                         name: 'John',
                     }));
                 } else if (change.doc?._rev.includes('2-')) {
                     expect(change.doc).toEqual(jasmine.objectContaining({
-                        _id: 'Users.TestListenChangeUser',
+                        id: 'Users.TestListenChangeUser',
                         name: 'John Doe',
                     }));
                 }
@@ -40,7 +40,7 @@ describe('Repo', () => {
         });
 
         await repo.create({
-            _id: 'TestListenChangeUser',
+            id: 'TestListenChangeUser',
             name: 'John',
         });
         const document = await repo.getDoc('Users.TestListenChangeUser');

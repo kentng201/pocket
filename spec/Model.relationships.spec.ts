@@ -18,29 +18,29 @@ describe('Model Relationships', () => {
         });
         expect(user).toBeInstanceOf(UserRelationship);
 
-        const post1 = await PostRelationship.create({ title: 'hello world', userId: user._id, });
-        const post2 = await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
+        const post1 = await PostRelationship.create({ title: 'hello world', userId: user.id, });
+        const post2 = await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user.id, });
 
         await user.load('posts');
         expect(user.posts?.length).toBe(2);
         const posts = await user.relationships.posts().get();
         expect(posts.length).toBe(2);
 
-        const posts2 = await PostRelationship.where('userId', user._id).get();
+        const posts2 = await PostRelationship.where('userId', user.id).get();
         expect(posts2.length).toBe(2);
 
-        const dbPost1Index = user.posts?.findIndex((p) => p._id === post1._id) as number;
+        const dbPost1Index = user.posts?.findIndex((p) => p.id === post1.id) as number;
         expect(user.posts?.[dbPost1Index]).toEqual(jasmine.objectContaining({
-            _id: post1._id,
+            id: post1.id,
             _rev: post1._rev,
             title: post1.title,
             createdAt: post1.createdAt,
             updatedAt: post1.updatedAt,
         }));
 
-        const dbPost2Index = user.posts?.findIndex((p) => p._id === post2._id) as number;
+        const dbPost2Index = user.posts?.findIndex((p) => p.id === post2.id) as number;
         expect(user.posts?.[dbPost2Index]).toEqual(jasmine.objectContaining({
-            _id: post2._id,
+            id: post2.id,
             _rev: post2._rev,
             title: post2.title,
             createdAt: post2.createdAt,
@@ -50,15 +50,15 @@ describe('Model Relationships', () => {
 
     it('should not save relationship detail within the model', async () => {
         const user = await UserRelationship.create({ name: 'Jane', });
-        await PostRelationship.create({ title: 'hello world', userId: user._id, });
-        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
+        await PostRelationship.create({ title: 'hello world', userId: user.id, });
+        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user.id, });
         await user.load('posts');
         user.name = 'John';
         await user.save();
 
-        const userCreated = await RepoManager.get(new UserRelationship).getDoc(user._id) as any;
+        const userCreated = await RepoManager.get(new UserRelationship).getDoc(user.id) as any;
         expect(userCreated).toEqual(jasmine.objectContaining({
-            _id: user.docId,
+            id: user.docId,
             _rev: user._rev,
             name: user.name,
         }));
@@ -67,15 +67,15 @@ describe('Model Relationships', () => {
 
     it('should able to save sub-relationship', async () => {
         const user = await UserRelationship.create({ name: 'Jane', });
-        await PostRelationship.create({ title: 'hello world', userId: user._id, });
-        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
+        await PostRelationship.create({ title: 'hello world', userId: user.id, });
+        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user.id, });
         await user.load('posts');
 
         user.posts![0].title = 'Hi world';
         await user.posts![0].save();
-        const postedUpdated = await RepoManager.get(new PostRelationship).getDoc(user.posts![0]._id);
+        const postedUpdated = await RepoManager.get(new PostRelationship).getDoc(user.posts![0].id);
         expect(postedUpdated).toEqual(jasmine.objectContaining({
-            _id: user.posts![0].docId,
+            id: user.posts![0].docId,
             _rev: user.posts![0]._rev,
             title: user.posts![0].title,
             createdAt: user.posts![0].createdAt,
@@ -85,13 +85,13 @@ describe('Model Relationships', () => {
 
     it('should able to load sub-relationship', async () => {
         const user = await UserRelationship.create({ name: 'Jane', });
-        await PostRelationship.create({ title: 'hello world', userId: user._id, });
-        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
-        const dbUser = await UserRelationship.with('posts').find(user._id);
+        await PostRelationship.create({ title: 'hello world', userId: user.id, });
+        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user.id, });
+        const dbUser = await UserRelationship.with('posts').find(user.id);
 
         expect(dbUser?.posts?.length).toBe(2);
         expect(dbUser).toEqual(jasmine.objectContaining({
-            _id: user._id,
+            id: user.id,
             _rev: user._rev,
             name: user.name,
             createdAt: user.createdAt,
@@ -114,7 +114,7 @@ describe('Model Relationships', () => {
         });
         expect(user.posts?.length).toBe(1);
 
-        const dbUser = await UserRelationship.with('posts', 'posts.attachments').find(user._id) as UserRelationship;
+        const dbUser = await UserRelationship.with('posts', 'posts.attachments').find(user.id) as UserRelationship;
         dbUser.posts![0].attachments?.sort((a, b) => a.name.localeCompare(b.name));
         const dbPost = dbUser.posts![0];
         expect(dbPost.attachments?.length).toBe(4);
@@ -123,9 +123,9 @@ describe('Model Relationships', () => {
 
     it('should not query Employee when query PostRelationship from UserRelationship', async () => {
         const user = await UserRelationship.create({ name: 'John', });
-        await PostRelationship.create({ title: 'hello world', userId: user._id, });
-        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user._id, });
-        await Employee.create({ name: 'John', userId: user._id, });
+        await PostRelationship.create({ title: 'hello world', userId: user.id, });
+        await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user.id, });
+        await Employee.create({ name: 'John', userId: user.id, });
         await user.load('posts');
         expect(user.posts?.length).toBe(2);
         const posts = await user.relationships.posts().get();
