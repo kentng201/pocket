@@ -11,5 +11,5 @@ export class ChildPost extends Model {
     title!: string;
     userId!: string;
     content?: string;
-    @BelongsTo('ChildUser', 'userId', '_id') user?: ChildUser;
+    @BelongsTo('ChildUser', 'userId', 'id') user?: ChildUser;
 }

@@ -10,5 +10,5 @@ export class ChildIdentityCard extends Model {
 
     userId!: string;
     number!: string;
-    @BelongsTo('ChildUser', 'userId', '_id') user?: ChildUser;
+    @BelongsTo('ChildUser', 'userId', 'id') user?: ChildUser;
 }

@@ -13,6 +13,6 @@ export class ChildUser extends Model {
     name!: string;
     password?: string;
 
-    @HasMany('ChildPost', '_id', 'userId') posts?: ChildPost[];
-    @HasOne('ChildIdentityCard', '_id', 'userId') identityCard?: ChildIdentityCard;
+    @HasMany('ChildPost', 'id', 'userId') posts?: ChildPost[];
+    @HasOne('ChildIdentityCard', 'id', 'userId') identityCard?: ChildIdentityCard;
 }
