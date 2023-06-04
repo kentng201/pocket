@@ -352,9 +352,6 @@ export class BaseModel {
         let newAttributes: Partial<this> = {};
         for (const field in this) {
             if (field === '_meta') continue;
-            if (field === '_before_dirty') continue;
-            if (field === '_real_time_updating') continue;
-            if (field === '_fallback_api_doc') continue;
             if (field === 'relationships') continue;
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;
