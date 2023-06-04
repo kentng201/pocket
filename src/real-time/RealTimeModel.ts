@@ -2,6 +2,7 @@ import { ModelKey } from 'src/definitions/Model';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { BaseModel, Model } from 'src/model/Model';
 import EventEmitter from 'events';
+import { Mode } from 'fs';
 
 export let isRealTime = false;
 
@@ -20,6 +21,7 @@ export function notifyWeakRef<T extends BaseModel>(_id: string, doc: T) {
         if (typeof field === 'function') continue;
         if (field === '_dirty') continue;
         if (field === '_before_dirty') continue;
+        if (field === '_meta') continue;
         if (field === '_real_time_updating') continue;
         if (field === '_fallback_api_doc') continue;
         if (field === 'relationships') continue;
@@ -44,12 +46,13 @@ export function notifyWeakRef<T extends BaseModel>(_id: string, doc: T) {
         if (!sameIdDoc) return;
         if (!sameIdDoc.rtUpdate) return;
         if (sameIdDoc && sameIdDoc instanceof Model && sameIdDoc._rev != doc._rev) {
-            sameIdDoc._real_time_updating = true;
+            if (!sameIdDoc._meta) sameIdDoc._meta = {} as Model['_meta'];
+            sameIdDoc._meta._real_time_updating = true;
             sameIdDoc._rev = doc._rev;
             sameIdDoc.fill(newAttributes);
-            sameIdDoc._real_time_updating = false;
-            sameIdDoc._dirty = {};
-            sameIdDoc._before_dirty = {};
+            sameIdDoc._meta._real_time_updating = false;
+            sameIdDoc._meta._dirty = {};
+            sameIdDoc._meta._before_dirty = {};
         }
     });
 }
@@ -101,7 +104,7 @@ export function needToReload(model: BaseModel, changeDocId: string): boolean {
             break;
         }
         if (model[key as keyof typeof model] instanceof Model) {
-            needReload = needToReload(model[key as keyof typeof model] as BaseModel, changeDocId);
+            needReload = needToReload(model[key as keyof typeof model] as unknown as BaseModel, changeDocId);
             if (needReload) break;
         }
         if (model[key as keyof typeof model] instanceof Array && (model[key as keyof typeof model] as BaseModel[]).length > 0 && (model[key as keyof typeof model] as BaseModel[])[0] instanceof Model) {

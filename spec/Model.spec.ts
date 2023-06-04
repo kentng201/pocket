@@ -67,7 +67,7 @@ describe('Model', () => {
 
         const doc = await RepoManager.get(new MUser).getDoc(user.id) as unknown as MUser;
         expect(doc).toBeTruthy();
-        expect(doc._dirty).not.toBeDefined();
+        expect(doc._meta).not.toBeDefined();
         expect(doc.relationships).not.toBeDefined();
         expect(doc.setRandomPassword).not.toBeDefined();
     });

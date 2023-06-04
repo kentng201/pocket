@@ -82,9 +82,14 @@ export class BaseModel {
 
     relationships!: { [relationshipName: string]: () => QueryBuilder<any> };
     public id: string = '';
+    public _meta!: {
+        _id: string;
+        _real_time_updating: boolean;
+        _fallback_api_doc: boolean;
+        _dirty: { [key: string]: boolean };
+        _before_dirty: { [key: string]: any };
+    };
     public _rev: string = '';
-    public _real_time_updating: boolean = false;
-    public _fallback_api_doc: boolean = false;
     public createdAt?: string;
     public updatedAt?: string;
 
@@ -103,6 +108,13 @@ export class BaseModel {
         }
 
         Object.assign(this, attributes);
+        if (!this._meta) this._meta = {} as this['_meta'];
+        if (!this._meta._dirty) this._meta._dirty = {};
+        if (!this._meta._before_dirty) this._meta._before_dirty = {};
+        for (const key of Object.keys(attributes)) {
+            this._meta._before_dirty[key] = this[key as keyof this];
+            this._meta._dirty[key] = true;
+        }
         if (!this.relationships) this.relationships = {};
         this.bindRelationships();
         addWeakRef(this.docId, this);
@@ -110,6 +122,7 @@ export class BaseModel {
     }
     constructor(attributes?: object) {
         if (attributes) this.fill(attributes as unknown as ModelType<this>);
+        if (!this._meta) this._meta = {} as this['_meta'];
         const handler = {
             set: <Key extends ModelKey<this>>(target: this, key: Key, value: ModelValue<this, Key>) => {
                 // prevent update reserved fields
@@ -118,20 +131,21 @@ export class BaseModel {
                 //     throw new Error(`Cannot update reserved field ${key}`);
                 // }
 
-                if (!target._dirty) target._dirty = {};
-                if (!target._before_dirty) target._before_dirty = {};
+                if (!target._meta) target._meta = {} as this['_meta'];
+                if (!target._meta._dirty) target._meta._dirty = {};
+                if (!target._meta._before_dirty) target._meta._before_dirty = {};
 
-                if (key === '_dirty' || key === '_before_dirty' || key === 'relationships') {
+                if (key === '_meta' || key === 'relationships') {
                     target[key] = value;
                     return true;
                 }
-                if (target[key as ModelKey<this>] && target._before_dirty[key as string] === undefined) {
-                    target._before_dirty[key as string] = target[key as ModelKey<this>];
+                if (target[key as ModelKey<this>] && target._meta._before_dirty[key as string] === undefined) {
+                    target._meta._before_dirty[key as string] = target[key as ModelKey<this>];
                 }
                 try {
 
                     target[key] = value;
-                    target._dirty[key as string] = true;
+                    target._meta._dirty[key as string] = true;
                 } catch (e) {
                     // try fix that the target[key] might only have getter
                     return true;
@@ -154,15 +168,15 @@ export class BaseModel {
     public setForeignFieldsToDocId(): this {
         const result = convertIdFieldsToDocIds(this, this);
         this.fill(result);
-        this._dirty = {};
-        this._before_dirty = {};
+        this._meta._dirty = {};
+        this._meta._before_dirty = {};
         return this;
     }
     public setForeignFieldsToModelId(): this {
         const result = convertIdFieldsToModelIds(this, this);
         this.fill(result);
-        this._dirty = {};
-        this._before_dirty = {};
+        this._meta._dirty = {};
+        this._meta._before_dirty = {};
         return this;
     }
     // end of foreign key handling
@@ -273,7 +287,7 @@ export class BaseModel {
                         child[foreignKey] = this.docId;
                         newChild.fill(child);
                         await newChild.save();
-                        newChild._dirty = {};
+                        newChild._meta._dirty = {};
                         newChildren.push(newChild);
                     }
                     this[field] = newChildren as ModelValue<this, typeof field>;
@@ -289,7 +303,7 @@ export class BaseModel {
                     const newChild = new (child.getClass() as ModelStatic<BaseModel>)();
                     newChild.fill(child);
                     await newChild.save();
-                    newChild._dirty = {};
+                    newChild._meta._dirty = {};
                     this[field] = newChild as ModelValue<this, typeof field>;
                 }
             }
@@ -331,20 +345,20 @@ export class BaseModel {
      * @returns this
      */
     async save(): Promise<this> {
-        while (this._real_time_updating) {
+        while (this._meta._real_time_updating) {
             await new Promise((resolve) => setTimeout(resolve, 10));
         }
 
         let newAttributes: Partial<this> = {};
         for (const field in this) {
-            if (field === '_dirty') continue;
+            if (field === '_meta') continue;
             if (field === '_before_dirty') continue;
             if (field === '_real_time_updating') continue;
             if (field === '_fallback_api_doc') continue;
             if (field === 'relationships') continue;
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;
-            if (this._dirty && !this._dirty[field]) continue;
+            if (this._meta._dirty && !this._meta._dirty[field] && !Array.isArray(this[field])) continue;
             if (this[field] instanceof BaseModel) continue;
             if (Array.isArray(this[field]) && (this[field] as any)[0] instanceof BaseModel) continue;
             newAttributes[field] = this[field];
@@ -406,8 +420,8 @@ export class BaseModel {
         this.id = this.modelId;
         this.setForeignFieldsToModelId();
         if (!this.relationships) this.bindRelationships();
-        this._dirty = {};
-        this._before_dirty = {};
+        this._meta._dirty = {};
+        this._meta._before_dirty = {};
         return this;
     }
     /**
@@ -541,10 +555,7 @@ export class BaseModel {
     public toJson(): Partial<ModelType<this>> {
         const json: Partial<this> = {};
         for (const field in this) {
-            if (field === '_dirty') continue;
-            if (field === '_before_dirty') continue;
-            if (field === '_real_time_updating') continue;
-            if (field === '_fallback_api_doc') continue;
+            if (field === '_meta') continue;
             if (field === 'relationships') continue;
             if (field === 'needTimestamp') continue;
             if (field === 'cName') continue;
@@ -578,18 +589,15 @@ export class BaseModel {
     // end transformer for api response
 
     // start dirty maintenance
-    _dirty: { [key: string]: boolean } = {};
-    _before_dirty: { [key: string]: any } = {};
-
     /**
      * Check if the model or attribute is dirty
      * @param attribute can be undefined, if undefined, check if the model is dirty, otherwise check if the attribute is dirty
      * @returns 
      */
     isDirty(attribute?: ModelKey<this>): boolean {
-        if (attribute) return !!this._dirty[attribute as string];
-        // return this._dirty whereas the boolean value is true
-        return Object.keys(this._dirty).some(key => this._dirty[key]);
+        if (attribute) return !!this._meta._dirty[attribute as string];
+        // return this._meta._dirty whereas the boolean value is true
+        return Object.keys(this._meta._dirty).some(key => this._meta._dirty[key]);
     }
     /**
      * Get the value of the attribute before it is dirty
@@ -597,7 +605,7 @@ export class BaseModel {
      * @returns 
      */
     getBeforeDirtyValue<Key extends ModelKey<this>>(attribute: Key): ModelValue<this, Key> {
-        return this._before_dirty[attribute as string];
+        return this._meta._before_dirty[attribute as string];
     }
     /**
      * A method to check if this model is not the latest version with the database

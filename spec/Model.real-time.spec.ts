@@ -62,7 +62,10 @@ describe('Model Real Time', () => {
         newUser.setRandomPassword();
         await newUser.save();
         await new Promise(res => setTimeout(res, 10)); // wait 10 milli-second for every module up-to-date
-        expect(newUser).toEqual(originalUser);
+        expect(newUser).toEqual(jasmine.objectContaining({
+            name: 'Title-2',
+            password: newUser.password,
+        }));
 
         originalUser.name = 'Title-3';
         await originalUser.save();

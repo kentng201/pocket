@@ -64,7 +64,10 @@ describe('Model Encrypt', () => {
         await user.save();
 
         await new Promise((res) => setTimeout(res, 1000));
-        expect(anotherUser).toEqual(user);
+        expect(anotherUser).toEqual(jasmine.objectContaining({
+            id: 'TestEncryptUser',
+            name: 'Jane',
+        }));
 
     });
 

@@ -387,8 +387,8 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
             delete (item as ModelType<T> & { _id?: string })._id;
         }
         model = new klass(item) as T;
-        model._dirty = {};
-        model._before_dirty = {};
+        model._meta._dirty = {};
+        model._meta._before_dirty = {};
         model = await this.bindRelationship(model);
         model.setForeignFieldsToModelId();
         return model;
@@ -436,7 +436,8 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                     id = id.replace(`${this.model.cName}.`, '');
                 }
                 const createdItem = await this.create({ ...result, id, } as NewModelType<T>, true);
-                result._fallback_api_doc = true;
+                result._meta = {} as any;
+                result._meta._fallback_api_doc = true;
                 result._rev = createdItem.rev;
                 result.id = createdItem.id;
                 delete (result as any)._id;

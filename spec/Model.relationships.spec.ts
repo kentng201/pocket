@@ -12,7 +12,7 @@ describe('Model Relationships', () => {
         await DatabaseManager.connect(dbName, { dbName, adapter: 'memory', silentConnect: true, });
     });
 
-    xit('should be able to save without relationships', async () => {
+    it('should be able to save without relationships', async () => {
         const user = await UserRelationship.create({
             name: 'John',
         });
@@ -48,7 +48,7 @@ describe('Model Relationships', () => {
         }));
     });
 
-    xit('should not save relationship detail within the model', async () => {
+    it('should not save relationship detail within the model', async () => {
         const user = await UserRelationship.create({ name: 'Jane', });
         await PostRelationship.create({ title: 'hello world', userId: user.id, });
         await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user.id, });
@@ -99,7 +99,7 @@ describe('Model Relationships', () => {
         }));
     });
 
-    xit('should able to load multi level sub-relationship', async () => {
+    it('should able to load multi level sub-relationship', async () => {
         const user = await UserRelationship.create({
             name: 'Hall', posts: [
                 new PostRelationship({
@@ -113,7 +113,7 @@ describe('Model Relationships', () => {
             ],
         });
         expect(user.posts?.length).toBe(1);
-
+        expect(user.posts?.[0].attachments?.length).toBe(4);
         const dbUser = await UserRelationship.with('posts', 'posts.attachments').find(user.id) as UserRelationship;
         dbUser.posts![0].attachments?.sort((a, b) => a.name.localeCompare(b.name));
         const dbPost = dbUser.posts![0];
@@ -121,7 +121,7 @@ describe('Model Relationships', () => {
         expect(dbPost.attachments).toEqual((user.posts as PostRelationship[])[0].attachments);
     });
 
-    xit('should not query Employee when query PostRelationship from UserRelationship', async () => {
+    it('should not query Employee when query PostRelationship from UserRelationship', async () => {
         const user = await UserRelationship.create({ name: 'John', });
         await PostRelationship.create({ title: 'hello world', userId: user.id, });
         await PostRelationship.create({ title: 'nice to meet you, Malaysia', userId: user.id, });

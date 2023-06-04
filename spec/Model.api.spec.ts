@@ -70,17 +70,17 @@ describe('Model API', () => {
 
         const userFallback = await ApiUser.find<ApiUser>(id);
         expect(userFallback).toBeTruthy();
-        expect(userFallback?._fallback_api_doc).toBe(true);
+        expect(userFallback?._meta._fallback_api_doc).toBe(true);
 
         const userFallbackRefetch = await ApiUser.find<ApiUser>(id);
         expect(userFallbackRefetch).toBeTruthy();
-        expect(userFallbackRefetch?._fallback_api_doc).toBe(false);
+        expect(userFallbackRefetch?._meta._fallback_api_doc).toBe(undefined);
     });
 
     it('should be able to fetch a fallback model with call API', async () => {
         const userFallback = await ApiUser.find<ApiUser>('api-user-test2');
         expect(userFallback).toBeTruthy();
-        expect(userFallback?._fallback_api_doc).toBe(true);
+        expect(userFallback?._meta._fallback_api_doc).toBe(true);
     });
 
     it('should be able to run backend function with API', async () => {
