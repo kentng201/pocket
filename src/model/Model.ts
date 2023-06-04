@@ -73,15 +73,15 @@ export class BaseModel {
         return this.getClass().apiAuto;
     }
     public get docId() {
-        return this._id?.includes(this.cName + '.') ? this._id : this.cName + '.' + this._id;
+        return this.id?.includes(this.cName + '.') ? this.id : this.cName + '.' + this.id;
     }
     public get modelId() {
-        return this._id?.includes(this.cName + '.') ? this._id.replace(this.cName + '.', '') : this._id;
+        return this.id?.includes(this.cName + '.') ? this.id.replace(this.cName + '.', '') : this.id;
     }
     // end of API feature
 
     relationships!: { [relationshipName: string]: () => QueryBuilder<any> };
-    public _id: string = '';
+    public id: string = '';
     public _rev: string = '';
     public _real_time_updating: boolean = false;
     public _fallback_api_doc: boolean = false;
@@ -90,7 +90,7 @@ export class BaseModel {
 
     // start of object construction
     public fill(attributes: Partial<ModelType<this>>): void {
-        if (attributes._id) attributes._id = attributes._id.replace(this.cName + '.', '');
+        if (attributes.id) attributes.id = attributes.id.replace(this.cName + '.', '');
 
         // convert function string to function
         for (const key in attributes) {
@@ -113,7 +113,7 @@ export class BaseModel {
         const handler = {
             set: <Key extends ModelKey<this>>(target: this, key: Key, value: ModelValue<this, Key>) => {
                 // prevent update reserved fields
-                // const RESERVED_FIELDS = ['_id', 'createdAt', 'updatedAt', 'relationships', '_dirty'];
+                // const RESERVED_FIELDS = ['id', 'createdAt', 'updatedAt', 'relationships', '_dirty'];
                 // if (RESERVED_FIELDS.includes(key) && target[key]) {
                 //     throw new Error(`Cannot update reserved field ${key}`);
                 // }
@@ -144,7 +144,7 @@ export class BaseModel {
     }
     public replicate(): this {
         const replicatedModel = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
-        delete replicatedModel._id;
+        delete replicatedModel.id;
         delete replicatedModel._rev;
         return replicatedModel;
     }
@@ -205,7 +205,7 @@ export class BaseModel {
 
     /**
      * Find a model by primary key
-     * @param primaryKey _id of the model
+     * @param primaryKey id of the model
      * @returns a model or undefined
      */
     static async find<T extends BaseModel>(this: ModelStatic<T>, primaryKey?: string | string): Promise<T | undefined> {
@@ -228,7 +228,7 @@ export class BaseModel {
             attributes.updatedAt = moment().toISOString();
         }
         model.fill(attributes as ModelType<T>);
-        const hasDocumentInDb = await model.getClass().find(attributes._id);
+        const hasDocumentInDb = await model.getClass().find(attributes.id);
         if (hasDocumentInDb) throw new Error('Document already exists');
         await model.save();
         return model;
@@ -240,7 +240,7 @@ export class BaseModel {
      */
     async update(attributes: Partial<ModelType<this>>): Promise<this> {
         const guarded = this.getClass().readonlyFields;
-        attributes._id = this._id;
+        attributes.id = this.id;
         delete attributes.relationships;
         delete attributes._dirty;
         if (this.needTimestamp) attributes.updatedAt = moment().toISOString();
@@ -354,10 +354,10 @@ export class BaseModel {
         let updatedResult;
 
         let hasDocumentInDb;
-        if (!this._id) {
+        if (!this.id) {
             hasDocumentInDb = false;
         } else {
-            hasDocumentInDb = await this.getClass().repo().getDoc(this._id);
+            hasDocumentInDb = await this.getClass().repo().getDoc(this.id);
         }
         // add static beforeSave function
         if (this.getClass().beforeSave) {
@@ -372,7 +372,7 @@ export class BaseModel {
                 await this.getClass().beforeCreate(this);
             }
             updatedResult = await this.getClass().repo().create(newAttributes);
-            this.fill({ _id: updatedResult.id, } as Partial<ModelType<this>>);
+            this.fill({ id: updatedResult.id, } as Partial<ModelType<this>>);
             if (this.getClass().afterCreate) {
                 await this.getClass().afterCreate(this);
             }
@@ -385,7 +385,7 @@ export class BaseModel {
                 }
             }
             if (this.needTimestamp) newAttributes.updatedAt = now;
-            newAttributes._id = this.docId;
+            newAttributes.id = this.docId;
             if (this.getClass().beforeUpdate) {
                 await this.getClass().beforeUpdate(this);
             }
@@ -403,7 +403,7 @@ export class BaseModel {
             await this.getClass().afterSave(this);
         }
         this.fill({ ...newAttributes, _rev: updatedResult.rev, } as Partial<ModelType<this>>);
-        this._id = this.modelId;
+        this.id = this.modelId;
         this.setForeignFieldsToModelId();
         if (!this.relationships) this.bindRelationships();
         this._dirty = {};
@@ -418,7 +418,7 @@ export class BaseModel {
         if (this.getClass().beforeDelete) {
             await this.getClass().beforeDelete(this);
         }
-        await this.getClass().repo().deleteOne(this._id);
+        await this.getClass().repo().deleteOne(this.id);
         Object.keys(this).forEach((key) => delete this[key as keyof this]);
         if (this.getClass().afterDelete) {
             await this.getClass().afterDelete(this);
@@ -460,7 +460,7 @@ export class BaseModel {
         const klass = this.getClass();
         const newInstance = new klass() as this;
         const builder = new QueryBuilder(newInstance, relationships, this.dName);
-        builder.where('_id', '=', this._id);
+        builder.where('id', '=', this.id);
         const loadedModel = await builder.first() as this;
         for (const relationship of relationships) {
             this[relationship as keyof this] = loadedModel[relationship as keyof this];
@@ -494,7 +494,7 @@ export class BaseModel {
         return this.repo().api?.callApi(method, apiPath, params) as Promise<Result>;
     }
     /**
-     * Call backend API method for the resource with _id
+     * Call backend API method for the resource with id
      * @param apiPath Path name
      * @param method 'GET' | 'POST' | 'PUT' | 'DELETE'
      * @returns 

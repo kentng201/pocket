@@ -35,6 +35,9 @@ function toMangoOperator(operator: Operator): string {
     return '';
 }
 function toMangoQuery<T extends BaseModel, Key extends ModelKey<T>, O extends Operator>(field: Key, operator: O, value: OperatorValue<T, Key, O>): PouchDB.Find.Selector {
+    if (field === 'id') {
+        field = '_id' as Key;
+    }
     if (['=', '!=', '>', '>=', '<', '<=',].includes(operator)) {
         return { [field]: { [toMangoOperator(operator)]: value, }, };
     }
@@ -150,10 +153,10 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return this.foreignKey;
     }
 
-    async find(_id?: string): Promise<T | undefined> {
-        if (!_id) return undefined;
-        const doc = await this.getDoc(_id);
-        if (doc) return this.cast(doc as ModelType<T>);
+    async find(id?: string): Promise<T | undefined> {
+        if (!id) return undefined;
+        const doc = await this.getDoc(id);
+        if (doc) return this.cast(doc as unknown as ModelType<T>);
         return undefined;
     }
 
@@ -169,8 +172,8 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
             let newQuery: PouchDB.Find.Selector;
             const idFields = getForeignIdFields(this.model);
             const hasRelationship = idFields.find((f) => f.field === field);
-            if (field == '_id') {
-                newQuery = idToMangoQuery('_id', operator, value, this.model.cName);
+            if (field == 'id') {
+                newQuery = idToMangoQuery('id', operator, value, this.model.cName);
             } else if (hasRelationship) {
                 const cName = new hasRelationship.relationship().cName;
                 newQuery = idToMangoQuery(field as any, operator, value, cName);
@@ -212,8 +215,8 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
             let newQuery: PouchDB.Find.Selector;
             const idFields = getForeignIdFields(this.model);
             const hasRelationship = idFields.find((f) => f.field === field);
-            if (field == '_id') {
-                newQuery = idToMangoQuery('_id', operator, value, this.model.cName);
+            if (field == 'id') {
+                newQuery = idToMangoQuery('id', operator, value, this.model.cName);
             } else if (hasRelationship) {
                 const cName = new hasRelationship.relationship().cName;
                 newQuery = idToMangoQuery(field as any, operator, value, cName);
@@ -389,7 +392,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         });
         const data = await DatabaseManager.get(this.dbName)?.find(this.queries) as PouchDB.Find.FindResponse<{}>;
         const sortedData = this.sort(data.docs as any);
-        data.docs = sortedData;
+        data.docs = sortedData as (T & { _id: string })[];
         const result = [] as T[];
         for (const item of data.docs) {
             const model = await this.cast(item as unknown as ModelType<T>);
@@ -408,36 +411,36 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return (await this.get()).length;
     }
 
-    async getDoc(_id?: string): Promise<PouchDB.Core.IdMeta & PouchDB.Core.GetMeta | undefined> {
-        if (!_id) return undefined;
-        if (!_id.includes(this.model.cName + '.')) _id = this.model.cName + '.' + _id;
+    async getDoc(id?: string): Promise<PouchDB.Core.IdMeta & PouchDB.Core.GetMeta | undefined> {
+        if (!id) return undefined;
+        if (!id.includes(this.model.cName + '.')) id = this.model.cName + '.' + id;
         try {
-            const result = await this.db.get(_id);
+            const result = await this.db.get(id);
             return result;
         } catch (e) {
             if (this.apiInfo && this.apiInfo.apiFallbackGet) {
-                const result = await this.api?.get(_id);
+                const result = await this.api?.get(id);
                 if (!result) return undefined;
                 delete (result as any)._rev;
-                if (_id.includes(this.model.cName)) {
-                    _id = _id.replace(`${this.model.cName}.`, '');
+                if (id.includes(this.model.cName)) {
+                    id = id.replace(`${this.model.cName}.`, '');
                 }
-                const createdItem = await this.create({ ...result, _id, } as NewModelType<T>, true);
+                const createdItem = await this.create({ ...result, id, } as NewModelType<T>, true);
                 result._fallback_api_doc = true;
                 result._rev = createdItem.rev;
-                result._id = createdItem.id;
-                return result;
+                result.id = createdItem.id;
+                return result as any;
             }
             return undefined;
         }
     }
 
     async create(attributes: NewModelType<T>, fallbackCreate = false): Promise<PouchDB.Core.Response> {
-        if (!attributes._id) {
-            attributes._id = String(uuid.generate());
+        if (!attributes.id) {
+            attributes.id = String(uuid.generate());
         }
-        if (!attributes._id.includes(this.model.cName)) {
-            attributes._id = `${this.model.cName}.${attributes._id}`;
+        if (!attributes.id.includes(this.model.cName)) {
+            attributes.id = `${this.model.cName}.${attributes.id}`;
         }
         const newAttr = {} as NewModelType<T>;
         for (const key in attributes) {
@@ -445,7 +448,10 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                 newAttr[key as keyof NewModelType<T>] = (attributes[key as keyof NewModelType<T>] as Function).toString() as any;
             }
         }
-        const result = await this.db.post({ ...attributes, ...newAttr, });
+        const attr = { ...attributes, ...newAttr, } as NewModelType<T> & { id?: string, };
+        attr.id = attr.id as string;
+        delete attr.id;
+        const result = await this.db.post(attr);
         if (this.apiInfo && this.apiInfo.apiAutoCreate && !fallbackCreate) {
             await this.api?.create(attributes);
         }
@@ -453,7 +459,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
     }
 
     async update(attributes: Partial<ModelType<T>>): Promise<PouchDB.Core.Response> {
-        const doc = await this.find(attributes._id as string);
+        const doc = await this.find(attributes.id as string);
         if (!doc) return { ok: false, } as PouchDB.Core.Response;
         const newAttr = {} as NewModelType<T>;
         for (const key in attributes) {
@@ -464,8 +470,11 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         const result = await this.db.put({ ...doc.toJson(), ...attributes, ...newAttr, }, {
             force: false,
         });
+        const attr = { ...doc, ...attributes, } as Partial<T> & { id?: string, };
+        attr.id = attr.id as string;
+        delete attr.id;
         if (this.apiInfo && this.apiInfo.apiAutoUpdate) {
-            await this.api?.update({ ...doc, ...attributes, });
+            await this.api?.update(attr);
         }
         return result;
     }
@@ -475,30 +484,32 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         const idDeleteResult: { [id: string]: boolean } = {};
         await Promise.all(getResult.map(async (item) => {
             try {
-                idDeleteResult[item._id as string] = true;
+                idDeleteResult[item.id as string] = true;
                 await item.delete();
             } catch (error) {
-                idDeleteResult[item._id as string] = false;
+                idDeleteResult[item.id as string] = false;
             }
         }));
         return idDeleteResult;
     }
 
-    async deleteOne(_id: string) {
-        const doc = await this.find(_id);
+    async deleteOne(id: string) {
+        const doc = await this.find(id);
         if (!doc) {
             return Promise.reject(new Error('Document not found'));
         }
         const rawDoc = doc.toJson();
-        if (!rawDoc._id?.includes(this.model.cName + '.')) {
-            rawDoc._id = this.model.cName + '.' + rawDoc._id;
+        if (!rawDoc.id?.includes(this.model.cName + '.')) {
+            rawDoc.id = this.model.cName + '.' + rawDoc.id;
         }
-        const result = await this.db.remove(rawDoc as PouchDB.Core.RemoveDocument);
+        const newIdDoc = { ...rawDoc, _id: rawDoc.id, };
+        delete newIdDoc.id;
+        const result = await this.db.remove(newIdDoc as PouchDB.Core.RemoveDocument);
         if (this.apiInfo && this.apiInfo.apiAutoDelete) {
-            await this.api?.delete(_id);
+            await this.api?.delete(id);
         }
         if (this.apiInfo && this.apiInfo.apiAutoSoftDelete) {
-            await this.api?.softDelete(_id);
+            await this.api?.softDelete(id);
         }
         return result;
     }

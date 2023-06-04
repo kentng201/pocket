@@ -15,11 +15,11 @@ export async function belongsToMany<T extends BaseModel, R extends BaseModel, P 
     if (!foreignKey) foreignKey = `${lowerCaseFirst(singular(relationshipInstance.cName))}Id` as ModelKey<P>;
 
     const pivotBuilder = new QueryBuilder<P>(pivotInstance);
-    const pivotResult = await pivotBuilder.where(localKey, '=', self._id as ModelValue<P, ModelKey<P>>).get();
+    const pivotResult = await pivotBuilder.where(localKey, '=', self.id as ModelValue<P, ModelKey<P>>).get();
     const relationshipIds = pivotResult.map((p: P) => p[foreignKey as keyof P]) as string[];
 
     const builder = new QueryBuilder<R>(relationshipInstance);
-    builder.where('_id', 'in', relationshipIds);
+    builder.where('id', 'in', relationshipIds);
     builder.setRelationshipType(RelationshipType.BELONGS_TO_MANY, localKey as string, foreignKey as string);
     return builder;
 }
