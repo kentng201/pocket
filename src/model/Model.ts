@@ -432,8 +432,8 @@ export class BaseModel {
     }
     static where<T extends BaseModel>(this: ModelStatic<T>, condition: (query: QueryBuilder<T>) => void): QueryBuilder<T>;
     static where<T extends BaseModel>(this: ModelStatic<T>, queryableModel: Partial<QueryableModel<T>>): QueryBuilder<T>;
-    static where<T extends BaseModel, Key extends ModelKey<T>>(this: ModelStatic<T>, field: Key, value: OperatorValue<T, Key, '='>): QueryBuilder<T>;
-    static where<T extends BaseModel, Key extends ModelKey<T>, O extends Operator>(this: ModelStatic<T>, field: Key, operator: O, value: OperatorValue<T, Key, O>): QueryBuilder<T>;
+    static where<T extends BaseModel, Key extends ModelKey<T>>(this: ModelStatic<T>, field: Key | string, value: OperatorValue<T, Key, '='>): QueryBuilder<T>;
+    static where<T extends BaseModel, Key extends ModelKey<T>, O extends Operator>(this: ModelStatic<T>, field: Key | string, operator: O, value: OperatorValue<T, Key, O>): QueryBuilder<T>;
     static where<T extends BaseModel, Key extends ModelKey<T>, O extends Operator>(...args: (ModelKey<T> | O | OperatorValue<T, Key, O>)[]): QueryBuilder<T> {
         const query = new QueryBuilder(new this, undefined, (this as unknown as typeof BaseModel).dbName);
         // @ts-ignore
@@ -449,6 +449,7 @@ export class BaseModel {
      */
     static with<T extends BaseModel, K extends string[]>(this: ModelStatic<T>, ...relationships: string[]): QueryBuilder<T> {
         const model = new this;
+        console.log('relationships: ', relationships);
         return new QueryBuilder<T, []>(model, relationships as unknown as ValidDotNotationArray<T, []>, (this as unknown as typeof BaseModel).dbName);
     }
     /**

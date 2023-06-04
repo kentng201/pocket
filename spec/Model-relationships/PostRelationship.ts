@@ -11,6 +11,6 @@ export class PostRelationship extends Model {
     title!: string;
     userId!: string;
     content?: string;
-    @HasMany('Attachment', '_id', 'postId') attachments?: Attachment[];
-    @BelongsTo('UserRelationship', '_id', 'userId') user?: UserRelationship;
+    @HasMany('Attachment', 'id', 'postId') attachments?: Attachment[];
+    @BelongsTo('UserRelationship', 'id', 'userId') user?: UserRelationship;
 }

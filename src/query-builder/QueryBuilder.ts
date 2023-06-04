@@ -132,9 +132,9 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return new this(model, relationships, dbName, false) as QueryBuilder<T, K>;
     }
 
-    static where<T extends BaseModel, O extends Operator>(field: ModelKey<T>, operator: O, value: OperatorValue<T, ModelKey<T>, O>, model: T) {
+    static where<T extends BaseModel, O extends Operator>(field: ModelKey<T> | string, operator: O, value: OperatorValue<T, ModelKey<T>, O>, model: T) {
         const builder = this.query<T>(model);
-        return builder.where(field, operator, value);
+        return builder.where(field as ModelKey<T>, operator, value);
     }
 
     raw(): PouchDB.Database {
@@ -165,8 +165,8 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
 
     where(condition: (query: QueryBuilder<T>) => void): this;
     where(queryableModel: Partial<QueryableModel<T>>): this;
-    where<Key extends ModelKey<T>>(field: Key, value: OperatorValue<T, Key, '='>): this;
-    where<Key extends ModelKey<T>, O extends Operator>(field: Key, operator: O, value: OperatorValue<T, Key, O>): this;
+    where<Key extends ModelKey<T>>(field: Key | string, value: OperatorValue<T, Key, '='>): this;
+    where<Key extends ModelKey<T>, O extends Operator>(field: Key | string, operator: O, value: OperatorValue<T, Key, O>): this;
     where<Key extends ModelKey<T>, O extends Operator>(...args: (ModelKey<T> | Operator | OperatorValue<T, Key, O>)[]) {
 
         if (args.length === 2) args = [args[0], '=', args[1],];
@@ -204,8 +204,8 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
 
     orWhere(condition: (query: QueryBuilder<T>) => void): this;
     orWhere(queryableModel: Partial<QueryableModel<T>>): this;
-    orWhere<Key extends ModelKey<T>>(field: Key, value: OperatorValue<T, Key, '='>): this;
-    orWhere<Key extends ModelKey<T>, O extends Operator>(field: Key, operator: Operator, value: OperatorValue<T, Key, O>): this;
+    orWhere<Key extends ModelKey<T>>(field: Key | string, value: OperatorValue<T, Key, '='>): this;
+    orWhere<Key extends ModelKey<T>, O extends Operator>(field: Key | string, operator: Operator, value: OperatorValue<T, Key, O>): this;
     orWhere<Key extends ModelKey<T>, O extends Operator>(...args: (ModelKey<T> | Operator | OperatorValue<T, Key, O> | ModelType<T> | QueryableModel<T>)[]) {
         if (args.length === 2) args = [args[0], '=', args[1],];
 
