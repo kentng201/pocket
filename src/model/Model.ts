@@ -141,6 +141,10 @@ export class BaseModel {
                 if (!target._meta._dirty) target._meta._dirty = {};
                 if (!target._meta._before_dirty) target._meta._before_dirty = {};
 
+                if (value === undefined) {
+                    return true;
+                }
+
                 if (key === '_meta' || key === 'relationships') {
                     target[key] = value;
                     return true;
