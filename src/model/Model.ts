@@ -96,6 +96,8 @@ export class BaseModel {
     // start of object construction
     public fill(attributes: Partial<ModelType<this>>): void {
         if (attributes.id) attributes.id = attributes.id.replace(this.cName + '.', '');
+        if (attributes._meta?._before_dirty) delete (attributes as any)._meta._before_dirty;
+        if (attributes._meta?._dirty) delete (attributes as any)._meta._dirty;
 
         // convert function string to function
         for (const key in attributes) {
@@ -131,6 +133,9 @@ export class BaseModel {
         }
         const handler = {
             set: <Key extends ModelKey<this>>(target: this, key: Key, value: ModelValue<this, Key>) => {
+                if (value === undefined && attributes && Object.keys(attributes).includes(key as string) && target._meta._before_dirty[key as string] === undefined) {
+                    value = attributes[key as keyof ModelType<this>];
+                }
                 // prevent update reserved fields
                 // const RESERVED_FIELDS = ['id', 'createdAt', 'updatedAt', 'relationships', '_dirty'];
                 // if (RESERVED_FIELDS.includes(key) && target[key]) {
@@ -141,9 +146,6 @@ export class BaseModel {
                 if (!target._meta._dirty) target._meta._dirty = {};
                 if (!target._meta._before_dirty) target._meta._before_dirty = {};
 
-                if (value === undefined) {
-                    return true;
-                }
 
                 if (key === '_meta' || key === 'relationships') {
                     target[key] = value;
