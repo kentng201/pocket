@@ -2,7 +2,6 @@ import { ModelKey } from 'src/definitions/Model';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { BaseModel, Model } from 'src/model/Model';
 import EventEmitter from 'events';
-import { Mode } from 'fs';
 
 export let isRealTime = false;
 
