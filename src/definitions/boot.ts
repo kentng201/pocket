@@ -1,5 +1,5 @@
 
-type SinglePocketConfig = {
+export type SinglePocketConfig = {
 
     /**
      * url of the CouchDB/PouchDB server.
@@ -44,12 +44,12 @@ type SinglePocketConfig = {
     syncSetName?: string;
 };
 
-type MultiPocketConfig = {
+export type MultiPocketConfig = {
     databases: SinglePocketConfig[];
 
 };
 
-type GlobalConfig = {
+export type GlobalConfig = {
     /**
      * If true, the model will have createdAt and updatedAt fields.
      */

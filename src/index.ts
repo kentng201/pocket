@@ -9,5 +9,9 @@ export * from 'src/relationships/RelationshipDecorator';
 export * from 'src/model/ModelDecorator';
 export * from 'src/boot';
 
-import { boot } from 'src/boot';
-export default boot;
+import { boot as bootBrowser } from 'src/boot-browser';
+import { boot as bootNode } from 'src/boot-node';
+export default {
+    browser: bootBrowser,
+    node: bootNode,
+};

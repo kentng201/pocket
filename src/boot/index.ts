@@ -1,10 +1,11 @@
-import { DatabaseManager, setEnvironement } from './manager/DatabaseManager';
-import { setDefaultDbName, setDefaultNeedRealtimeUpdate, setDefaultNeedTimestamp } from './model/Model';
-import { setRealtime } from './real-time/RealTimeModel';
-import { syncDatabases } from './real-time/DatabaseSync';
-import Persistor from './helpers/Persistor';
-import getNodeConfig from './boot/node';
-import getBrowserConfig from './boot/browser';
+import { DatabaseManager, setEnvironement } from 'src/manager/DatabaseManager';
+import { setDefaultDbName, setDefaultNeedRealtimeUpdate, setDefaultNeedTimestamp } from 'src/model/Model';
+import { setRealtime } from 'src/real-time/RealTimeModel';
+import { syncDatabases } from 'src/real-time/DatabaseSync';
+import Persistor from 'src/helpers/Persistor';
+import getNodeConfig from 'src/boot/node';
+import getBrowserConfig from 'src/boot/browser';
+import { GlobalConfig, MultiPocketConfig, SinglePocketConfig } from 'src/definitions/boot';
 
 const isBrowser = typeof window !== 'undefined' && window.localStorage;
 const isNode = typeof process !== 'undefined';
@@ -14,7 +15,7 @@ const FILE_NOT_FOUND_MSG = 'Cannot find pocket.config.json file. Please create o
 export class ConfigPersistor extends Persistor {
 }
 
-function replaceEnvVariable<Config extends SinglePocketConfig | MultiPocketConfig>(config: Config): Config {
+export function replaceEnvVariable<Config extends SinglePocketConfig | MultiPocketConfig>(config: Config): Config {
     const env = process.env;
     const browserWindow = isBrowser ? window : {};
 
@@ -38,10 +39,10 @@ function replaceEnvVariable<Config extends SinglePocketConfig | MultiPocketConfi
     return config;
 }
 
-async function setupConfig<Config extends SinglePocketConfig | MultiPocketConfig>(config: Config) {
+export async function setupConfig<Config extends SinglePocketConfig | MultiPocketConfig>(config: Config) {
     try {
         if ((config as MultiPocketConfig).databases) {
-            const tempDb: any = {};
+            const tempDb: { [dbName: string]: string } = {};
 
             const multiConfig = config as MultiPocketConfig & GlobalConfig;
             setEnvironement(isBrowser ? 'browser' : 'node');
