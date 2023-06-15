@@ -3,12 +3,10 @@ import { setDefaultDbName, setDefaultNeedRealtimeUpdate, setDefaultNeedTimestamp
 import { setRealtime } from 'src/real-time/RealTimeModel';
 import { syncDatabases } from 'src/real-time/DatabaseSync';
 import Persistor from 'src/helpers/Persistor';
-import getNodeConfig from 'src/boot/node';
-import getBrowserConfig from 'src/boot/browser';
 import { GlobalConfig, MultiPocketConfig, SinglePocketConfig } from 'src/definitions/boot';
 
 const isBrowser = typeof window !== 'undefined' && window.localStorage;
-const isNode = typeof process !== 'undefined';
+// const isNode = typeof process !== 'undefined';
 
 const FILE_NOT_FOUND_MSG = 'Cannot find pocket.config.json file. Please create one in the root of your project.';
 

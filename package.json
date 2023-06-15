@@ -8,7 +8,8 @@
     "scripts": {
         "build": "tsc --declaration --declarationDir dist --emitDeclarationOnly && tsc --project tsconfig.json && tsc-alias -p tsconfig.json && rm -Rf dist/mocks && rm -Rf dist/spec && rm -Rf dist/debug",
         "pack": "rm -Rf obfuscated/mocks && rm -Rf obfuscated/spec && rm -Rf obfuscated/debug && npm pack",
-        "compile": "npm run build && npm run pack",
+        "compile:browser": "npm run build && mv dist/src/index-browser.js dist/src/index.js && mv dist/src/index-browser.js.map dist/src/index.js.map && mv dist/src/index-browser.d.ts dist/src/index.d.ts && rm dist/src/index-node* && npm run pack",
+        "compile:node": "npm run build && mv dist/src/index-node.js dist/src/index.js && mv dist/src/index-node.js.map dist/src/index.js.map && mv dist/src/index-node.d.ts dist/src/index.d.ts && rm dist/src/index-browser* && npm run pack",
         "lint": "eslint src/**/*.ts",
         "repl": "ts-node -r tsconfig-paths/register",
         "test": "ts-node -r tsconfig-paths/register node_modules/jasmine/bin/jasmine --config=jasmine.json",

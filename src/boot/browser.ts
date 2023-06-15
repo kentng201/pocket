@@ -12,8 +12,7 @@ async function getConfig() {
         return ConfigPersistor.get();
     }
 }
-
-export default async function pocketBrowser() {
+export default async function pocket() {
     let config = await getConfig();
     config = replaceEnvVariable(config);
     return setupConfig(config);
