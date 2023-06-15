@@ -3,78 +3,15 @@ import { setDefaultDbName, setDefaultNeedRealtimeUpdate, setDefaultNeedTimestamp
 import { setRealtime } from './real-time/RealTimeModel';
 import { syncDatabases } from './real-time/DatabaseSync';
 import Persistor from './helpers/Persistor';
-
-type SinglePocketConfig = {
-
-    /**
-     * url of the CouchDB/PouchDB server.
-     */
-    url: string;
-    /**
-      * Database name, which can be used in the DatabaseManager.get() method.
-      * Default is 'default'.
-      */
-    dbName?: string;
-
-    /**
-     * Password to encrypt the database in your browser.
-     * If not set, the database will not be encrypted.
-     */
-    password?: string;
-
-    /**
-     * Adapter to use. Default is 'idb' (IndexedDB) for the browser and 'leveldb' for NodeJS.
-     * 'memory' | 'http' | 'idb' | 'leveldb' | 'websql'
-     */
-    adapter?: string;
-
-    /**
-     * If true, the connection will not be logged in the console.
-     * Default is false.
-     */
-    silentConnect?: boolean;
-
-    /**
-     * Authentication for the online CouchDB.
-     */
-    auth?: {
-        username: string;
-        password: string;
-    };
-
-    /**
-     * Name of the sync databases set you wish to sync with.
-     * e.g. if you have 2 databases, both set `syncSetName` to "mySyncSet", then they will be synced.
-     */
-    syncSetName?: string;
-};
-
-type MultiPocketConfig = {
-    databases: SinglePocketConfig[];
-
-};
-
-type GlobalConfig = {
-    /**
-     * If true, the model will have createdAt and updatedAt fields.
-     */
-    modelTimestamp?: boolean;
-
-
-    /**
-     * If true, the runtime variable will be updated when the database is updated.
-     */
-    realtimeUpdate?: boolean;
-};
-
+import getNodeConfig from './boot/node';
+import getBrowserConfig from './boot/browser';
 
 const isBrowser = typeof window !== 'undefined' && window.localStorage;
 const isNode = typeof process !== 'undefined';
-let configFilePath = isNode ? process.cwd() + '/pocket.config.json' : '';
 
 const FILE_NOT_FOUND_MSG = 'Cannot find pocket.config.json file. Please create one in the root of your project.';
 
-class ConfigPersistor extends Persistor {
+export class ConfigPersistor extends Persistor {
 }
 
 function replaceEnvVariable<Config extends SinglePocketConfig | MultiPocketConfig>(config: Config): Config {
@@ -101,35 +38,9 @@ function replaceEnvVariable<Config extends SinglePocketConfig | MultiPocketConfi
     return config;
 }
 
-export const boot = async () => {
-    let config;
-    if (isBrowser) {
-        configFilePath = 'pocket.config.json';
-        try {
-            const file = await fetch(configFilePath);
-            const result = await file.text();
-            config = JSON.parse(result);
-            ConfigPersistor.set(config);
-        } catch (error) {
-            config = ConfigPersistor.get();
-        }
-    }
-    else if (isNode) {
-        try {
-            configFilePath = process.cwd() + '/pocket.config.json';
-            const fs = require('fs');
-            const file = fs.readFileSync(configFilePath, 'utf8');
-            config = JSON.parse(file);
-            ConfigPersistor.set(config);
-        } catch (error) {
-            config = ConfigPersistor.get();
-        }
-    }
-
-    config = replaceEnvVariable(config);
-
+async function setupConfig<Config extends SinglePocketConfig | MultiPocketConfig>(config: Config) {
     try {
-        if (config.databases) {
+        if ((config as MultiPocketConfig).databases) {
             const tempDb: any = {};
 
             const multiConfig = config as MultiPocketConfig & GlobalConfig;
@@ -159,7 +70,7 @@ export const boot = async () => {
                 }
             }
             setRealtime(multiConfig.realtimeUpdate || false);
-        } else if (config.url) {
+        } else if ((config as SinglePocketConfig).url) {
             const singleConfig = config as SinglePocketConfig & GlobalConfig;
             setEnvironement(isBrowser ? 'browser' : 'node');
             setDefaultDbName(singleConfig.dbName || 'default');
@@ -177,4 +88,17 @@ export const boot = async () => {
     } catch (error) {
         throw new Error(FILE_NOT_FOUND_MSG);
     }
+}
+
+export const boot = async () => {
+    let config;
+    if (isBrowser) {
+        config = await getBrowserConfig();
+    }
+    else if (isNode) {
+        config = await getNodeConfig();
+    }
+
+    config = replaceEnvVariable(config);
+    return setupConfig(config);
 };
