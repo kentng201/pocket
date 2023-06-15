@@ -1,6 +1,6 @@
-import { ConfigPersistor } from '..';
+import { replaceEnvVariable, setupConfig, ConfigPersistor } from 'src/boot';
 
-export default async function getConfig() {
+async function getConfig() {
     try {
         const configFilePath = process.cwd() + '/pocket.config.json';
         const fs = require('fs');
@@ -11,4 +11,10 @@ export default async function getConfig() {
     } catch (error) {
         return ConfigPersistor.get();
     }
+}
+
+export default async function pocketNode() {
+    let config = await getConfig();
+    config = replaceEnvVariable(config);
+    return setupConfig(config);
 }

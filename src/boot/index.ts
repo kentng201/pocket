@@ -90,16 +90,3 @@ export async function setupConfig<Config extends SinglePocketConfig | MultiPocke
         throw new Error(FILE_NOT_FOUND_MSG);
     }
 }
-
-export const boot = async () => {
-    let config;
-    if (isBrowser) {
-        config = await getBrowserConfig();
-    }
-    else if (isNode) {
-        config = await getNodeConfig();
-    }
-
-    config = replaceEnvVariable(config);
-    return setupConfig(config);
-};

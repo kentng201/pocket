@@ -7,11 +7,6 @@ export * from 'src/real-time/RealTimeModel';
 export * from 'src/real-time/DatabaseSync';
 export * from 'src/relationships/RelationshipDecorator';
 export * from 'src/model/ModelDecorator';
-export * from 'src/boot';
 
-import { boot as bootBrowser } from 'src/boot-browser';
-import { boot as bootNode } from 'src/boot-node';
-export default {
-    browser: bootBrowser,
-    node: bootNode,
-};
+export * from 'src/boot/browser';
+export * from 'src/boot/node';
