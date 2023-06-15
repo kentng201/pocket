@@ -466,6 +466,28 @@ npm run test
 
 Then it will run through all the test suite.
 
+### Build NPM Pack
+
+There is 2 version of the package, one is for browser, another one is for node js
+
+For Node.js version, please run below:
+
+```bash
+npm run build:node
+```
+
+For browser version, please run below:
+
+```bash
+npm run build:browser
+```
+
+Then you may install the pocket package in your project
+
+```bash
+npm install pocket
+```
+
 ### Debugging
 
 To debug, you can use debugger in the Visual Studio Code
