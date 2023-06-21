@@ -40,7 +40,7 @@ export function notifyWeakRef<T extends BaseModel>(_id: string, doc: T) {
         const sameIdDoc = ref.deref();
         if (!sameIdDoc) return;
         if (!sameIdDoc.rtUpdate) return;
-        if (sameIdDoc && sameIdDoc instanceof Model && sameIdDoc._meta && sameIdDoc._meta._rev != (doc as any)._rev) {
+        if (sameIdDoc && sameIdDoc instanceof Model && sameIdDoc._meta && doc && sameIdDoc._meta._rev != (doc as any)._rev) {
             if (!sameIdDoc._meta) sameIdDoc._meta = {} as Model['_meta'];
             sameIdDoc._meta._real_time_updating = true;
             sameIdDoc._meta._rev = (doc as any)._rev;
@@ -64,9 +64,14 @@ export function setDocChangeEventListener(listener: (id: string) => void | Promi
 export function setRealtime(realTime: boolean) {
 
     isRealTime = realTime;
-    const onRealTimeChange = (change: PouchDB.Core.ChangesResponseChange<any>) => {
-        const _id = change.doc?._id;
-        const doc = change.doc;
+    const onRealTimeChange = async (change: PouchDB.Core.ChangesResponseChange<any>, name: string) => {
+        const _id = change.doc?._id || change.id;
+
+        let doc = change.doc;
+        if (!doc) {
+            doc = await DatabaseManager.get(name)?.get(_id);
+            doc._rev = change.changes[0].rev;
+        }
         notifyWeakRef(_id, doc as BaseModel);
         emitChangeEvent(_id);
     };
@@ -78,7 +83,7 @@ export function setRealtime(realTime: boolean) {
                 since: 'now',
                 include_docs: true,
                 live: true,
-            }).on('change', onRealTimeChange);
+            }).on('change', (change) => onRealTimeChange(change, db.name));
         });
     } else {
         Object.values(DatabaseManager.databases).forEach((db) => {

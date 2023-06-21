@@ -76,7 +76,7 @@ export class DatabaseManager {
                 }
                 const pouchDb = new PouchDB(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string, transform: (transformer: any) => Promise<void> };
                 if (config.password) {
-                    setPassword(config.password);
+                    await setPassword(config.password);
                     PouchDB.plugin(require('transform-pouch'));
                     await pouchDb.transform(transformer);
                 }

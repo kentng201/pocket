@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers';
+import sodium from 'libsodium-wrappers';
 
 let key: Uint8Array;
 let nonce: Uint8Array;
@@ -28,7 +28,6 @@ export const transformer = {
 
 export async function setPassword(password: string) {
     await sodium.ready;
-    console.log('sodium: ', sodium);
 
     if (key) return;
     const encoder = new TextEncoder();
