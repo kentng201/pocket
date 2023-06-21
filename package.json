@@ -15,7 +15,7 @@
         "repl": "ts-node -r tsconfig-paths/register",
         "test": "ts-node -r tsconfig-paths/register node_modules/jasmine/bin/jasmine --config=jasmine.json",
         "coverage": "nyc -r text -e .ts --exclude \"spec/**/*.spec.ts\" npm run test",
-        "postinstall": "npm run build:browser"
+        "postinstall": "npm run build"
     },
     "keywords": [
         "Pouch DB",
