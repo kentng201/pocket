@@ -223,13 +223,7 @@ export class BaseModel {
      * @returns an array of models
      */
     static async all<T extends BaseModel>(this: ModelStatic<T>): Promise<T[]> {
-        const items = await new QueryBuilder<T>(new this, undefined, (this as unknown as typeof BaseModel).dbName).get();
-        const result = [];
-        for (const item of items) {
-            const castedItem = new this(item) as T;
-            result.push(castedItem);
-        }
-        return result;
+        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof BaseModel).dbName).get();
     }
 
     /**
