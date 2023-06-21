@@ -1,3 +1,4 @@
+import { setPassword, transformer } from 'src/encryption/encryption';
 import { isRealTime, setRealtime } from 'src/real-time/RealTimeModel';
 
 let PouchDB: any;
@@ -63,9 +64,6 @@ export class DatabaseManager {
         if (isRealTime) {
             setRealtime(true);
         }
-        if (config.password) {
-            PouchDB.plugin(require('comdb'));
-        }
         return new Promise(async (resolve) => {
             try {
 
@@ -76,9 +74,11 @@ export class DatabaseManager {
                 if (config.auth) {
                     pouchConfig.auth = config.auth;
                 }
-                const pouchDb = new PouchDB(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string };
+                const pouchDb = new PouchDB(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string, transform: (transformer: any) => Promise<void> };
                 if (config.password) {
-                    await (pouchDb as any).setPassword(config.password);
+                    setPassword(config.password);
+                    PouchDB.plugin(require('transform-pouch'));
+                    await pouchDb.transform(transformer);
                 }
 
                 if (!this.databases) this.databases = {};

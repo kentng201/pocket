@@ -13,7 +13,7 @@
         "outDir": "./dist",
         "sourceMap": true,
         "target": "ES2015",
-        "module": "CommonJS",
+        "module": "ES2015",
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "experimentalDecorators": true,
