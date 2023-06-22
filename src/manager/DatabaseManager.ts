@@ -53,7 +53,7 @@ export type PouchDBConfig = {
 export type DatabaseCustomConfig = {
     adapter: string;
     transform: (transformer: any) => Promise<void>;
-    password: string;
+    hasPassword: boolean;
 };
 
 export class DatabaseManager {
@@ -82,7 +82,7 @@ export class DatabaseManager {
                 }
                 const pouchDb = new PouchDB(url, pouchConfig) as unknown as PouchDB.Database & DatabaseCustomConfig;
                 if (config.password) {
-                    pouchDb.password = config.password;
+                    pouchDb.hasPassword = true;
                     await setPassword(config.password);
                     PouchDB.plugin(require('transform-pouch'));
                     await pouchDb.transform(transformer);
