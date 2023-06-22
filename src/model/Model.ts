@@ -88,6 +88,7 @@ export class BaseModel {
         _fallback_api_doc: boolean;
         _dirty: { [key: string]: boolean };
         _before_dirty: { [key: string]: any };
+        _update_callbacks?: Function[];
         _rev: string;
     };
     public createdAt?: string;
@@ -618,13 +619,14 @@ export class BaseModel {
     getBeforeDirtyValue<Key extends ModelKey<this>>(attribute: Key): ModelValue<this, Key> {
         return this._meta._before_dirty[attribute as string];
     }
-    /**
-     * A method to check if this model is not the latest version with the database
-     * @param changeId 
-     * @returns 
-     */
-    isOutdated(changeId: string): boolean {
-        return needToReload(this, changeId);
+    notifyUpdate() {
+        if (this._meta && this._meta._update_callbacks) {
+            this._meta._update_callbacks.forEach(callback => callback());
+        }
+    }
+    hasUpdate(callback: Function) {
+        if (!this._meta._update_callbacks) this._meta._update_callbacks = [];
+        this._meta._update_callbacks.push(callback);
     }
     // end dirty maintenance
 

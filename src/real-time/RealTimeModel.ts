@@ -49,6 +49,7 @@ export function notifyWeakRef<T extends BaseModel>(_id: string, doc: T) {
             sameIdDoc._meta._dirty = {};
             sameIdDoc._meta._before_dirty = {};
         }
+        sameIdDoc.notifyUpdate();
     });
 }
 
