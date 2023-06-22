@@ -50,8 +50,14 @@ export type PouchDBConfig = {
     };
 };
 
+export type DatabaseCustomConfig = {
+    adapter: string;
+    transform: (transformer: any) => Promise<void>;
+    password: string;
+};
+
 export class DatabaseManager {
-    public static databases: { [dbName: string]: PouchDB.Database | null } = {};
+    public static databases: { [dbName: string]: PouchDB.Database & DatabaseCustomConfig | null } = {};
 
     public static async connect(url: string, config: PouchDBConfig) {
         if (!PouchDB) {
@@ -74,8 +80,9 @@ export class DatabaseManager {
                 if (config.auth) {
                     pouchConfig.auth = config.auth;
                 }
-                const pouchDb = new PouchDB(url, pouchConfig) as unknown as PouchDB.Database & { adapter: string, transform: (transformer: any) => Promise<void> };
+                const pouchDb = new PouchDB(url, pouchConfig) as unknown as PouchDB.Database & DatabaseCustomConfig;
                 if (config.password) {
+                    pouchDb.password = config.password;
                     await setPassword(config.password);
                     PouchDB.plugin(require('transform-pouch'));
                     await pouchDb.transform(transformer);
@@ -102,7 +109,7 @@ export class DatabaseManager {
         });
     }
 
-    public static get(dbName?: string) {
+    public static get(dbName?: string): PouchDB.Database & DatabaseCustomConfig | null {
         if (!dbName) {
             // find the only database
             if (Object.keys(this.databases).length === 1) {

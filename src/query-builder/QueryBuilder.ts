@@ -3,7 +3,7 @@ import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { ModelKey, ModelType, ModelValue, NewModelType } from 'src/definitions/Model';
 import { RelationshipType } from 'src/definitions/RelationshipType';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
-import { DatabaseManager } from 'src/manager/DatabaseManager';
+import { DatabaseCustomConfig, DatabaseManager } from 'src/manager/DatabaseManager';
 import { BaseModel } from 'src/model/Model';
 import { getForeignIdFields } from 'src/relationships/RelationshipDecorator';
 import { ApiRepo } from 'src/repo/ApiRepo';
@@ -122,7 +122,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         this.relationships = (relationships || []) as ValidDotNotationArray<T, K>;
         this.queries = { selector: { $and: [], }, };
         this.isOne = isOne;
-        this.db = DatabaseManager.get(this.dbName) as PouchDB.Database<T>;
+        this.db = DatabaseManager.get(this.dbName) as PouchDB.Database<T> & DatabaseCustomConfig;
         if (!this.db) throw new Error(`Database ${this.dbName} not found`);
         this.apiInfo = apiInfo;
         if (this.apiInfo) this.api = new ApiRepo<T>(this.apiInfo);
