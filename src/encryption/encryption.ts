@@ -5,7 +5,7 @@ let nonce: Uint8Array;
 
 export const transformer = {
     incoming: function (doc: any) {
-        const encrypted = encrypt(doc);
+        const encrypted = encrypt({ ...doc, });
         return {
             _id: doc._id,
             _rev: doc._rev,
@@ -14,7 +14,7 @@ export const transformer = {
     },
     outgoing: function (doc: any) {
         if (!doc.payload) {
-            return doc;
+            return undefined;
         }
         const output = decrypt(doc.payload);
         return {
@@ -39,6 +39,8 @@ export async function setPassword(password: string) {
 }
 
 export function encrypt(data: any): string {
+    delete data._id;
+    delete data._rev;
     const ciphertext = sodium.crypto_secretbox_easy(JSON.stringify(data), nonce, key);
     const base64CipherText = sodium.to_base64(ciphertext);
     return base64CipherText;
