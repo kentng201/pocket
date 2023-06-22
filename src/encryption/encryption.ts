@@ -14,7 +14,7 @@ export const transformer = {
     },
     outgoing: function (doc: any) {
         if (!doc.payload) {
-            return undefined;
+            return doc;
         }
         const output = decrypt(doc.payload);
         return {
