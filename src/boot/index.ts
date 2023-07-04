@@ -2,7 +2,7 @@ import { DatabaseManager, setEnvironement } from 'src/manager/DatabaseManager';
 import { setDefaultDbName, setDefaultNeedRealtimeUpdate, setDefaultNeedTimestamp } from 'src/model/Model';
 import { setRealtime } from 'src/real-time/RealTimeModel';
 import { syncDatabases } from 'src/real-time/DatabaseSync';
-import Persistor from 'src/helpers/Persistor';
+import { Persistor } from 'src/helpers/Persistor';
 import { GlobalConfig, MultiPocketConfig, SinglePocketConfig } from 'src/definitions/boot';
 
 const isBrowser = typeof window !== 'undefined' && window.localStorage;

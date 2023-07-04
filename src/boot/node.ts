@@ -1,4 +1,4 @@
-import { replaceEnvVariable, setupConfig, ConfigPersistor } from 'src/boot';
+import { replaceEnvVariable, setupConfig } from 'src/boot';
 
 async function getConfig() {
     try {
@@ -6,10 +6,9 @@ async function getConfig() {
         const fs = require('fs');
         const file = fs.readFileSync(configFilePath, 'utf8');
         const config = JSON.parse(file);
-        ConfigPersistor.set(config);
         return config;
     } catch (error) {
-        return ConfigPersistor.get();
+        return {};
     }
 }
 export default async function pocket() {
