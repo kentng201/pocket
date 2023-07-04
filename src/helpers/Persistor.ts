@@ -24,7 +24,7 @@ function get(key: string) {
 }
 
 
-export default class Persistor {
+export class Persistor {
     static set<T>(value: T) {
         set(this.name, value);
     }
