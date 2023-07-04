@@ -1,9 +1,9 @@
 export class Persistor {
     static set<T>(value: T) {
-        console.log('do nothing on node.js');
+        // do nothing
     }
     static clear() {
-        console.log('do nothing on node.js');
+        // do nothing
     }
     static get<T>(): T | undefined {
         return {} as T;
