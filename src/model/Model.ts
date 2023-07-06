@@ -632,7 +632,11 @@ export class BaseModel {
             this._meta._update_callbacks.forEach(callback => callback());
         }
     }
-    hasUpdate(callback: Function) {
+    /**
+     * Trigged when the model is being update in the database
+     * @param callback 
+     */
+    onChange(callback: Function) {
         if (!this._meta._update_callbacks) this._meta._update_callbacks = [];
         this._meta._update_callbacks.push(callback);
     }
