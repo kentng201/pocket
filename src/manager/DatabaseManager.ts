@@ -59,7 +59,7 @@ export type DatabaseCustomConfig = {
 export class DatabaseManager {
     public static databases: { [dbName: string]: PouchDB.Database & DatabaseCustomConfig | null } = {};
 
-    public static async connect(url: string, config: PouchDBConfig) {
+    public static async connect(url: string, config: PouchDBConfig): Promise<PouchDB.Database & DatabaseCustomConfig | null> {
         if (!PouchDB) {
             setEnvironement('node');
         }
@@ -98,14 +98,13 @@ export class DatabaseManager {
                     console.log(`- Connected to PouchDB/CouchDB "${config.dbName}": ${url}`);
                     console.log(`- Adapter: ${pouchDb.adapter}`);
                 }
-                resolve(true);
+                resolve(pouchDb);
             } catch (error) {
                 console.warn(`- Database "${config.dbName}" not found, please check below`);
                 console.warn(error);
                 this.databases[config.dbName as string] = null;
-                resolve(false);
+                resolve(null);
             }
-
         });
     }
 
