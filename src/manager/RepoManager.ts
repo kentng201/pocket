@@ -19,19 +19,15 @@ export class RepoManager {
             apiFallbackGet: model.aAuto?.fetchWhenMissing,
         } as APIResourceInfo;
 
-        const collectionName = model.cName;
         const haveApiConfig = Object
             .keys(apiResourceInfo)
             .filter(
                 (attribute) => !!apiResourceInfo[attribute as keyof APIResourceInfo] as boolean
             )
             .length > 0;
-        if (!this.repos[collectionName]) {
-            this.repos[collectionName] = new QueryBuilder<T>(
-                model, undefined, dbName, undefined, haveApiConfig ? apiResourceInfo : undefined
-            );
-        }
-        return this.repos[collectionName];
+        return new QueryBuilder<T>(
+            model, undefined, dbName, undefined, haveApiConfig ? apiResourceInfo : undefined
+        );
     }
 }
 
