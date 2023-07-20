@@ -425,7 +425,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         try {
             const result = await this.db.get(id) as PouchDB.Core.IdMeta & PouchDB.Core.GetMeta & { id: string };
             result.id = result._id;
-            delete (result as any)._id;
+            delete (result as Partial<PouchDB.Core.IdMeta>)._id;
             return result;
         } catch (e) {
             if (this.apiInfo && this.apiInfo.apiFallbackGet) {
@@ -440,9 +440,9 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                 result._meta._fallback_api_doc = true;
                 result._meta._rev = createdItem.rev;
                 result.id = createdItem.id;
-                delete (result as any)._id;
-                delete (result as any)._rev;
-                return result as any;
+                delete (result as Partial<PouchDB.Core.IdMeta>)._id;
+                delete (result as Partial<PouchDB.Core.GetMeta>)._rev;
+                return result as unknown as PouchDB.Core.IdMeta & PouchDB.Core.GetMeta & { id: string };
             }
             return undefined;
         }
