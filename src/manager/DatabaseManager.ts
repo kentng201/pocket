@@ -73,14 +73,27 @@ export class DatabaseManager {
         return new Promise(async (resolve) => {
             try {
 
-                let pouchConfig = {} as { adapter: string; auth?: { username: string; password: string; }; };
+                let pouchConfig = {} as { adapter: string; auth?: { username: string; password: string; }; skip_setup?: boolean; };
                 if (config.adapter) {
                     pouchConfig = { adapter: config.adapter, };
                 }
                 if (config.auth) {
                     pouchConfig.auth = config.auth;
+                    pouchConfig.skip_setup = true;
+                    console.log('pouchConfig: ', pouchConfig);
                 }
                 const pouchDb = new PouchDB(url, pouchConfig) as unknown as PouchDB.Database & DatabaseCustomConfig;
+                if (!config.silentConnect) {
+                    console.log(`- Connected to PouchDB/CouchDB "${config.dbName}": ${url}`);
+                    console.log(`- Adapter: ${pouchDb.adapter}`);
+                }
+                if (pouchDb.adapter == 'http') {
+                    PouchDB.plugin(require('pouchdb-authentication'));
+                    if (!config.auth) {
+                        throw new Error('You must provide an authentication object with username and password.');
+                    }
+                    await (pouchDb as any).login(config.auth.username, config.auth.password);
+                }
                 if (config.password) {
                     pouchDb.hasPassword = true;
                     await setPassword(config.password);
@@ -93,15 +106,15 @@ export class DatabaseManager {
                     config.dbName = DEFAULT_DB_NAME;
                 }
                 this.databases[config.dbName] = pouchDb;
-
-                if (!config.silentConnect) {
-                    console.log(`- Connected to PouchDB/CouchDB "${config.dbName}": ${url}`);
-                    console.log(`- Adapter: ${pouchDb.adapter}`);
-                }
+                await pouchDb.put({
+                    _id: 'test',
+                    test: 'test',
+                });
                 resolve(pouchDb);
             } catch (error) {
-                console.warn(`- Database "${config.dbName}" not found, please check below`);
-                console.warn(error);
+                console.error(`- Database "${config.dbName}" having error while connecting, please check below`);
+                console.error((error as any).message);
+                console.error((error as any).stack);
                 this.databases[config.dbName as string] = null;
                 resolve(null);
             }

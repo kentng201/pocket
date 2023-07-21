@@ -61,6 +61,7 @@
         "pluralize": "^8.0.0",
         "pouchdb": "^8.0.1",
         "pouchdb-adapter-memory": "^8.0.1",
+        "pouchdb-authentication": "^1.1.3",
         "pouchdb-browser": "^8.0.1",
         "pouchdb-find": "^8.0.0",
         "short-uuid": "^4.2.2",
