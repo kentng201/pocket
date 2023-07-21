@@ -78,9 +78,7 @@ export class DatabaseManager {
                     pouchConfig = { adapter: config.adapter, };
                 }
                 if (config.auth) {
-                    pouchConfig.auth = config.auth;
                     pouchConfig.skip_setup = true;
-                    console.log('pouchConfig: ', pouchConfig);
                 }
                 const pouchDb = new PouchDB(url, pouchConfig) as unknown as PouchDB.Database & DatabaseCustomConfig;
                 if (!config.silentConnect) {
