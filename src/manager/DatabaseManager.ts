@@ -104,10 +104,6 @@ export class DatabaseManager {
                     config.dbName = DEFAULT_DB_NAME;
                 }
                 this.databases[config.dbName] = pouchDb;
-                await pouchDb.put({
-                    _id: 'test',
-                    test: 'test',
-                });
                 resolve(pouchDb);
             } catch (error) {
                 console.error(`- Database "${config.dbName}" having error while connecting, please check below`);
