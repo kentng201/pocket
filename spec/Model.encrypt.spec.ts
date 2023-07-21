@@ -91,24 +91,19 @@ describe('Model Encrypt', () => {
 
     it('should able to save multiple times', async () => {
         const user = await EncryptUser.create({ name: 'Test' + 0, });
-        console.log('user.id: ', user.id);
-        const result = await EncryptUser.all();
-        console.log('result: ', result);
-        const dbUser0 = await EncryptUser.find(user.id) as EncryptUser;
-        console.log('dbUser0: ', dbUser0);
+        await EncryptUser.all();
+        await EncryptUser.find(user.id) as EncryptUser;
         expect(user.id).toBeTruthy();
         const newName = 'Test' + 1;
         user.name = newName;
         await user.save();
         const dbUser = await EncryptUser.find(user.id) as EncryptUser;
-        console.log('dbUser: ', dbUser);
         expect(user.name).toBe(dbUser.name);
 
         const newName2 = 'Test' + 2;
         user.name = newName2;
         await user.save();
         const dbUser2 = await EncryptUser.find(user.id) as EncryptUser;
-        console.log('dbUser2: ', dbUser2);
         expect(user.name).toBe(dbUser2.name);
     });
 
