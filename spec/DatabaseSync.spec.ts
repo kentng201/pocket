@@ -1,4 +1,4 @@
-import { Model } from 'src/index';
+import { Model, setDefaultDbName } from 'src/index';
 import { DatabaseManager } from '../src/manager/DatabaseManager';
 import { syncDatabases } from 'src/real-time/DatabaseSync';
 
@@ -6,12 +6,6 @@ import { syncDatabases } from 'src/real-time/DatabaseSync';
 describe('DatabaseSync', () => {
     class DatabaseSyncTestUser extends Model {
         public static dbName = 'test';
-        public static collectionName = 'SyncUsers';
-        public username!: string;
-    }
-
-    class DatabaseSyncTest2User extends Model {
-        public static dbName = 'test2';
         public static collectionName = 'SyncUsers';
         public username!: string;
     }
@@ -33,7 +27,8 @@ describe('DatabaseSync', () => {
             id: 'Test1',
             username: 'John',
         }) as DatabaseSyncTestUser;
-        const user2 = await DatabaseSyncTest2User.find('Test1') as DatabaseSyncTestUser;
+        setDefaultDbName('test2');
+        const user2 = await DatabaseSyncTestUser.find('Test1') as DatabaseSyncTestUser;
         expect(user.id).toEqual(user2.id);
         expect(user._meta._rev).toEqual(user2._meta._rev);
         expect(user.username).toEqual(user2.username);

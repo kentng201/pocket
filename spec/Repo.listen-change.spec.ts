@@ -3,9 +3,11 @@ import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { RepoManager } from 'src/manager/RepoManager';
 import { QueryBuilder } from 'src/index';
 
+const DB_NAME = 'test-repo-listen-change';
+
 describe('Repo', () => {
     class User extends Model {
-        static dbName = 'repo-listen-change';
+        static dbName = DB_NAME;
 
         name!: string;
         password?: string;
@@ -14,7 +16,7 @@ describe('Repo', () => {
     let repo: QueryBuilder<User>;
 
     beforeEach(async () => {
-        await DatabaseManager.connect('test-repo-listen-change', { dbName: 'test-repo-listen-change', adapter: 'memory', silentConnect: true, });
+        await DatabaseManager.connect(DB_NAME, { dbName: DB_NAME, adapter: 'memory', silentConnect: true, });
         repo = RepoManager.get(new User);
     });
 
