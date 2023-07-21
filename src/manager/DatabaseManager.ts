@@ -52,8 +52,13 @@ export type PouchDBConfig = {
 
 export type DatabaseCustomConfig = {
     adapter: string;
-    transform: (transformer: any) => Promise<void>;
+    transform: (transformer: {
+        incoming: (doc: object) => object;
+        outgoing: (doc: object) => object;
+    }) => Promise<void>;
+    login: (username: string, password: string) => Promise<void>;
     hasPassword: boolean;
+    config: PouchDBConfig;
 };
 
 export class DatabaseManager {
@@ -90,7 +95,7 @@ export class DatabaseManager {
                     if (!config.auth) {
                         throw new Error('You must provide an authentication object with username and password.');
                     }
-                    await (pouchDb as any).login(config.auth.username, config.auth.password);
+                    await (pouchDb as PouchDB.Database & DatabaseCustomConfig).login(config.auth.username, config.auth.password);
                 }
                 if (config.password) {
                     pouchDb.hasPassword = true;
@@ -103,6 +108,7 @@ export class DatabaseManager {
                 if (!config.dbName) {
                     config.dbName = DEFAULT_DB_NAME;
                 }
+                (pouchDb as PouchDB.Database & DatabaseCustomConfig).config = config;
                 this.databases[config.dbName] = pouchDb;
                 resolve(pouchDb);
             } catch (error) {
