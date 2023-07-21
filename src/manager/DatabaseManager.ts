@@ -91,6 +91,7 @@ export class DatabaseManager {
                     console.log(`- Adapter: ${pouchDb.adapter}`);
                 }
                 if (pouchDb.adapter == 'http') {
+                    PouchDB.plugin(require('pouchdb-adapter-http'));
                     PouchDB.plugin(require('pouchdb-authentication'));
                     if (!config.auth) {
                         throw new Error('You must provide an authentication object with username and password.');
