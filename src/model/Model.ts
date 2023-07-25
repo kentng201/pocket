@@ -578,7 +578,12 @@ export class BaseModel {
     }
 
     // start transformer for api response 
-    formatResponse?<Output>(cloneSelf: this): Output;
+    formatResponse?<Output>(cloneSelf: this): Output {
+        delete (cloneSelf as Partial<this>)._meta;
+        delete (cloneSelf as Partial<this>).relationships;
+        return cloneSelf as unknown as Output;
+    }
+
     public toResponse() {
         const replicatedModel = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
         delete replicatedModel.save;
