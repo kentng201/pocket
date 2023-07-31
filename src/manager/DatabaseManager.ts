@@ -95,7 +95,9 @@ export class DatabaseManager {
                     if (!config.auth) {
                         throw new Error('You must provide an authentication object with username and password.');
                     }
-                    await (pouchDb as PouchDB.Database & DatabaseCustomConfig).login(config.auth.username, config.auth.password);
+                    if ((pouchDb as PouchDB.Database & DatabaseCustomConfig).login) {
+                        await (pouchDb as PouchDB.Database & DatabaseCustomConfig).login(config.auth.username, config.auth.password);
+                    }
                 }
                 if (config.password) {
                     pouchDb.hasPassword = true;
