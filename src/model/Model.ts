@@ -30,12 +30,18 @@ export function setDefaultNeedRealtimeUpdate(realtimeUpdate: boolean): boolean {
     return BaseModel.realtimeUpdate;
 }
 
+export function setDefaultNeedSoftDelete(softDelete: boolean): boolean {
+    BaseModel.softDelete = softDelete;
+    return BaseModel.softDelete;
+}
+
 export class BaseModel {
     static collectionName?: string;
     static dbName: string = 'default';
     static readonlyFields: string[] = [];
     static timestamp?: boolean = true;
     static realtimeUpdate: boolean = true;
+    static softDelete: boolean = true;
 
     getClass(): typeof BaseModel {
         return this.constructor as typeof BaseModel;
@@ -56,6 +62,13 @@ export class BaseModel {
             timestamp = true;
         }
         return timestamp;
+    }
+    public get needSoftDelete() {
+        let softDelete = this.getClass().softDelete;
+        if (!softDelete) {
+            softDelete = true;
+        }
+        return softDelete;
     }
 
     // start of API feature
@@ -93,6 +106,7 @@ export class BaseModel {
     };
     public createdAt?: string;
     public updatedAt?: string;
+    public deletedAt?: string;
 
     // start of object construction
     public fill(attributes: Partial<ModelType<this>>): void {
@@ -444,7 +458,12 @@ export class BaseModel {
         if (this.getClass().beforeDelete) {
             await this.getClass().beforeDelete(this);
         }
-        await this.getClass().repo().deleteOne(this.id);
+        if (this.needSoftDelete) {
+            this.deletedAt = moment().toISOString();
+            await this.save();
+        } else {
+            await this.getClass().repo().deleteOne(this.id);
+        }
         Object.keys(this).forEach((key) => delete this[key as keyof this]);
         if (this.getClass().afterDelete) {
             await this.getClass().afterDelete(this);

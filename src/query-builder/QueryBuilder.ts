@@ -113,6 +113,8 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
     protected localKey?: string;
     protected foreignKey?: string;
 
+    protected softDelete?: 'with' | 'only' | 'none' = 'none';
+
     constructor(model: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string, isOne?: boolean, apiInfo?: APIResourceInfo) {
         if (model.cName === undefined) {
             throw new Error('QueryBuilder create error: collectionName not found');
@@ -289,6 +291,20 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return this;
     }
 
+    withTrashed() {
+        this.softDelete = 'with';
+        return this;
+    }
+
+    onlyTrashed() {
+        this.softDelete = 'only';
+        return this;
+    }
+    withoutTrashed() {
+        this.softDelete = 'none';
+        return this;
+    }
+
 
     orderBy(field: keyof T, order: 'asc' | 'desc' = 'asc') {
         if (!this.sorters) {
@@ -398,6 +414,15 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         this.queries.selector.$and.push({
             _id: { $regex: `^${this.model.cName}`, },
         });
+        if (this.softDelete === 'none') {
+            this.queries.selector.$and.push({
+                deletedAt: { $exists: false, },
+            });
+        } else if (this.softDelete === 'only') {
+            this.queries.selector.$and.push({
+                deletedAt: { $exists: true, },
+            });
+        }
         const data = await DatabaseManager.get(this.dbName)?.find(this.queries) as PouchDB.Find.FindResponse<{}>;
         const sortedData = this.sort(data.docs as any);
         data.docs = sortedData as (T & { _id: string, _rev: string })[];
