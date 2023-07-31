@@ -32,7 +32,7 @@ export default defineConfig({
 Create a file `pocket.config.json` inside the `public` folder
 
 - modelTimestamp: if true, your model will have a createdAt and updatedAt field
-- realtimeUpdate: if true, your model will sync with other model with same _id
+- realtimeUpdate: if true, your model will sync with other model with same id
 - databases: an array of database configuration
   - dbName: name of the database
   - syncSetName: name of the sync set, all database with same syncSetName will sync with each other
@@ -114,6 +114,45 @@ pocket().then(() => {
 });
 ```
 
+#### **Node.js(Express, Nest.js, etc)**
+
+You may establish an manually connection via `DatabaseManager`
+
+```ts
+import { DatabaseManager } from "pocket";
+
+async function init() {
+    const db = await DatabaseManager.connect(
+        /**
+         * Database url:
+         * If pure string, it will use in-memory adapter
+         * If http url, it will connect to a remote database
+         */
+        'backend-database',
+        {
+            /**
+             * The name will in your model
+             * @default 'default'
+             */
+            name: 'backend-database',
+
+            /**
+             * Can be one of the below
+             * idb: Indexed DB
+             * memory: In memory database, suitable for testing
+             * http: HTTP
+             */
+            adapter: 'memory',
+        }
+    )
+}
+
+// ... rest of your Node.js integration
+
+// You may get same db by same name you stated in DatabaseManager.connect() function in the runtime.
+const anotherSameDb = DatabaseManager.get('backend-database');
+```
+
 ### Model
 
 You can start to use Typescript classes to define your model
@@ -129,7 +168,7 @@ export class User extends Model {
     static dbName = 'default';
 
     /**
-     * when set to true, the instance will sync with other model with same _id
+     * when set to true, the instance will sync with other model with same id
      * @default true
      */
     static realtimeUpdate = true;
@@ -245,7 +284,7 @@ class User extends Model {
     name!: string;
     password?: string;
 
-    @HasMany('Post', '_id', 'userId')
+    @HasMany('Post', 'id', 'userId')
     posts?: Post[];
 }
 ```
@@ -284,18 +323,18 @@ const userWithPosts = await User.with('posts').where('name', '=', 'John').first(
 
 // output
 User {
-    _id: '...',
+    id: '...',
     _rev: '1-xxxx',
     name: 'John',
     posts: [
         Post {
-            _id: '...',
+            id: '...',
             _rev: '1-xxxx',
             title: 'hello world',
             userId: '...',
         },
         Post {
-            _id: '...',
+            id: '...',
             _rev: '1-xxxx',
             title: 'nice to meet you, Malaysia',
             userId: '...',
@@ -343,7 +382,7 @@ await user.save() // beforeSave: User {...}
 
 ### Real Time
 
-If you define the model as real time, the object with same _id with sync each other
+If you define the model as real time, the object with same id with sync each other
 
 ```typescript
 import { Model, setRealtime } from 'pocket'
@@ -359,10 +398,10 @@ class User extends Model {
 
 
 const originalUser = await User.create({
-    _id: 'real-time',
+    id: 'real-time',
     name: 'Title-1',
 });
-const newUser = await User.find(originalUser._id) as User;
+const newUser = await User.find(originalUser.id) as User;
 newUser.name = 'Title-2';
 await newUser.save();
 while (originalUser._real_time_updating) {
@@ -377,12 +416,12 @@ For listen document change in vue js component, you can use the following code
 ```typescript
 import { setDocChangeEventListener } from 'pocket';
 
-setDocChangeEventListener((_id: string) => {
+setDocChangeEventListener((id: string) => {
     this.$forceUpdate();
 });
 ```
 
-then your other model will update once related _id document is updated
+then your other model will update once related id document is updated
 
 You can also sync your databases via following code, then your database will sync with each other
 
@@ -434,7 +473,7 @@ class User extends Model {
 
 // When you perform create, and set the apiAuto.create to true, it will call the following API:
 const user = await User.create({
-    _id: 1,
+    id: 1,
     name: 'John',
 });
 // API called: POST http://pocket.test/api/users/1
