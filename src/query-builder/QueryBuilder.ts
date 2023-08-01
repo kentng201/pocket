@@ -416,14 +416,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         });
         if (this.softDelete === 'none') {
             this.queries.selector.$and.push({
-                $or: [
-                    {
-                        deletedAt: { $eq: undefined, },
-                    },
-                    {
-                        deletedAt: { $existed: false, },
-                    },
-                ],
+                deletedAt: { $exists: false, },
             });
         } else if (this.softDelete === 'only') {
             this.queries.selector.$and.push({
@@ -558,7 +551,6 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         rawDoc._id = this.model.cName + '.' + id;
         rawDoc._rev = doc._meta._rev;
         const result = await this.db.remove(rawDoc as PouchDB.Core.RemoveDocument);
-        console.log('result delete: ', result);
         if (this.apiInfo && this.apiInfo.apiAutoDelete) {
             await this.api?.delete(id);
         }
