@@ -6,8 +6,31 @@ Pocket is a PouchDB/CouchDB object modeling tools designed to work in the browse
 
 First install Node.js and npm. Then install Pocket via:
 
+If your target environment is browser (Vue.js, React.js, React Native, etc), then
+
 ```bash
-npm install pocket
+npm run build:browser
+```
+
+If your target environement is Node.js (SDK, Express.js, Nest.js, etc), then
+
+```bash
+npm run build:node 
+```
+
+You will receive a zip file with following format:
+`pocket-<version>.tgz`
+
+Then bring this node_modules into the target project and run:
+
+```bash
+npm install pocket-<version>.tgz
+```
+
+For example,
+
+```bash
+npm install pocket-0.3.1.tgz
 ```
 
 ### Caution of Vite
