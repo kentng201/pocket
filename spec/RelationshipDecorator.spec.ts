@@ -13,6 +13,7 @@ describe('Relationship Decorator', () => {
         @PocketModel
         class DecoratorPost extends Model {
             static dbName = dbName;
+            static softDelete = false;
 
             userId!: string;
 
@@ -22,6 +23,7 @@ describe('Relationship Decorator', () => {
         @PocketModel
         class DecoratorUser extends Model {
             static dbName = dbName;
+            static softDelete = false;
             name!: string;
 
             @HasMany('DecoratorPost', 'id', 'userId') posts?: DecoratorPost[];

@@ -454,22 +454,54 @@ export class BaseModel {
      * Delete a model from database
      * @returns void
      */
-    async delete(): Promise<void> {
+    async delete(): Promise<void | this> {
         if (this.getClass().beforeDelete) {
             await this.getClass().beforeDelete(this);
         }
-        if (this.needSoftDelete) {
+        if (this.getClass().softDelete) {
             this.deletedAt = moment().toISOString();
             await this.save();
         } else {
             await this.getClass().repo().deleteOne(this.id);
+            Object.keys(this).forEach((key) => delete this[key as keyof this]);
         }
-        Object.keys(this).forEach((key) => delete this[key as keyof this]);
         if (this.getClass().afterDelete) {
             await this.getClass().afterDelete(this);
         }
+        // if (this.getClass().softDelete) {
+        //     return this;
+        // }
     }
     // end of CRUD operation
+
+    // start of soft delete feature
+    static withTrashed<T extends BaseModel>(this: ModelStatic<T>): QueryBuilder<T> {
+        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof BaseModel).dbName).withTrashed();
+    }
+    static onlyTrashed<T extends BaseModel>(this: ModelStatic<T>): QueryBuilder<T> {
+        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof BaseModel).dbName).onlyTrashed();
+    }
+    static withoutTrashed<T extends BaseModel>(this: ModelStatic<T>): QueryBuilder<T> {
+        return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof BaseModel).dbName).withoutTrashed();
+    }
+
+    async restore(): Promise<this> {
+        const id = this.id;
+        if (!this.needSoftDelete) throw new Error('This model does not support soft delete');
+        const cloned = this.replicate();
+        await this.getClass().repo().deleteOne(this.id);
+        delete cloned.deletedAt;
+        delete cloned.createdAt;
+        delete cloned.updatedAt;
+        cloned.id = id;
+        delete (cloned as any)._meta._rev;
+        delete (cloned as any)._meta._dirty;
+        delete (cloned as any)._meta._before_dirty;
+        await cloned.save();
+        console.log('cloned: ', cloned);
+        return cloned;
+    }
+    // end of soft delete feature
 
     // start of query builder
     static query<T extends BaseModel>(this: ModelStatic<T>): QueryBuilder<T> {

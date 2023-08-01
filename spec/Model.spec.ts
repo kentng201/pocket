@@ -6,6 +6,7 @@ describe('Model', () => {
     class MUser extends Model {
         static dbName = 'model';
         static readonlyFields = ['username',];
+        static softDelete = false;
 
         name!: string;
         username?: string;

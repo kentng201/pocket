@@ -158,9 +158,9 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return this.foreignKey;
     }
 
-    async find(id?: string): Promise<T | undefined> {
+    async find(id?: string, forceFind?: boolean): Promise<T | undefined> {
         if (!id) return undefined;
-        const doc = await this.getDoc(id);
+        const doc = await this.getDoc(id, forceFind);
         if (doc) return this.cast(doc as unknown as ModelType<T>);
         return undefined;
     }
@@ -416,7 +416,14 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         });
         if (this.softDelete === 'none') {
             this.queries.selector.$and.push({
-                deletedAt: { $exists: false, },
+                $or: [
+                    {
+                        deletedAt: { $eq: undefined, },
+                    },
+                    {
+                        deletedAt: { $existed: false, },
+                    },
+                ],
             });
         } else if (this.softDelete === 'only') {
             this.queries.selector.$and.push({
@@ -440,17 +447,26 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return result[0];
     }
 
+    async last(): Promise<T | undefined> {
+        this.isOne = true;
+        const result = await this.get();
+        return result[result.length - 1];
+    }
+
     async count() {
         return (await this.get()).length;
     }
 
-    async getDoc(id?: string): Promise<PouchDB.Core.IdMeta & PouchDB.Core.GetMeta | undefined> {
+    async getDoc(id?: string, forceFind?: boolean): Promise<PouchDB.Core.IdMeta & PouchDB.Core.GetMeta | undefined> {
         if (!id) return undefined;
         if (!id.includes(this.model.cName + '.')) id = this.model.cName + '.' + id;
         try {
             const result = await this.db.get(id) as PouchDB.Core.IdMeta & PouchDB.Core.GetMeta & { id: string };
             result.id = result._id;
             delete (result as Partial<PouchDB.Core.IdMeta>)._id;
+            if (this.softDelete === 'none' && (result as any).deletedAt && !forceFind) {
+                return undefined;
+            }
             return result;
         } catch (e) {
             if (this.apiInfo && this.apiInfo.apiFallbackGet) {
@@ -534,7 +550,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
     }
 
     async deleteOne(id: string) {
-        const doc = await this.find(id);
+        const doc = await this.find(id, true);
         if (!doc) {
             return Promise.reject(new Error('Document not found'));
         }
@@ -542,6 +558,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         rawDoc._id = this.model.cName + '.' + id;
         rawDoc._rev = doc._meta._rev;
         const result = await this.db.remove(rawDoc as PouchDB.Core.RemoveDocument);
+        console.log('result delete: ', result);
         if (this.apiInfo && this.apiInfo.apiAutoDelete) {
             await this.api?.delete(id);
         }
