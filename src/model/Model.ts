@@ -14,7 +14,7 @@ import { addWeakRef, needToReload } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { RelationshipType } from 'src/definitions/RelationshipType';
-import { convertIdFieldsToDocIds, convertIdFieldsToModelIds, getRelationships } from '..';
+import { DatabaseManager, convertIdFieldsToDocIds, convertIdFieldsToModelIds, getRelationships } from '..';
 import { getModelClass } from './ModelDecorator';
 
 export function setDefaultDbName(dbName: string): string {
@@ -369,6 +369,17 @@ export class BaseModel {
         return this;
     }
 
+    private async saveCollectionName() {
+        const db = DatabaseManager.get(this.dName);
+        if (!db) return;
+        db.get(`Collections.${this.cName}`).catch(async () => {
+            await db.put({
+                _id: `Collections.${this.cName}`,
+                name: this.cName,
+            });
+        });
+    }
+
     /**
      * Save a model into database
      * @returns this
@@ -377,6 +388,7 @@ export class BaseModel {
         while (this._meta._real_time_updating) {
             await new Promise((resolve) => setTimeout(resolve, 10));
         }
+        await this.saveCollectionName();
 
         let newAttributes: Partial<this> & { _rev?: string } = {};
         for (const field in this) {
