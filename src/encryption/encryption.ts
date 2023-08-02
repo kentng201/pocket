@@ -29,7 +29,6 @@ export const transformer = {
 export async function setPassword(password: string) {
     await sodium.ready;
 
-    if (key) return;
     const encoder = new TextEncoder();
     const passwordBytes = encoder.encode(password.padEnd(32, ' '));
     key = passwordBytes.slice(0, sodium.crypto_secretbox_KEYBYTES);
