@@ -8,6 +8,7 @@ export * from 'src/real-time/DatabaseSync';
 export * from 'src/relationships/RelationshipDecorator';
 export * from 'src/model/ModelDecorator';
 export * from 'src/helpers/Persistor';
+export * from 'src/encryption/encryption';
 
 import pocket from 'src/boot/browser';
 export default pocket;

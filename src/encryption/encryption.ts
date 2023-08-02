@@ -26,7 +26,7 @@ export const transformer = {
 };
 
 
-export async function setPassword(password: string) {
+export async function setEncryptionPassword(password: string) {
     await sodium.ready;
 
     const encoder = new TextEncoder();
