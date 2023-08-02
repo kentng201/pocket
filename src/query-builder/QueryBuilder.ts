@@ -1,7 +1,9 @@
 import uuid from 'short-uuid';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
+import { EncryptedDocument } from 'src/definitions/EncryptedDocument';
 import { ModelKey, ModelType, ModelValue, NewModelType } from 'src/definitions/Model';
 import { RelationshipType } from 'src/definitions/RelationshipType';
+import { decrypt } from 'src/encryption/encryption';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
 import { DatabaseCustomConfig, DatabaseManager } from 'src/manager/DatabaseManager';
 import { BaseModel } from 'src/model/Model';
@@ -410,6 +412,67 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return model;
     }
 
+    async jsSearch(): Promise<T[]> {
+        const result = await this.db.find({
+            selector: {
+                _id: { $regex: `^${this.model.cName}`, },
+            },
+        });
+        result.docs = result.docs.map((doc) => {
+            const item = doc as unknown as EncryptedDocument;
+            if (!item.payload) return item;
+            const decryptedItem = decrypt(item.payload);
+
+            const decryptedDoc = {
+                _id: item._id,
+                _rev: item._rev,
+                ...decryptedItem,
+            };
+            return decryptedDoc;
+        });
+
+        result.docs = result.docs.filter((doc) => {
+            const item = doc as unknown as T;
+            let isTargetDoc = false;
+            if (this.softDelete === 'none') {
+                isTargetDoc = !item.deletedAt;
+            } else if (this.softDelete === 'only') {
+                isTargetDoc = !!item.deletedAt;
+            }
+
+            for (const selector of this.queries.selector.$and) {
+                const key = Object.keys(selector)[0];
+                const value = selector[key];
+                const operator = Object.keys(value)[0];
+                const operatorValue = value[operator];
+                if (operator === '$eq') {
+                    isTargetDoc = item[key as keyof T] === operatorValue;
+                } else if (operator === '$ne') {
+                    isTargetDoc = item[key as keyof T] !== operatorValue;
+                } else if (operator === '$gt') {
+                    isTargetDoc = item[key as keyof T] > operatorValue;
+                } else if (operator === '$lt') {
+                    isTargetDoc = item[key as keyof T] < operatorValue;
+                } else if (operator === '$gte') {
+                    isTargetDoc = item[key as keyof T] >= operatorValue;
+                } else if (operator === '$lte') {
+                    isTargetDoc = item[key as keyof T] <= operatorValue;
+                } else if (operator === '$in') {
+                    isTargetDoc = (operatorValue as any[]).includes(item[key as keyof T]);
+                } else if (operator === '$nin') {
+                    isTargetDoc = !(operatorValue as any[]).includes(item[key as keyof T]);
+                }
+            }
+            return isTargetDoc;
+        });
+        return result.docs as PouchDB.Core.ExistingDocument<T>[];
+    }
+
+    private async mangoQuery(db: PouchDB.Database<T> & DatabaseCustomConfig) {
+        const result = await db.find(this.queries) as PouchDB.Find.FindResponse<{}>;
+        return result.docs;
+    }
+
     async get(): Promise<T[]> {
         this.queries.selector.$and.push({
             _id: { $regex: `^${this.model.cName}`, },
@@ -423,11 +486,20 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                 deletedAt: { $exists: true, },
             });
         }
-        const data = await DatabaseManager.get(this.dbName)?.find(this.queries) as PouchDB.Find.FindResponse<{}>;
-        const sortedData = this.sort(data.docs as any);
-        data.docs = sortedData as (T & { _id: string, _rev: string })[];
+        const db = DatabaseManager.get(this.dbName) as PouchDB.Database<T> & DatabaseCustomConfig;
+        if (!db) {
+            throw new Error(`Database ${this.dbName} not found`);
+        }
+        let data;
+        if (db.hasPassword) {
+            data = await this.jsSearch();
+        } else {
+            data = await this.mangoQuery(db);
+        }
+        const sortedData = this.sort(data as any);
+        data = sortedData as (T & { _id: string, _rev: string })[];
         const result = [] as T[];
-        for (const item of data.docs) {
+        for (const item of data) {
             const model = await this.cast(item as unknown as ModelType<T>);
             if (model) result.push(model);
         }

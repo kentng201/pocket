@@ -9,7 +9,6 @@ export const classes: ModelMapper = {};
 export function PocketModel<T extends typeof BaseModel>(model: T) {
     if (classes[model.name]) return;
     classes[model.name] = model;
-    // console.log(`Class ${model.name} registered`);
 }
 
 export function getModelClass(modelName: string): typeof BaseModel {

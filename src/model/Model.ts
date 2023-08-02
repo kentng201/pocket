@@ -510,7 +510,6 @@ export class BaseModel {
         delete (cloned as any)._meta._dirty;
         delete (cloned as any)._meta._before_dirty;
         await cloned.save();
-        console.log('cloned: ', cloned);
         return cloned;
     }
     // end of soft delete feature
