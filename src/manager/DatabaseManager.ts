@@ -1,4 +1,4 @@
-import { setPassword, transformer } from 'src/encryption/encryption';
+import { setEncryptionPassword, transformer } from 'src/encryption/encryption';
 import { isRealTime, setRealtime } from 'src/real-time/RealTimeModel';
 
 let PouchDB: any;
@@ -101,7 +101,7 @@ export class DatabaseManager {
                 }
                 if (config.password) {
                     pouchDb.hasPassword = true;
-                    await setPassword(config.password);
+                    await setEncryptionPassword(config.password);
                     PouchDB.plugin(require('transform-pouch'));
                     await pouchDb.transform(transformer);
                 }
