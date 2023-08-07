@@ -419,9 +419,54 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return item[key as keyof T] as unknown as string;
     }
 
+    private checkOrTargetDoc(item: T, selectors: PouchDB.Find.Selector[]): boolean {
+        let isTargetDoc = false;
+
+        for (const selector of selectors) {
+            const key = Object.keys(selector)[0];
+            let comparisonValue;
+            if (key.includes('.')) {
+                comparisonValue = this.getComparisonValue(item, key);
+            } else {
+                comparisonValue = item[key as keyof T];
+            }
+
+            const value = selector[key];
+            const operator = Object.keys(value)[0];
+            const operatorValue = value[operator];
+            if (operator === '$eq') {
+                isTargetDoc = comparisonValue === operatorValue;
+            } else if (operator === '$ne') {
+                isTargetDoc = comparisonValue !== operatorValue;
+            } else if (operator === '$gt') {
+                isTargetDoc = comparisonValue > operatorValue;
+            } else if (operator === '$lt') {
+                isTargetDoc = comparisonValue < operatorValue;
+            } else if (operator === '$gte') {
+                isTargetDoc = comparisonValue >= operatorValue;
+            } else if (operator === '$lte') {
+                isTargetDoc = comparisonValue <= operatorValue;
+            } else if (operator === '$in') {
+                isTargetDoc = (operatorValue as any[]).includes(comparisonValue);
+            } else if (operator === '$nin') {
+                isTargetDoc = !(operatorValue as any[]).includes(comparisonValue);
+            } else if (operator === '$regex' && comparisonValue) {
+                isTargetDoc = (comparisonValue as string).match(operatorValue as string) !== null;
+            } else if (Array.isArray(operatorValue)) {
+                return this.checkIfTargetDoc(item);
+            }
+            if (isTargetDoc) return true;
+        }
+        return isTargetDoc;
+    }
+
     private checkIfTargetDoc(item: T): boolean {
         let isTargetDoc = false;
         for (const selector of this.queries.selector.$and) {
+            if (selector.$or) {
+                return this.checkOrTargetDoc(item, selector.$or);
+            }
+
             const key = Object.keys(selector)[0];
             let comparisonValue;
             if (key.includes('.')) {
