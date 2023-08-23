@@ -167,6 +167,16 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return undefined;
     }
 
+    /**
+     * Add eager loading relationships
+     * @param relationships relationships to load
+     * @returns QueryBuilder
+     */
+    with(...relationships: string[]) {
+        this.relationships?.concat(relationships as ValidDotNotationArray<T, K>);
+        return this;
+    }
+
     where(condition: (query: QueryBuilder<T>) => void): this;
     where(queryableModel: Partial<QueryableModel<T>>): this;
     where<Key extends ModelKey<T>>(field: Key | string, value: OperatorValue<T, Key, '='>): this;
