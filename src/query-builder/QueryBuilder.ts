@@ -98,6 +98,11 @@ function queryableValueToValue<T extends BaseModel, Key extends ModelKey<T>>(fie
     }
 }
 
+
+export function getNewId(): string {
+    return String(uuid.generate());
+}
+
 export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
     protected queries: PouchDB.Find.FindRequest<T> & { selector: { $and: PouchDB.Find.Selector[] } };
     protected sorters?: Array<string | { [propName: string]: 'asc' | 'desc' }>;
@@ -635,7 +640,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
 
     async create(attributes: NewModelType<T>, fallbackCreate = false): Promise<PouchDB.Core.Response> {
         if (!attributes.id) {
-            attributes.id = String(uuid.generate());
+            attributes.id = getNewId();
         }
         if (!attributes.id.includes(this.model.cName)) {
             attributes.id = `${this.model.cName}.${attributes.id}`;
