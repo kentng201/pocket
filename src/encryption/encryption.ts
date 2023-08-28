@@ -1,11 +1,16 @@
 import sodium from 'libsodium-wrappers';
 
-let key: Uint8Array;
-let nonce: Uint8Array;
+const key: {
+    [key: string]: Uint8Array;
+} = {};
+const nonce: {
+    [key: string]: Uint8Array;
+} = {};
 
 export const transformer = {
+    dbName: '',
     incoming: function (doc: any) {
-        const encrypted = encrypt({ ...doc, });
+        const encrypted = encrypt({ ...doc, }, this.dbName);
         return {
             _id: doc._id,
             _rev: doc._rev,
@@ -16,7 +21,7 @@ export const transformer = {
         if (!doc.payload) {
             return doc;
         }
-        const output = decrypt(doc.payload);
+        const output = decrypt(doc.payload, this.dbName);
         return {
             _id: doc._id,
             _rev: doc._rev,
@@ -26,28 +31,28 @@ export const transformer = {
 };
 
 
-export async function setEncryptionPassword(password: string) {
+export async function setEncryptionPassword(password: string, dbName: string) {
     await sodium.ready;
 
     const encoder = new TextEncoder();
     const passwordBytes = encoder.encode(password.padEnd(32, ' '));
-    key = passwordBytes.slice(0, sodium.crypto_secretbox_KEYBYTES);
+    key[dbName] = passwordBytes.slice(0, sodium.crypto_secretbox_KEYBYTES);
 
     const nonceBytes = encoder.encode(password.padEnd(24, ' '));
-    nonce = nonceBytes.slice(0, sodium.crypto_secretbox_NONCEBYTES);
+    nonce[dbName] = nonceBytes.slice(0, sodium.crypto_secretbox_NONCEBYTES);
 }
 
-export function encrypt(data: any): string {
+export function encrypt(data: any, dbName: string): string {
     delete data._id;
     delete data._rev;
-    const ciphertext = sodium.crypto_secretbox_easy(JSON.stringify(data), nonce, key);
+    const ciphertext = sodium.crypto_secretbox_easy(JSON.stringify(data), nonce[dbName], key[dbName]);
     const base64CipherText = sodium.to_base64(ciphertext);
     return base64CipherText;
 }
 
-export function decrypt(data: string): any {
+export function decrypt(data: string, dbName: string): any {
     const ciphertext = sodium.from_base64(data);
-    const decrypted = sodium.crypto_secretbox_open_easy(ciphertext, nonce, key);
+    const decrypted = sodium.crypto_secretbox_open_easy(ciphertext, nonce[dbName], key[dbName]);
     const decoder = new TextDecoder('utf-8');
     const decryptedString = decoder.decode(decrypted);
     return JSON.parse(decryptedString);

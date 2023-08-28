@@ -101,9 +101,10 @@ export class DatabaseManager {
                 }
                 if (config.password) {
                     pouchDb.hasPassword = true;
-                    await setEncryptionPassword(config.password);
+                    await setEncryptionPassword(config.password, config.dbName || 'default');
                     PouchDB.plugin(require('transform-pouch'));
-                    await pouchDb.transform(transformer);
+                    const newTransformer = { ...transformer, dbName: config.dbName || 'default', };
+                    await pouchDb.transform(newTransformer);
                 }
 
                 if (!this.databases) this.databases = {};

@@ -528,7 +528,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         result.docs = result.docs.map((doc) => {
             const item = doc as unknown as EncryptedDocument;
             if (!item.payload) return item;
-            const decryptedItem = decrypt(item.payload);
+            const decryptedItem = decrypt(item.payload, this.dbName || 'default');
 
             const decryptedDoc = {
                 _id: item._id,
