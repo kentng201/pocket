@@ -3,9 +3,9 @@ import { isRealTime, setRealtime } from 'src/real-time/RealTimeModel';
 
 let PouchDB: any;
 
-export function setEnvironement(environement: 'browser' | 'node') {
+export function setEnvironment(environment: 'browser' | 'node') {
     const PouchDBFind = require('pouchdb-find');
-    if (environement == 'browser') {
+    if (environment == 'browser') {
         PouchDB = require('pouchdb-browser').default;
         PouchDB.plugin(PouchDBFind.default);
     } else {
@@ -66,7 +66,7 @@ export class DatabaseManager {
 
     public static async connect(url: string, config: PouchDBConfig): Promise<PouchDB.Database & DatabaseCustomConfig | null> {
         if (!PouchDB) {
-            setEnvironement('node');
+            setEnvironment('node');
         }
         if (config.adapter == 'memory') {
             const PouchDBAdapterMemory = require('pouchdb-adapter-memory');

@@ -1,4 +1,4 @@
-import { DatabaseManager, setEnvironement } from 'src/manager/DatabaseManager';
+import { DatabaseManager, setEnvironment } from 'src/manager/DatabaseManager';
 import { setDefaultDbName, setDefaultNeedRealtimeUpdate, setDefaultNeedTimestamp } from 'src/model/Model';
 import { setRealtime } from 'src/real-time/RealTimeModel';
 import { syncDatabases } from 'src/real-time/DatabaseSync';
@@ -43,7 +43,7 @@ export async function setupConfig<Config extends SinglePocketConfig | MultiPocke
             const tempDb: { [dbName: string]: string } = {};
 
             const multiConfig = config as MultiPocketConfig & GlobalConfig;
-            setEnvironement(isBrowser ? 'browser' : 'node');
+            setEnvironment(isBrowser ? 'browser' : 'node');
             setDefaultDbName(multiConfig.databases[0].dbName || 'default');
             setDefaultNeedTimestamp(multiConfig.modelTimestamp || false);
             setDefaultNeedRealtimeUpdate(multiConfig.realtimeUpdate || false);
@@ -71,7 +71,7 @@ export async function setupConfig<Config extends SinglePocketConfig | MultiPocke
             setRealtime(multiConfig.realtimeUpdate || false);
         } else if ((config as SinglePocketConfig).url) {
             const singleConfig = config as SinglePocketConfig & GlobalConfig;
-            setEnvironement(isBrowser ? 'browser' : 'node');
+            setEnvironment(isBrowser ? 'browser' : 'node');
             setDefaultDbName(singleConfig.dbName || 'default');
             setDefaultNeedTimestamp(singleConfig.modelTimestamp || false);
             setDefaultNeedRealtimeUpdate(singleConfig.realtimeUpdate || false);

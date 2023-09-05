@@ -1,4 +1,4 @@
-import { DatabaseManager, setEnvironement } from 'src/manager/DatabaseManager';
+import { DatabaseManager, setEnvironment } from 'src/manager/DatabaseManager';
 import fs from 'fs';
 
 describe('Database Manager', () => {
@@ -52,8 +52,8 @@ describe('Database Manager', () => {
     });
 
     it('should be able to set runtime environment to either node or browser', () => {
-        setEnvironement('node');
-        expect(() => setEnvironement('browser')).toThrowError('self is not defined');
+        setEnvironment('node');
+        expect(() => setEnvironment('browser')).toThrowError('self is not defined');
     });
 
     afterAll(() => {
