@@ -466,11 +466,11 @@ export class BaseModel {
      * Delete a model from database
      * @returns void
      */
-    async delete(): Promise<void | this> {
+    async delete(forceDelete = false): Promise<void | this> {
         if (this.getClass().beforeDelete) {
             await this.getClass().beforeDelete(this);
         }
-        if (this.getClass().softDelete) {
+        if (this.getClass().softDelete && !forceDelete) {
             this.deletedAt = moment().toISOString();
             await this.save();
         } else {
@@ -498,19 +498,17 @@ export class BaseModel {
     }
 
     async restore(): Promise<this> {
-        const id = this.id;
         if (!this.needSoftDelete) throw new Error('This model does not support soft delete');
-        const cloned = this.replicate();
-        await this.getClass().repo().deleteOne(this.id);
-        delete cloned.deletedAt;
-        delete cloned.createdAt;
-        delete cloned.updatedAt;
-        cloned.id = id;
-        delete (cloned as any)._meta._rev;
-        delete (cloned as any)._meta._dirty;
-        delete (cloned as any)._meta._before_dirty;
-        await cloned.save();
-        return cloned;
+        delete this.deletedAt;
+        const json = {
+            ...this.toJson(),
+            _id: this.docId,
+            id: undefined,
+            _rev: this._meta._rev,
+        };
+        const db = DatabaseManager.get(this.getClass().dbName);
+        await db?.put(json);
+        return this;
     }
     // end of soft delete feature
 

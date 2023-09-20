@@ -562,10 +562,12 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
             _id: { $regex: `^${this.model.cName}`, },
         });
         if (this.softDelete === 'none') {
+            this.where('deletedAt', '=', undefined as any);
             this.queries.selector.$and.push({
                 deletedAt: { $exists: false, },
             });
         } else if (this.softDelete === 'only') {
+            this.where('deletedAt', '!=', undefined as any);
             this.queries.selector.$and.push({
                 deletedAt: { $exists: true, },
             });
@@ -613,7 +615,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
             const result = await this.db.get(id) as PouchDB.Core.IdMeta & PouchDB.Core.GetMeta & { id: string };
             result.id = result._id;
             delete (result as Partial<PouchDB.Core.IdMeta>)._id;
-            if (this.softDelete === 'none' && (result as any).deletedAt && !forceFind) {
+            if (this.softDelete === 'none' && (result as any).deletedAt !== undefined && !forceFind) {
                 return undefined;
             }
             return result;
