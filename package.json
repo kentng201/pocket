@@ -1,10 +1,9 @@
 {
     "name": "pocket",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "description": "Pouch DB model library",
     "main": "dist/src/index.js",
     "types": "dist/src/index.d.ts",
-    "private": true,
     "scripts": {
         "compile:browser": "tsc --declaration --declarationDir dist --emitDeclarationOnly && tsc --project tsconfig-browser.json && tsc-alias -p tsconfig-browser.json && rm -Rf dist/mocks && rm -Rf dist/spec && rm -Rf dist/debug",
         "compile:node": "tsc --declaration --declarationDir dist --emitDeclarationOnly && tsc --project tsconfig.json && tsc-alias -p tsconfig.json && rm -Rf dist/mocks && rm -Rf dist/spec && rm -Rf dist/debug",

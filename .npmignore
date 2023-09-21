@@ -129,3 +129,5 @@ tsconfig.json
 #src files
 index.ts
 src/
+
+package-node.json
