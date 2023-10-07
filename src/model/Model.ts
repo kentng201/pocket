@@ -382,6 +382,8 @@ export class BaseModel {
                 }).then(() => {
                     resolve(true);
                 });
+            }).then(() => {
+                resolve(true);
             });
         });
     }
