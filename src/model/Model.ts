@@ -372,12 +372,16 @@ export class BaseModel {
     private async saveCollectionName() {
         const db = DatabaseManager.get(this.dName);
         if (!db) return;
-        db.get(`Collections.${this.cName}`).catch(async () => {
-            await db.put({
-                _id: `Collections.${this.cName}`,
-                name: this.cName,
-            }).catch(() => {
-                // update conflict for same collection name
+        await new Promise((resolve) => {
+            db.get(`Collections.${this.cName}`).catch(async () => {
+                await db.put({
+                    _id: `Collections.${this.cName}`,
+                    name: this.cName,
+                }).catch(() => {
+                    resolve(true);
+                }).then(() => {
+                    resolve(true);
+                });
             });
         });
     }
