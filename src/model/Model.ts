@@ -376,6 +376,8 @@ export class BaseModel {
             await db.put({
                 _id: `Collections.${this.cName}`,
                 name: this.cName,
+            }).catch(() => {
+                // update conflict for same collection name
             });
         });
     }
