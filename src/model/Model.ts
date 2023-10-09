@@ -370,22 +370,18 @@ export class BaseModel {
     }
 
     private async saveCollectionName() {
-        const db = DatabaseManager.get(this.dName);
+        const dbName = this.dName;
+        const db = DatabaseManager.get(dbName);
         if (!db) return;
-        await new Promise((resolve) => {
-            db.get(`Collections.${this.cName}`).catch(async () => {
-                await db.put({
-                    _id: `Collections.${this.cName}`,
-                    name: this.cName,
-                }).catch(() => {
-                    resolve(true);
-                }).then(() => {
-                    resolve(true);
-                });
-            }).then(() => {
-                resolve(true);
-            });
-        });
+        class CollectionNameModel extends BaseModel {
+            static collectionName = 'Collections';
+            static dbName = dbName;
+            name!: string;
+        }
+        const collectionNameModel = await CollectionNameModel.first() || new CollectionNameModel();
+        collectionNameModel.id = `Collections.${this.cName}`;
+        collectionNameModel.name = this.cName;
+        await collectionNameModel.save();
     }
 
     /**
@@ -396,8 +392,6 @@ export class BaseModel {
         while (this._meta._real_time_updating) {
             await new Promise((resolve) => setTimeout(resolve, 10));
         }
-        await this.saveCollectionName();
-
         let newAttributes: Partial<this> & { _rev?: string } = {};
         for (const field in this) {
             if (field === '_meta') continue;
@@ -468,6 +462,7 @@ export class BaseModel {
         if (!this.relationships) this.bindRelationships();
         this._meta._dirty = {};
         this._meta._before_dirty = {};
+        await this.saveCollectionName();
         return this;
     }
     /**
