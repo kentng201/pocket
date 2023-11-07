@@ -7,7 +7,7 @@ import { decrypt } from 'src/encryption/encryption';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
 import { DatabaseCustomConfig, DatabaseManager } from 'src/manager/DatabaseManager';
 import { BaseModel } from 'src/model/Model';
-import { getForeignIdFields } from 'src/relationships/RelationshipDecorator';
+import { convertIdFieldsToDocIds, getForeignIdFields } from 'src/relationships/RelationshipDecorator';
 import { ApiRepo } from 'src/repo/ApiRepo';
 
 const operators = ['=', '>', '>=', '<', '<=', '!=', 'in', 'not in', 'between', 'like',] as const;
@@ -672,11 +672,12 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                 newAttr[key as keyof NewModelType<T>] = (attributes[key as keyof NewModelType<T>] as Function).toString() as any;
             }
         }
-        const attr = { ...doc.toJson(), ...attributes, ...newAttr, } as Partial<T> & { _id?: string, _rev?: string, };
+        let attr = { ...doc.toJson(), ...attributes, ...newAttr, } as Partial<T> & { _id?: string, _rev?: string, };
         attr._id = attr.id as string;
         if (!doc._meta._rev) throw new Error('Document revision not found');
         attr._rev = doc._meta._rev;
         delete attr.id;
+        attr = convertIdFieldsToDocIds(attr, this.model);
         const result = await this.db.put(attr, {
             force: false,
         });
