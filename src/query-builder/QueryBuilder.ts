@@ -524,6 +524,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
             selector: {
                 _id: { $regex: `^${this.model.cName}`, },
             },
+            limit: 99999,
         });
         result.docs = result.docs.map((doc) => {
             const item = doc as unknown as EncryptedDocument;
@@ -553,6 +554,7 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
     }
 
     private async mangoQuery(db: PouchDB.Database<T> & DatabaseCustomConfig) {
+        this.queries.limit = 99999;
         const result = await db.find(this.queries) as PouchDB.Find.FindResponse<{}>;
         return result.docs;
     }
