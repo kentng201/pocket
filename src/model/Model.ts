@@ -262,8 +262,8 @@ export class BaseModel {
     static async create<T extends BaseModel>(this: ModelStatic<T>, attributes: NewModelType<T>): Promise<T> {
         const model = new this() as T;
         if (model.needTimestamp) {
-            attributes.createdAt = moment().toISOString();
-            attributes.updatedAt = moment().toISOString();
+            attributes.createdAt = moment().format();
+            attributes.updatedAt = moment().format();
         }
         model.fill(attributes as ModelType<T>);
         const hasDocumentInDb = await model.getClass().find(attributes.id);
@@ -280,7 +280,7 @@ export class BaseModel {
         const guarded = this.getClass().readonlyFields;
         attributes.id = this.id;
         delete attributes.relationships;
-        if (this.needTimestamp) attributes.updatedAt = moment().toISOString();
+        if (this.needTimestamp) attributes.updatedAt = moment().format();
         let updateAttributes: Partial<ModelType<this>> = {};
         updateAttributes = {} as Partial<ModelType<this>>;
         for (const key in attributes) {
@@ -410,7 +410,7 @@ export class BaseModel {
             newAttributes[field] = this[field];
         }
         newAttributes = convertIdFieldsToDocIds(newAttributes, this);
-        const now = moment().toISOString();
+        const now = moment().format();
         let updatedResult;
 
         let hasDocumentInDb;
@@ -479,7 +479,7 @@ export class BaseModel {
             await this.getClass().beforeDelete(this);
         }
         if (this.getClass().softDelete && !forceDelete) {
-            this.deletedAt = moment().toISOString();
+            this.deletedAt = moment().format();
             await this.save();
         } else {
             await this.getClass().repo().deleteOne(this.id);
