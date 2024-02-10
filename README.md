@@ -517,6 +517,15 @@ await user.setRandomPassword(); // this will called API: POST http://pocket.test
 await user.save(); // this will update both pouch db and API
 ```
 
+### CouchDB Broken Connection
+
+You have to setup the following in your CouchDB server in order to prevent broken connection
+
+```bash
+
+https://serverfault.com/questions/735760/increment-couchdb-concurrent-connections
+```
+
 ### Testing
 
 The project is using Node js version 19 to done
