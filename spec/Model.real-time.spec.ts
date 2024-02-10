@@ -109,12 +109,6 @@ describe('Model Real Time', () => {
     });
 
     it('should able to verify the model is need to reload', async () => {
-        setDocChangeEventListener((id: string) => {
-            if (id.includes('RealTimePosts')) {
-                const needReload = user.isOutdated(id);
-                expect(needReload).toEqual(true);
-            }
-        });
         const user = await RealTimeUser2.create({
             id: 'test-123',
             name: 'Title-Testing-1',
@@ -125,6 +119,12 @@ describe('Model Real Time', () => {
                 }),
             ],
         }) as RealTimeUser2;
+        setDocChangeEventListener((id: string) => {
+            if (id.includes('RealTimePosts')) {
+                const needReload = user.isOutdated(id);
+                expect(needReload).toEqual(true);
+            }
+        });
         await new Promise(res => setTimeout(res, 100));
     });
 });
