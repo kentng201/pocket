@@ -492,6 +492,15 @@ export class BaseModel {
         //     return this;
         // }
     }
+    /**
+     * Remove a field from the model
+     * @returns this
+     */
+    async removeField(field: string): Promise<this> {
+        delete this[field as keyof this];
+        this._meta._dirty[field] = true;
+        return this.save();
+    }
     // end of CRUD operation
 
     // start of soft delete feature
@@ -694,11 +703,10 @@ export class BaseModel {
     }
     /**
      * A method to check if this model is not the latest version with the database
-     * @param changeId 
      * @returns 
      */
-    isOutdated(changeId: string): boolean {
-        return needToReload(this, changeId);
+    isOutdated(): boolean {
+        return needToReload(this, this.id);
     }
     notifyUpdate() {
         if (this._meta && this._meta._update_callbacks) {

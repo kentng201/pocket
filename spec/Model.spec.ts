@@ -162,4 +162,14 @@ describe('Model', () => {
         expect(searchedUsers.length).toEqual(1);
         expect(searchedUsers[0].username).toEqual('Raymond');
     });
+
+    it('should be able to remove a field', async () => {
+        const user = await MUser.create({
+            name: 'new-user11',
+            username: 'Raymond',
+        });
+        await user.removeField('username');
+        const dbUser = await MUser.find(user.id as string) as MUser;
+        expect(dbUser.username).not.toBeDefined();
+    });
 });
