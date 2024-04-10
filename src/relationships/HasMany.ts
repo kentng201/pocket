@@ -16,6 +16,5 @@ export function hasMany<T extends BaseModel, R extends BaseModel>(
     builder.setRelationshipType(RelationshipType.HAS_MANY, localKey as string, foreignKey as string);
     const selfCollectionName = self.cName;
     builder.where(foreignKey, '=', `${selfCollectionName}.${self[localKey]}` as ModelValue<R, ModelKey<R>>);
-    console.log('getQuery: ', JSON.stringify(builder.getQuery(), null, 2));
     return builder;
 }
