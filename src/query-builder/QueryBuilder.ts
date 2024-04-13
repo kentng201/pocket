@@ -720,4 +720,8 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         }
         return result;
     }
+
+    async createIndex(index: PouchDB.Find.CreateIndexOptions) {
+        return this.db.createIndex(index);
+    }
 }
