@@ -88,7 +88,7 @@ describe('Model Real Time', () => {
         expect(newUser).toEqual(anotherUser);
     });
 
-    it('should not have any real time listner when real time is disabled', async () => {
+    it('should not have any real time listener when real time is disabled', async () => {
         setRealtime(false);
         const availableEvents = DatabaseManager.get('real-time-model')?.eventNames();
         expect(availableEvents?.length).toEqual(0);
@@ -121,7 +121,7 @@ describe('Model Real Time', () => {
         }) as RealTimeUser2;
         setDocChangeEventListener((id: string) => {
             if (id.includes('RealTimePosts')) {
-                const needReload = user.isOutdated(id);
+                const needReload = user.isOutdated();
                 expect(needReload).toEqual(true);
             }
         });
