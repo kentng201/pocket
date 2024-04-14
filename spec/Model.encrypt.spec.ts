@@ -19,6 +19,43 @@ describe('Model Encrypt', () => {
             return Math.random().toString();
         }
     }
+
+    class TestClass1 extends Model {
+        static dbName = dbName;
+        static realtimeUpdate = true;
+
+        browser!: string;
+        googleAlike?: string;
+        math!: string;
+    }
+
+    class TestClass2 extends Model {
+        static dbName = dbName;
+        static realtimeUpdate = true;
+
+        // random 20 fields, 10 fields are number, 10 fields are string
+        field1!: number;
+        field2!: number;
+        field3!: number;
+        field4!: number;
+        field5!: number;
+        field6!: number;
+        field7!: number;
+        field8!: number;
+        field9!: number;
+        field10!: number;
+        field11!: string;
+        field12!: string;
+        field13!: string;
+        field14!: string;
+        field15!: string;
+        field16!: string;
+        field17!: string;
+        field18!: string;
+        field19!: string;
+        field20!: string;
+    }
+
     let repo: QueryBuilder<EncryptUser>;
 
 
@@ -107,6 +144,43 @@ describe('Model Encrypt', () => {
         expect(user.name).toBe(dbUser2.name);
     });
 
+    it('should be fast', async () => {
+        await Promise.all(new Array(255).fill(0).map(() => EncryptUser.create({
+            name: String(Math.random()),
+        })));
+        await Promise.all(new Array(255).fill(0).map(() => TestClass1.create({
+            browser: String(Math.random()),
+            googleAlike: String(Math.random()),
+            math: String(Math.random()),
+        })));
+        await Promise.all(new Array(255).fill(0).map(() => TestClass2.create({
+            field1: Math.random(),
+            field2: Math.random(),
+            field3: Math.random(),
+            field4: Math.random(),
+            field5: Math.random(),
+            field6: Math.random(),
+            field7: Math.random(),
+            field8: Math.random(),
+            field9: Math.random(),
+            field10: Math.random(),
+            field11: String(Math.random()),
+            field12: String(Math.random()),
+            field13: String(Math.random()),
+            field14: String(Math.random()),
+            field15: String(Math.random()),
+            field16: String(Math.random()),
+            field17: String(Math.random()),
+            field18: String(Math.random()),
+            field19: String(Math.random()),
+            field20: String(Math.random()),
+        })));
+        console.time('find');
+        const tests = await TestClass2.all();
+        console.timeEnd('find');
+
+        expect(tests.length).toBe(255);
+    });
 
     afterAll(() => {
         fs.rmSync('model-encrypt-encrypted', { recursive: true, force: true, });
