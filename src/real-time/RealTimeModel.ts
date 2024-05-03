@@ -8,6 +8,7 @@ export let isRealTime = false;
 const weakReferences: { [_id: string]: WeakRef<any>[] } = {};
 
 export function addWeakRef<T extends BaseModel>(_id: string, doc: T) {
+    if (!isRealTime) return;
     if (!weakReferences[_id]) {
         weakReferences[_id] = [];
     }
