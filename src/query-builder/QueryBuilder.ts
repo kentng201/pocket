@@ -680,6 +680,11 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         attr._rev = doc._meta._rev;
         delete attr.id;
         attr = convertIdFieldsToDocIds(attr, this.model);
+        for (const key in newAttr) {
+            if (newAttr[key as keyof NewModelType<T>] === undefined || newAttr[key as keyof NewModelType<T>] === null) {
+                delete attr[key as keyof NewModelType<T>];
+            }
+        }
         const result = await this.db.put(attr, {
             force: false,
         });
