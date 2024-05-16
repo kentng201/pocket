@@ -6,15 +6,14 @@ import { Persistor } from 'src/helpers/Persistor';
 import { GlobalConfig, MultiPocketConfig, SinglePocketConfig } from 'src/definitions/boot';
 
 const isBrowser = typeof window !== 'undefined' && window.localStorage;
-// const isNode = typeof process !== 'undefined';
 
-const FILE_NOT_FOUND_MSG = 'Cannot find pocket.config.json file. Please create one in the root of your project.';
+const CONFIG_IS_NULL_MSG = 'Config is null. Please provide a valid config object.';
 
 export class ConfigPersistor extends Persistor {
 }
 
 export function replaceEnvVariable<Config extends SinglePocketConfig | MultiPocketConfig>(config: Config): Config {
-    const env = process.env;
+    const env = typeof process !== 'undefined' ? process.env : {};
     const browserWindow = isBrowser ? window : {};
 
     for (const key in config) {
@@ -37,54 +36,53 @@ export function replaceEnvVariable<Config extends SinglePocketConfig | MultiPock
     return config;
 }
 
-export async function setupConfig<Config extends SinglePocketConfig | MultiPocketConfig>(config: Config) {
-    try {
-        if ((config as MultiPocketConfig).databases) {
-            const tempDb: { [dbName: string]: string } = {};
+export async function setupConfig<Config extends SinglePocketConfig | MultiPocketConfig>(config?: Config) {
+    if (!config) {
+        throw new Error(CONFIG_IS_NULL_MSG);
+    }
+    if ((config as MultiPocketConfig).databases) {
+        const tempDb: { [dbName: string]: string } = {};
 
-            const multiConfig = config as MultiPocketConfig & GlobalConfig;
-            setEnvironment(isBrowser ? 'browser' : 'node');
-            setDefaultDbName(multiConfig.databases[0].dbName || 'default');
-            setDefaultNeedTimestamp(multiConfig.modelTimestamp || false);
-            setDefaultNeedRealtimeUpdate(multiConfig.realtimeUpdate || false);
-            for (const singleConfig of multiConfig.databases) {
-                const dbName = singleConfig.dbName || 'default';
-                await DatabaseManager.connect(singleConfig.url, {
-                    dbName,
-                    password: singleConfig.password,
-                    adapter: singleConfig.adapter,
-                    silentConnect: singleConfig.silentConnect,
-                    auth: singleConfig.auth,
-                });
-                if (singleConfig.syncSetName) {
-                    if (tempDb[singleConfig.syncSetName] && tempDb[singleConfig.syncSetName] !== dbName) {
-                        syncDatabases(tempDb[singleConfig.syncSetName], dbName);
-                    }
-                    tempDb[singleConfig.syncSetName] = dbName;
-                } else {
-                    if (tempDb['default'] && tempDb['default'] !== dbName) {
-                        syncDatabases(tempDb['default'], dbName);
-                    }
-                    tempDb['default'] = dbName;
-                }
-            }
-            setRealtime(multiConfig.realtimeUpdate || false);
-        } else if ((config as SinglePocketConfig).url) {
-            const singleConfig = config as SinglePocketConfig & GlobalConfig;
-            setEnvironment(isBrowser ? 'browser' : 'node');
-            setDefaultDbName(singleConfig.dbName || 'default');
-            setDefaultNeedTimestamp(singleConfig.modelTimestamp || false);
-            setDefaultNeedRealtimeUpdate(singleConfig.realtimeUpdate || false);
+        const multiConfig = config as MultiPocketConfig & GlobalConfig;
+        setEnvironment(isBrowser ? 'browser' : 'node');
+        setDefaultDbName(multiConfig.databases[0].dbName || 'default');
+        setDefaultNeedTimestamp(multiConfig.modelTimestamp || false);
+        setDefaultNeedRealtimeUpdate(multiConfig.realtimeUpdate || false);
+        for (const singleConfig of multiConfig.databases) {
+            const dbName = singleConfig.dbName || 'default';
             await DatabaseManager.connect(singleConfig.url, {
-                dbName: singleConfig.dbName || 'default',
+                dbName,
                 password: singleConfig.password,
                 adapter: singleConfig.adapter,
                 silentConnect: singleConfig.silentConnect,
                 auth: singleConfig.auth,
             });
-            setRealtime(singleConfig.realtimeUpdate || false);
+            if (singleConfig.syncSetName) {
+                if (tempDb[singleConfig.syncSetName] && tempDb[singleConfig.syncSetName] !== dbName) {
+                    syncDatabases(tempDb[singleConfig.syncSetName], dbName);
+                }
+                tempDb[singleConfig.syncSetName] = dbName;
+            } else {
+                if (tempDb['default'] && tempDb['default'] !== dbName) {
+                    syncDatabases(tempDb['default'], dbName);
+                }
+                tempDb['default'] = dbName;
+            }
         }
-    } catch (error) {
-        throw new Error(FILE_NOT_FOUND_MSG);
+        setRealtime(multiConfig.realtimeUpdate || false);
+    } else if ((config as SinglePocketConfig).url) {
+        const singleConfig = config as SinglePocketConfig & GlobalConfig;
+        setEnvironment(isBrowser ? 'browser' : 'node');
+        setDefaultDbName(singleConfig.dbName || 'default');
+        setDefaultNeedTimestamp(singleConfig.modelTimestamp || false);
+        setDefaultNeedRealtimeUpdate(singleConfig.realtimeUpdate || false);
+        await DatabaseManager.connect(singleConfig.url, {
+            dbName: singleConfig.dbName || 'default',
+            password: singleConfig.password,
+            adapter: singleConfig.adapter,
+            silentConnect: singleConfig.silentConnect,
+            auth: singleConfig.auth,
+        });
+        setRealtime(singleConfig.realtimeUpdate || false);
     }
 }
