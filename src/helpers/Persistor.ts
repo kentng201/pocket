@@ -1,5 +1,8 @@
+const isBrowser = typeof window !== 'undefined';
 
 function set<T>(key: string, value: T) {
+    if (!isBrowser) return;
+
     if (typeof value === 'object') {
         window.localStorage.setItem(key, JSON.stringify(value));
     } else if (typeof value === 'string') {
@@ -10,10 +13,12 @@ function set<T>(key: string, value: T) {
 }
 
 function clear(key: string) {
+    if (!isBrowser) return;
     window.localStorage.removeItem(key);
 }
 
 function get(key: string) {
+    if (!isBrowser) return;
     const item = window.localStorage.getItem(key);
     if (!item) return undefined;
     const objectRegex = /^\{.*\}$/;
