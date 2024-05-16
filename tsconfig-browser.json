@@ -10,7 +10,7 @@
         "lib": [
             "ES2021"
         ],
-        "outDir": "./dist",
+        "outDir": "./dist/browser",
         "sourceMap": true,
         "target": "ES2015",
         "module": "ES2015",
@@ -18,15 +18,13 @@
         "resolveJsonModule": true,
         "experimentalDecorators": true,
         "esModuleInterop": true,
-        "declaration": true,
+        "declaration": false,
         "strict": true,
         "allowJs": true,
         "skipLibCheck": true
     },
     "include": [
         "src/",
-        "spec/",
-        "mocks/",
         "index.ts",
         "**/*.tgz",
         "**/*.patch"
@@ -34,6 +32,8 @@
     "exclude": [
         "node_modules",
         "**/__tests__/*",
-        "dist"
+        "dist",
+        "spec/",
+        "mocks/",
     ]
 }

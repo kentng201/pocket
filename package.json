@@ -1,26 +1,25 @@
 {
     "name": "pocket",
-    "version": "0.3.9",
+    "version": "0.4.0",
     "description": "Pouch DB model library",
-    "main": "dist/src/index.js",
+    "main": "dist/node/src/index.js",
     "types": "dist/src/index.d.ts",
+    "browser" : "dist/browser/src/index.js",
     "scripts": {
-        "compile:browser": "tsc --declaration --declarationDir dist --emitDeclarationOnly && tsc --project tsconfig-browser.json && tsc-alias -p tsconfig-browser.json && rm -Rf dist/mocks && rm -Rf dist/spec && rm -Rf dist/debug",
-        "compile:node": "tsc --declaration --declarationDir dist --emitDeclarationOnly && tsc --project tsconfig.json && tsc-alias -p tsconfig.json && rm -Rf dist/mocks && rm -Rf dist/spec && rm -Rf dist/debug",
-        "pack": "rm -Rf obfuscated/mocks && rm -Rf obfuscated/spec && rm -Rf obfuscated/debug && npm pack",
-        "rm-original-index": "rm dist/src/index.js && rm dist/src/index.js.map && rm dist/src/index.d.ts",
-        "build:browser": "npm run compile:browser && npm run rm-original-index && mv dist/src/index-browser.js dist/src/index.js && mv dist/src/index-browser.js.map dist/src/index.js.map && mv dist/src/index-browser.d.ts dist/src/index.d.ts && rm dist/src/index-node* && npm run pack",
-        "build:node": "npm run compile:node && npm run rm-original-index && mv dist/src/index-node.js dist/src/index.js && mv dist/src/index-node.js.map dist/src/index.js.map && mv dist/src/index-node.d.ts dist/src/index.d.ts && rm dist/src/index-browser* && npm run pack",
+        "compile:type": "tsc --declaration --declarationDir dist --emitDeclarationOnly && tsc-alias -p tsconfig-types.json",
+        "compile:browser": "tsc --project tsconfig-browser.json && tsc-alias -p tsconfig-browser.json && rm -Rf dist/node/mocks && rm -Rf dist/node/spec && rm -Rf dist/node/debug",
+        "compile:node": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json && rm -Rf dist/browser/mocks && rm -Rf dist/browser/spec && rm -Rf dist/browser/debug",
+        "build": "npm run compile:type && npm run compile:browser && npm run compile:node && npm pack",
         "lint": "eslint src/**/*.ts",
         "repl": "ts-node --project tsconfig.json -r tsconfig-paths/register",
         "test": "ts-node --project tsconfig.json -r tsconfig-paths/register node_modules/jasmine/bin/jasmine --config=jasmine.json",
         "coverage": "nyc -r text -e .ts --exclude \"spec/**/*.spec.ts\" npm run test"
     },
     "keywords": [
-        "Pouch DB",
+        "PouchDB",
+        "CouchDB",
         "Model",
-        "Database",
-        "MVC"
+        "Database"
     ],
     "author": "Kent Ng",
     "license": "ISC",
