@@ -1,36 +1,14 @@
 # Pocket
 
-Pocket is a PouchDB/CouchDB object modeling tools designed to work in the browser and Node.js.
+Pocket is a PouchDB/CouchDB object modeling tools designed to work in the Browser/Node.js.
+(Note: To support React Native in our next release)
 
 ### Getting Started
 
 First install Node.js and npm. Then install Pocket via:
 
-If your target environment is browser (Vue.js, React.js, React Native, etc), then
-
-```bash
-npm run build:browser
 ```
-
-If your target environement is Node.js (SDK, Express.js, Nest.js, etc), then
-
-```bash
-npm run build:node 
-```
-
-You will receive a zip file with following format:
-`pocket-<version>.tgz`
-
-Then bring this node_modules into the target project and run:
-
-```bash
-npm install pocket-<version>.tgz
-```
-
-For example,
-
-```bash
-npm install pocket-0.3.1.tgz
+npm install pocket
 ```
 
 ### Caution of Vite
@@ -49,61 +27,6 @@ export default defineConfig({
 ```
 
 ### Project Setup
-
-#### **Vue.js/React.js**
-
-Create a file `pocket.config.json` inside the `public` folder
-
-- modelTimestamp: if true, your model will have a createdAt and updatedAt field
-- realtimeUpdate: if true, your model will sync with other model with same id
-- databases: an array of database configuration
-  - dbName: name of the database
-  - syncSetName: name of the sync set, all database with same syncSetName will sync with each other
-  - url: database url
-  - password: encrypt your database
-  - silentConnect: if true, the database will not connect to the server when the app starts
-
-```json
-{
-    "modelTimestamp": true,
-    "realtimeUpdate": true,
-    "databases": [
-        {
-            "dbName": "local",
-            "syncSetName": "mainDb",
-            "url": "mainDb",
-            "password": "234568",
-            "silentConnect": true
-        },
-        {
-            "dbName": "userData",
-            "syncSetName": "user-data-do-not-sync",
-            "url": "userData",
-            "password": "809480",
-            "silentConnect": true
-        },
-        {
-            "dbName": "online",
-            "syncSetName": "mainDb",
-            "url": "${ONLINE_REMOTE}:5984/mainDb",
-            "silentConnect": true,
-            "auth": {
-                "username": "admin",
-                "password": "mysecretpassword"
-            }
-        }
-    ]
-}
-```
-
-You can either defined the variable inside the .env file or window object
-`.env`
-
-```env
-# put this line into .env file
-ONLINE_REMOTE=http://www.your-secret-db.com
-...
-```
 
 In React.js, update your `index.tsx` as per below
 
@@ -539,18 +462,10 @@ Then it will run through all the test suite.
 
 ### Build NPM Pack
 
-There is 2 version of the package, one is for browser, another one is for node js
-
-For Node.js version, please run below:
+You will need to build the package via following command
 
 ```bash
-npm run build:node
-```
-
-For browser version, please run below:
-
-```bash
-npm run build:browser
+npm run build
 ```
 
 Then you may install the pocket package in your project
