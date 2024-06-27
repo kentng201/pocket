@@ -530,9 +530,23 @@ export class BaseModel {
     // end of soft delete feature
 
     // start of query builder
+    /**
+     * Query for specific database
+     * @param dbName database name that return from DatabaseManager.get()
+     * @returns Model Query Builder with specific database
+     */
+    static via<T extends BaseModel>(this: ModelStatic<T>, dbName: string): QueryBuilder<T> {
+        return new QueryBuilder<T>(new this, undefined, dbName);
+    }
+
+    /**
+     * Query default database defined in the model
+     * @returns Model Query Builder
+     */
     static query<T extends BaseModel>(this: ModelStatic<T>): QueryBuilder<T> {
         return new QueryBuilder<T>(new this, undefined, (this as unknown as typeof BaseModel).dbName);
     }
+
     static where<T extends BaseModel>(this: ModelStatic<T>, condition: (query: QueryBuilder<T>) => void): QueryBuilder<T>;
     static where<T extends BaseModel>(this: ModelStatic<T>, queryableModel: Partial<QueryableModel<T>>): QueryBuilder<T>;
     static where<T extends BaseModel, Key extends ModelKey<T>>(this: ModelStatic<T>, field: Key | string, value: OperatorValue<T, Key, '='>): QueryBuilder<T>;
