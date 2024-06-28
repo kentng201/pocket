@@ -347,14 +347,6 @@ const originalUser = await User.create({
     id: 'real-time',
     name: 'Title-1',
 });
-const newUser = await User.find(originalUser.id) as User;
-newUser.name = 'Title-2';
-await newUser.save();
-while (originalUser._real_time_updating) {
-    await Promise(res => setTimeout(res, 100)); // when syncing the data, sleep for every 100ms
-}
-
-const isEqual = originalUser === newUser; // true
 ```
 
 For listen document change in vue js component, you can use the following code
@@ -479,3 +471,9 @@ npm install pocket
 To debug, you can use debugger in the Visual Studio Code
 Go to VS Code, and click on the debug icon on the left side
 In "RUN AND DEBUG" session, open to the desire test spec file in vscode, and click play button beside "Jasmine Current File"
+
+### TODO
+
+- [] React Native Support
+- [] Join and Save Support
+- [] Master and Transactional Database Management per Month Support

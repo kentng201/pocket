@@ -21,7 +21,6 @@ export type ModelType<T extends object> = FunctionlessModel<T> & {
     _meta: {
         _dirty?: { [key: string]: boolean };
         _before_dirty?: { [key: string]: any };
-        _real_time_updating?: boolean;
         _fallback_api_doc?: boolean;
         _rev: string;
     };

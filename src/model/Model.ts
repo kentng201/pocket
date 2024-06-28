@@ -97,7 +97,6 @@ export class BaseModel {
     public id: string = '';
     public _meta!: {
         _id: string;
-        _real_time_updating: boolean;
         _fallback_api_doc: boolean;
         _dirty: { [key: string]: boolean };
         _before_dirty: { [key: string]: any };
@@ -391,9 +390,6 @@ export class BaseModel {
      * @returns this
      */
     async save(): Promise<this> {
-        while (this._meta._real_time_updating) {
-            await new Promise((resolve) => setTimeout(resolve, 10));
-        }
         await this.saveCollectionName();
 
         let newAttributes: Partial<this> & { _rev?: string } = {};
