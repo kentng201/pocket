@@ -29,10 +29,14 @@ export function setRealtime(realTime: boolean) {
         doc.id = _id;
         delete doc._id;
         const modelName = singular(_id.split('.')[0]);
-        const ExpectedModelClass = getModelClass(modelName);
-        if (ExpectedModelClass) {
-            doc = new ExpectedModelClass(doc);
-            emitChangeEvent(doc.id, doc as BaseModel);
+        try {
+            const ExpectedModelClass = getModelClass(modelName);
+            if (ExpectedModelClass) {
+                doc = new ExpectedModelClass(doc);
+                emitChangeEvent(doc.id, doc as BaseModel);
+            }
+        } catch (error) {
+            // will trigger model not found error when did not declare as PocketModel
         }
     };
 
