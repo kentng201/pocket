@@ -64,8 +64,5 @@
         "pouchdb-find": "^8.0.0",
         "short-uuid": "^4.2.2",
         "transform-pouch": "^2.0.0"
-    },
-    "engines": {
-        "node": ">=14.0.0"
     }
 }
