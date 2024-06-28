@@ -5,6 +5,7 @@ import { getModelClass } from '..';
 import { singular } from 'pluralize';
 
 export let isRealTime = false;
+const dbChangeListenerMap: { [key: string]: PouchDB.Core.Changes<any> | undefined } = {};
 
 export const docEvent = new EventEmitter();
 export function emitChangeEvent(_id: string, doc: BaseModel) {
@@ -38,7 +39,9 @@ export function setRealtime(realTime: boolean) {
 
     if (isRealTime) {
         Object.values(DatabaseManager.databases).forEach((db) => {
-            db?.changes({
+            if (!db) return;
+            if (dbChangeListenerMap[db.name]) return;
+            dbChangeListenerMap[db.name] = db.changes({
                 since: 'now',
                 include_docs: true,
                 live: true,
@@ -46,7 +49,7 @@ export function setRealtime(realTime: boolean) {
         });
     } else {
         Object.values(DatabaseManager.databases).forEach((db) => {
-            db?.removeListener('change', onRealTimeChange);
+            db?.removeAllListeners('change');
         });
     }
 }
