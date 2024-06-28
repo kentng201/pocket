@@ -1,70 +1,21 @@
-import { ModelKey } from 'src/definitions/Model';
 import { DatabaseManager } from 'src/manager/DatabaseManager';
 import { BaseModel, Model } from 'src/model/Model';
 import EventEmitter from 'events';
+import { getModelClass } from '..';
+import { singular } from 'pluralize';
 
 export let isRealTime = false;
 
-const weakReferences: { [_id: string]: WeakRef<any>[] } = {};
-
-export function addWeakRef<T extends BaseModel>(_id: string, doc: T) {
-    if (!isRealTime) return;
-    if (!weakReferences[_id]) {
-        weakReferences[_id] = [];
-    }
-    weakReferences[_id].push(new WeakRef(doc));
-}
-export function notifyWeakRef<T extends BaseModel>(_id: string, doc: T) {
-    if (!weakReferences[_id]) return;
-    const newAttributes: Partial<T> = {};
-    for (const field in doc) {
-        if (typeof field === 'function') continue;
-        if (field === '_meta') continue;
-        if (field === 'relationships') continue;
-        if (field === 'needTimestamp') continue;
-        if (field === 'cName') continue;
-        if (field === '_id') continue;
-        if (doc.relationships && Object.keys(doc.relationships).includes(field)) continue;
-        if (typeof doc[field] === 'object' && doc[field] !== null) {
-            let hasFunction = false;
-            for (const key in doc[field]) {
-                if (typeof doc[field][key] === 'function') {
-                    hasFunction = true;
-                    break;
-                }
-            }
-            if (hasFunction) continue;
-        }
-        newAttributes[field as keyof Partial<T>] = doc[field as ModelKey<Partial<T>>];
-    }
-    weakReferences[_id].forEach((ref) => {
-        const sameIdDoc = ref.deref();
-        if (!sameIdDoc) return;
-        if (!sameIdDoc.rtUpdate) return;
-        if (sameIdDoc && sameIdDoc instanceof Model && sameIdDoc._meta && doc && sameIdDoc._meta._rev != (doc as any)._rev) {
-            if (!sameIdDoc._meta) sameIdDoc._meta = {} as Model['_meta'];
-            sameIdDoc._meta._real_time_updating = true;
-            sameIdDoc._meta._rev = (doc as any)._rev;
-            sameIdDoc.fill(newAttributes);
-            sameIdDoc._meta._real_time_updating = false;
-            sameIdDoc._meta._dirty = {};
-            sameIdDoc._meta._before_dirty = {};
-        }
-        sameIdDoc.notifyUpdate();
-    });
-}
-
 export const docEvent = new EventEmitter();
-export function emitChangeEvent(_id: string) {
-    docEvent.emit('docChange', _id);
+export function emitChangeEvent(_id: string, doc: BaseModel) {
+    docEvent.emit('docChange', _id, doc);
 }
 
-export function setDocChangeEventListener(listener: (id: string) => void | Promise<void>) {
-    docEvent.on('docChange', listener);
+export function setDocChangeEventListener(listener: (id: string, doc: BaseModel) => void | Promise<void>) {
+    return docEvent.on('docChange', listener);
 }
 
 export function setRealtime(realTime: boolean) {
-
     isRealTime = realTime;
     const onRealTimeChange = async (change: PouchDB.Core.ChangesResponseChange<any>, name: string) => {
         const _id = change.doc?._id || change.id;
@@ -74,8 +25,14 @@ export function setRealtime(realTime: boolean) {
             doc = await DatabaseManager.get(name)?.get(_id);
             doc._rev = change.changes[0].rev;
         }
-        notifyWeakRef(_id, doc as BaseModel);
-        emitChangeEvent(_id);
+        doc.id = _id;
+        delete doc._id;
+        const modelName = singular(_id.split('.')[0]);
+        const ExpectedModelClass = getModelClass(modelName);
+        if (ExpectedModelClass) {
+            doc = new ExpectedModelClass(doc);
+            emitChangeEvent(doc.id, doc as BaseModel);
+        }
     };
 
 

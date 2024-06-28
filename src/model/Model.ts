@@ -10,7 +10,7 @@ import moment from 'moment';
 import pluralize from 'pluralize';
 import { ModelKey, ModelStatic, ModelType, ModelValue, NewModelType } from 'src/definitions/Model';
 import { APIAutoConfig } from 'src/definitions/APIAutoConfig';
-import { addWeakRef, needToReload } from 'src/real-time/RealTimeModel';
+import { needToReload } from 'src/real-time/RealTimeModel';
 import { APIMethod } from 'src/repo/ApiRepo';
 import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { RelationshipType } from 'src/definitions/RelationshipType';
@@ -136,8 +136,6 @@ export class BaseModel {
         }
         if (!this.relationships) this.relationships = {};
         this.bindRelationships();
-        addWeakRef(this.docId, this);
-        addWeakRef(this.modelId, this);
     }
     constructor(attributes?: any) {
         if (!this._meta) this._meta = {} as this['_meta'];
