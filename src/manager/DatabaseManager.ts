@@ -90,11 +90,8 @@ export class DatabaseManager {
                     console.log(`- Connected to PouchDB/CouchDB "${config.dbName}": ${url}`);
                     console.log(`- Adapter: ${pouchDb.adapter}`);
                 }
-                if (pouchDb.adapter == 'http') {
+                if (pouchDb.adapter == 'http' && config.auth) {
                     PouchDB.plugin(require('pouchdb-authentication'));
-                    if (!config.auth) {
-                        throw new Error('You must provide an authentication object with username and password.');
-                    }
                     if ((pouchDb as PouchDB.Database & DatabaseCustomConfig).login) {
                         await (pouchDb as PouchDB.Database & DatabaseCustomConfig).login(config.auth.username, config.auth.password);
                     }
