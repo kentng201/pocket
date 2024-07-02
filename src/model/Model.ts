@@ -371,6 +371,7 @@ export class BaseModel {
                 await db.put({
                     _id: `Collections.${this.cName}`,
                     name: this.cName,
+                    className: this.getClass().name,
                 }).catch(() => {
                     resolve(true);
                 }).then(() => {
