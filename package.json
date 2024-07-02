@@ -4,7 +4,7 @@
     "description": "Pouch DB model library",
     "main": "dist/node/src/index.js",
     "types": "dist/src/index.d.ts",
-    "browser" : "dist/browser/src/index.js",
+    "browser": "dist/browser/src/index.js",
     "scripts": {
         "compile:type": "tsc --declaration --declarationDir dist --emitDeclarationOnly && tsc-alias -p tsconfig-types.json",
         "compile:browser": "tsc --project tsconfig-browser.json && tsc-alias -p tsconfig-browser.json && rm -Rf dist/node/mocks && rm -Rf dist/node/spec && rm -Rf dist/node/debug",

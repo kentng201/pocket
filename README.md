@@ -1,7 +1,11 @@
 # Pocket
 
-Pocket is a PouchDB/CouchDB object modeling tools designed to work in the Browser/Node.js.
-(Note: To support React Native in our next release)
+Pocket is a PouchDB/CouchDB object modeling tools designed to work in the Browser/Node.js/React Native.
+
+|TABLE OF CONTENTS | LINK |
+|---|---|
+| Getting Started | [Getting Started](#getting-started) |
+| Full Documentation | [Documentation](https://pocketjs.gitbook.io/pocket) |
 
 ### Getting Started
 
@@ -477,3 +481,6 @@ In "RUN AND DEBUG" session, open to the desire test spec file in vscode, and cli
 - [] React Native Support
 - [] Join and Save Support
 - [] Master and Transactional Database Management per Month Support
+- [] File System Zip Support
+- [] Add Database Migration Tools
+- [] Support Encrypted to Non-Encrypt Database Migrate and Vice Versa

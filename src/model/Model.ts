@@ -25,10 +25,6 @@ export function setDefaultNeedTimestamp(timestamp: boolean): boolean {
     BaseModel.timestamp = timestamp;
     return BaseModel.timestamp;
 }
-export function setDefaultNeedRealtimeUpdate(realtimeUpdate: boolean): boolean {
-    BaseModel.realtimeUpdate = realtimeUpdate;
-    return BaseModel.realtimeUpdate;
-}
 
 export function setDefaultNeedSoftDelete(softDelete: boolean): boolean {
     BaseModel.softDelete = softDelete;
@@ -40,7 +36,6 @@ export class BaseModel {
     static dbName: string = 'default';
     static readonlyFields: string[] = [];
     static timestamp?: boolean = true;
-    static realtimeUpdate: boolean = true;
     static softDelete: boolean = true;
 
     getClass(): typeof BaseModel {
@@ -52,9 +47,6 @@ export class BaseModel {
     }
     public get dName() {
         return this.getClass().dbName;
-    }
-    public get rtUpdate() {
-        return this.getClass().realtimeUpdate;
     }
     public get needTimestamp() {
         let timestamp = this.getClass().timestamp;
@@ -167,6 +159,11 @@ export class BaseModel {
                     target._meta._before_dirty[key as string] = target[key as ModelKey<this>];
                 }
                 try {
+                    if (value instanceof Blob) {
+                        // gzip value into compressed zip
+
+                    }
+
                     target[key] = value;
                     target._meta._dirty[key as string] = true;
                 } catch (e) {
