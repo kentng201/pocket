@@ -1,5 +1,5 @@
 import { DatabaseManager, setEnvironment } from 'src/manager/DatabaseManager';
-import { setDefaultDbName, setDefaultNeedRealtimeUpdate, setDefaultNeedTimestamp } from 'src/model/Model';
+import { setDefaultDbName, setDefaultNeedTimestamp } from 'src/model/Model';
 import { setRealtime } from 'src/real-time/RealTimeModel';
 import { syncDatabases } from 'src/real-time/DatabaseSync';
 import { Persistor } from 'src/helpers/Persistor';
@@ -47,7 +47,6 @@ export async function setupConfig<Config extends SinglePocketConfig | MultiPocke
         setEnvironment(isBrowser ? 'browser' : 'node');
         setDefaultDbName(multiConfig.databases[0].dbName || 'default');
         setDefaultNeedTimestamp(multiConfig.modelTimestamp || false);
-        setDefaultNeedRealtimeUpdate(multiConfig.realtimeUpdate || false);
         for (const singleConfig of multiConfig.databases) {
             const dbName = singleConfig.dbName || 'default';
             await DatabaseManager.connect(singleConfig.url, {
@@ -75,7 +74,6 @@ export async function setupConfig<Config extends SinglePocketConfig | MultiPocke
         setEnvironment(isBrowser ? 'browser' : 'node');
         setDefaultDbName(singleConfig.dbName || 'default');
         setDefaultNeedTimestamp(singleConfig.modelTimestamp || false);
-        setDefaultNeedRealtimeUpdate(singleConfig.realtimeUpdate || false);
         await DatabaseManager.connect(singleConfig.url, {
             dbName: singleConfig.dbName || 'default',
             password: singleConfig.password,
