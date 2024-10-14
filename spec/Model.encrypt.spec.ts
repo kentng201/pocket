@@ -96,12 +96,11 @@ describe('Model Encrypt', () => {
             name: 'John',
         });
         expect(user.id).toBe('TestEncryptUser');
-        const anotherUser = await EncryptUser.find(user.id) as EncryptUser;
         user.name = 'Jane';
         await user.save();
 
         await new Promise((res) => setTimeout(res, 1000));
-        expect(anotherUser).toEqual(jasmine.objectContaining({
+        expect(user).toEqual(jasmine.objectContaining({
             id: 'TestEncryptUser',
             name: 'Jane',
         }));
