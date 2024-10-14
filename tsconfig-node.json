@@ -27,13 +27,13 @@
         "src/",
         "index.ts",
         "**/*.tgz",
-        "**/*.patch",
-        "spec/"
+        "**/*.patch"
     ],
     "exclude": [
         "node_modules",
         "**/__tests__/*",
         "dist",
         "mocks/",
+        "spec/"
     ]
 }
