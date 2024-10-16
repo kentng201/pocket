@@ -156,9 +156,9 @@ const originalUser = await User.create({
 For listen document change in vue js component, you can use the following code
 
 ```typescript
-import { setDocChangeEventListener } from 'pocket';
+import { onDocChange, Model } from 'pocket';
 
-setDocChangeEventListener((id: string) => {
+onDocChange((id: string, model: Model) => {
     this.$forceUpdate();
 });
 ```
