@@ -16,6 +16,9 @@ import { ValidDotNotationArray } from 'src/definitions/DotNotation';
 import { RelationshipType } from 'src/definitions/RelationshipType';
 import { DatabaseManager, convertIdFieldsToDocIds, convertIdFieldsToModelIds, getRelationships } from '..';
 import { getModelClass } from './ModelDecorator';
+import { MultiQueryBuilder } from 'src/multi-database/MultiQueryBuilder';
+import MultipleDatabase from 'src/multi-database/MultiDatabase';
+import { getMainDatabaseName } from 'src/multi-database/MutliDatabaseConfig';
 
 export function setDefaultDbName(dbName: string): string {
     BaseModel.dbName = dbName;
@@ -37,6 +40,7 @@ export class BaseModel {
     static readonlyFields: string[] = [];
     static timestamp?: boolean = true;
     static softDelete: boolean = true;
+    static multiDatabase: boolean = false;
 
     getClass(): typeof BaseModel {
         return this.constructor as typeof BaseModel;
@@ -47,6 +51,9 @@ export class BaseModel {
     }
     public get dName() {
         return this.getClass().dbName;
+    }
+    public get multiDatabase() {
+        return this.getClass().multiDatabase;
     }
     public get needTimestamp() {
         let timestamp = this.getClass().timestamp;
@@ -94,7 +101,10 @@ export class BaseModel {
         _before_dirty: { [key: string]: any };
         _update_callbacks?: Function[];
         _rev: string;
+
+        _period?: string;
     };
+    public _tempPeriod?: string;
     public createdAt?: string;
     public updatedAt?: string;
     public deletedAt?: string;
@@ -159,11 +169,6 @@ export class BaseModel {
                     target._meta._before_dirty[key as string] = target[key as ModelKey<this>];
                 }
                 try {
-                    if (value instanceof Blob) {
-                        // gzip value into compressed zip
-
-                    }
-
                     target[key] = value;
                     target._meta._dirty[key as string] = true;
                 } catch (e) {
@@ -242,6 +247,26 @@ export class BaseModel {
      */
     static async find<T extends BaseModel>(this: ModelStatic<T>, primaryKey?: string | string): Promise<T | undefined> {
         if (!primaryKey) return undefined;
+        if ((new this).multiDatabase) {
+            const result = await Promise.all(MultipleDatabase.databases.map(async (db) => {
+                const item = await DatabaseManager
+                    .get(db.localDatabaseName)
+                    ?.get(`${(new this).cName}.${primaryKey}`)
+                    .then((doc) => {
+                        if (!doc) return null;
+                        const result = new this(doc) as T;
+                        if (result._tempPeriod) {
+                            result._meta._period = result._tempPeriod;
+                            delete result._tempPeriod;
+                        }
+                        return result;
+                    })
+                    .catch(() => null);
+                if (item) return item;
+                return undefined;
+            }));
+            return result.find((item) => item !== undefined);
+        }
         const item = await RepoManager.get(new this()).getDoc(primaryKey);
         if (!item) return undefined;
         const model = new this(item) as T;
@@ -251,9 +276,10 @@ export class BaseModel {
     /**
      * Create a new model
      * @param attributes attributes of the model
+     * @param databasePeriod period of the database, format YYYY-MM
      * @returns a new model 
      */
-    static async create<T extends BaseModel>(this: ModelStatic<T>, attributes: NewModelType<T>): Promise<T> {
+    static async create<T extends BaseModel>(this: ModelStatic<T>, attributes: NewModelType<T>, databasePeriod?: string): Promise<T> {
         const model = new this() as T;
         if (model.needTimestamp) {
             attributes.createdAt = moment().format();
@@ -262,6 +288,7 @@ export class BaseModel {
         model.fill(attributes as ModelType<T>);
         const hasDocumentInDb = await model.getClass().find(attributes.id);
         if (hasDocumentInDb) throw new Error('Document already exists');
+        if (databasePeriod) model._meta._period = databasePeriod;
         await model.save();
         return model;
     }
@@ -406,10 +433,12 @@ export class BaseModel {
         let updatedResult;
 
         let hasDocumentInDb;
-        if (!this.id) {
-            hasDocumentInDb = false;
-        } else {
-            hasDocumentInDb = await this.getClass().repo().getDoc(this.id);
+        if (this.id) {
+            if (this.multiDatabase) {
+                hasDocumentInDb = await MultiQueryBuilder.query(new (this.getClass())).find(this.id);
+            } else {
+                hasDocumentInDb = await this.getClass().query().find(this.id);
+            }
         }
         // add static beforeSave function
         if (this.getClass().beforeSave) {
@@ -423,7 +452,13 @@ export class BaseModel {
             if (this.getClass().beforeCreate) {
                 await this.getClass().beforeCreate(this);
             }
-            updatedResult = await this.getClass().repo().create(newAttributes);
+            if (this.multiDatabase) {
+                const currentPeriod = this._meta._period || moment().format('YYYY-MM');
+                updatedResult = await MultiQueryBuilder.query(new (this.getClass())).create(newAttributes as NewModelType<this>, currentPeriod);
+                this._meta._period = currentPeriod;
+            } else {
+                updatedResult = await this.getClass().repo().create(newAttributes);
+            }
             this.fill({ id: updatedResult.id, } as Partial<ModelType<this>>);
             if (this.getClass().afterCreate) {
                 await this.getClass().afterCreate(this);
@@ -441,7 +476,11 @@ export class BaseModel {
             if (this.getClass().beforeUpdate) {
                 await this.getClass().beforeUpdate(this);
             }
-            updatedResult = await this.getClass().repo().update(newAttributes);
+            if (this.multiDatabase) {
+                updatedResult = await MultiQueryBuilder.query(new (this.getClass())).update(newAttributes, this._meta._period);
+            } else {
+                updatedResult = await this.getClass().repo().update(newAttributes);
+            }
             if (this.getClass().afterCreate) {
                 await this.getClass().afterCreate(this);
             }
@@ -474,7 +513,12 @@ export class BaseModel {
             this.deletedAt = moment().format();
             await this.save();
         } else {
-            await this.getClass().repo().deleteOne(this.id);
+            if (this.multiDatabase) {
+                const periodDbName = `${getMainDatabaseName()}-${this._meta._period}`;
+                await QueryBuilder.query(this, undefined, periodDbName).setPeriod(this._meta._period).deleteOne(this.id);
+            } else {
+                await this.getClass().repo().deleteOne(this.id);
+            }
             Object.keys(this).forEach((key) => delete this[key as keyof this]);
         }
         if (this.getClass().afterDelete) {

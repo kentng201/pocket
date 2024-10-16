@@ -1,5 +1,5 @@
 // reference from: https://medium.com/dailyjs/typescript-create-a-condition-based-subset-types-9d902cea5b8c
-export type ReservedFieldForSelect = 'cName' | 'dName' | 'needTimestamp' | 'needSoftDelete' | 'relationships' | '_meta' | 'formatResponse' | '_id' | '_rev' | 'aName' | 'aResource' | 'aAuto' | 'docId' | 'modelId';
+export type ReservedFieldForSelect = 'cName' | 'dName' | 'multiDatabase' | 'needTimestamp' | 'needSoftDelete' | 'relationships' | '_meta' | '_tempPeriod' | 'formatResponse' | '_id' | '_rev' | 'aName' | 'aResource' | 'aAuto' | 'docId' | 'modelId';
 export type FunctionlessModel<T> = Omit<Omit<T, {
     [Key in keyof T]: T[Key] extends Function ? Key : never;
 }[keyof T]>, ReservedFieldForSelect>;
@@ -23,12 +23,15 @@ export type ModelType<T extends object> = FunctionlessModel<T> & {
         _before_dirty?: { [key: string]: any };
         _fallback_api_doc?: boolean;
         _rev: string;
+        _period?: string;
     };
+    _tempPeriod?: string;
 };
-export type NewModelType<T extends object> = Omit<ModelType<T>, 'id' | '_meta' | 'docId' | 'modelId'> & {
+export type NewModelType<T extends object> = Omit<ModelType<T>, 'id' | '_meta' | 'docId' | 'modelId' | ReservedFieldForSelect> & {
     id?: string;
     docId?: string;
     modelId?: string;
+    _tempPeriod?: string;
 };
 export type ModelKey<T extends object> = keyof FunctionlessModel<T> | 'id';
 export type ModelValue<T extends object, Key extends keyof T> = T[Key];

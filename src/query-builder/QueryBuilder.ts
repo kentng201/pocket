@@ -7,6 +7,7 @@ import { decrypt } from 'src/encryption/encryption';
 import { APIResourceInfo } from 'src/manager/ApiHostManager';
 import { DatabaseCustomConfig, DatabaseManager } from 'src/manager/DatabaseManager';
 import { BaseModel } from 'src/model/Model';
+import { MultiQueryBuilder } from 'src/multi-database/MultiQueryBuilder';
 import { convertIdFieldsToDocIds, getForeignIdFields } from 'src/relationships/RelationshipDecorator';
 import { ApiRepo } from 'src/repo/ApiRepo';
 
@@ -122,12 +123,15 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
 
     protected softDelete?: 'with' | 'only' | 'none' = 'none';
 
+    protected isMultiDatabase?: boolean;
+
     constructor(model: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string, isOne?: boolean, apiInfo?: APIResourceInfo) {
         if (model.cName === undefined) {
             throw new Error('QueryBuilder create error: collectionName not found');
         }
         this.dbName = dbName;
         this.model = model;
+        this.isMultiDatabase = this.model.multiDatabase;
         this.relationships = (relationships || []) as ValidDotNotationArray<T, K>;
         this.queries = { selector: { $and: [], }, };
         this.isOne = isOne;
@@ -341,6 +345,10 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return this.queries;
     }
 
+    getRelationships() {
+        return this.relationships;
+    }
+
     private sort(data: T[]) {
         if (this.sorters) {
             for (const sort of this.sorters) {
@@ -422,6 +430,10 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         model = new klass(item) as T;
         model._meta._dirty = {};
         model._meta._before_dirty = {};
+        if (model._tempPeriod) {
+            model._meta._period = model._tempPeriod;
+            delete model._tempPeriod;
+        }
         model = await this.bindRelationship(model);
         model.setForeignFieldsToModelId();
         return model;
@@ -559,6 +571,22 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         return result.docs;
     }
 
+    setQueries(queries: PouchDB.Find.FindRequest<{}> & { selector: { $and: PouchDB.Find.Selector[] } }) {
+        this.queries = queries;
+        return this;
+    }
+
+    setIsMultiDatabase(isMultiDatabase: boolean) {
+        this.isMultiDatabase = isMultiDatabase;
+        return this;
+    }
+
+    protected period?: string;
+    setPeriod(period?: string) {
+        this.period = period;
+        return this;
+    }
+
     async get(): Promise<T[]> {
         this.queries.selector.$and.push({
             _id: { $regex: `^${this.model.cName}`, },
@@ -574,6 +602,13 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
                 deletedAt: { $exists: true, },
             });
         }
+
+        if (this.isMultiDatabase) {
+            const multiQb = new MultiQueryBuilder(this.model, this.relationships);
+            multiQb.setQueryBuilder(this);
+            return multiQb.get();
+        }
+
         const db = DatabaseManager.get(this.dbName) as PouchDB.Database<T> & DatabaseCustomConfig;
         if (!db) {
             throw new Error(`Database ${this.dbName} not found`);
@@ -589,6 +624,9 @@ export class QueryBuilder<T extends BaseModel, K extends string[] = []> {
         const result = [] as T[];
         for (const item of data) {
             const model = await this.cast(item as unknown as ModelType<T>);
+            if (this.period && model?._meta) {
+                model._meta._period = this.period;
+            }
             if (model) result.push(model);
         }
         return result;
