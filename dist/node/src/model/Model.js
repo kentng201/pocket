@@ -25,6 +25,9 @@ const RealTimeModel_1 = require("../real-time/RealTimeModel");
 const RelationshipType_1 = require("../definitions/RelationshipType");
 const __1 = require("..");
 const ModelDecorator_1 = require("./ModelDecorator");
+const MultiQueryBuilder_1 = require("../multi-database/MultiQueryBuilder");
+const MultiDatabase_1 = __importDefault(require("../multi-database/MultiDatabase"));
+const MutliDatabaseConfig_1 = require("../multi-database/MutliDatabaseConfig");
 function setDefaultDbName(dbName) {
     BaseModel.dbName = dbName;
     return BaseModel.dbName;
@@ -49,6 +52,9 @@ class BaseModel {
     }
     get dName() {
         return this.getClass().dbName;
+    }
+    get multiDatabase() {
+        return this.getClass().multiDatabase;
     }
     get needTimestamp() {
         let timestamp = this.getClass().timestamp;
@@ -150,9 +156,6 @@ class BaseModel {
                     target._meta._before_dirty[key] = target[key];
                 }
                 try {
-                    if (value instanceof Blob) {
-                        // gzip value into compressed zip
-                    }
                     target[key] = value;
                     target._meta._dirty[key] = true;
                 }
@@ -232,6 +235,26 @@ class BaseModel {
         return __awaiter(this, void 0, void 0, function* () {
             if (!primaryKey)
                 return undefined;
+            if ((new this).multiDatabase) {
+                const result = yield Promise.all(MultiDatabase_1.default.databases.map((db) => __awaiter(this, void 0, void 0, function* () {
+                    var _a;
+                    const item = yield ((_a = __1.DatabaseManager
+                        .get(db.localDatabaseName)) === null || _a === void 0 ? void 0 : _a.get(`${(new this).cName}.${primaryKey}`).then((doc) => {
+                        if (!doc)
+                            return null;
+                        const result = new this(doc);
+                        if (result._tempPeriod) {
+                            result._meta._period = result._tempPeriod;
+                            delete result._tempPeriod;
+                        }
+                        return result;
+                    }).catch(() => null));
+                    if (item)
+                        return item;
+                    return undefined;
+                })));
+                return result.find((item) => item !== undefined);
+            }
             const item = yield RepoManager_1.RepoManager.get(new this()).getDoc(primaryKey);
             if (!item)
                 return undefined;
@@ -243,9 +266,10 @@ class BaseModel {
     /**
      * Create a new model
      * @param attributes attributes of the model
+     * @param databasePeriod period of the database, format YYYY-MM
      * @returns a new model
      */
-    static create(attributes) {
+    static create(attributes, databasePeriod) {
         return __awaiter(this, void 0, void 0, function* () {
             const model = new this();
             if (model.needTimestamp) {
@@ -256,6 +280,8 @@ class BaseModel {
             const hasDocumentInDb = yield model.getClass().find(attributes.id);
             if (hasDocumentInDb)
                 throw new Error('Document already exists');
+            if (databasePeriod)
+                model._meta._period = databasePeriod;
             yield model.save();
             return model;
         });
@@ -414,11 +440,13 @@ class BaseModel {
             const now = (0, moment_1.default)().format();
             let updatedResult;
             let hasDocumentInDb;
-            if (!this.id) {
-                hasDocumentInDb = false;
-            }
-            else {
-                hasDocumentInDb = yield this.getClass().repo().getDoc(this.id);
+            if (this.id) {
+                if (this.multiDatabase) {
+                    hasDocumentInDb = yield MultiQueryBuilder_1.MultiQueryBuilder.query(new (this.getClass())).find(this.id);
+                }
+                else {
+                    hasDocumentInDb = yield this.getClass().query().find(this.id);
+                }
             }
             // add static beforeSave function
             if (this.getClass().beforeSave) {
@@ -434,7 +462,14 @@ class BaseModel {
                 if (this.getClass().beforeCreate) {
                     yield this.getClass().beforeCreate(this);
                 }
-                updatedResult = yield this.getClass().repo().create(newAttributes);
+                if (this.multiDatabase) {
+                    const currentPeriod = this._meta._period || (0, moment_1.default)().format('YYYY-MM');
+                    updatedResult = yield MultiQueryBuilder_1.MultiQueryBuilder.query(new (this.getClass())).create(newAttributes, currentPeriod);
+                    this._meta._period = currentPeriod;
+                }
+                else {
+                    updatedResult = yield this.getClass().repo().create(newAttributes);
+                }
                 this.fill({ id: updatedResult.id, });
                 if (this.getClass().afterCreate) {
                     yield this.getClass().afterCreate(this);
@@ -454,7 +489,12 @@ class BaseModel {
                 if (this.getClass().beforeUpdate) {
                     yield this.getClass().beforeUpdate(this);
                 }
-                updatedResult = yield this.getClass().repo().update(newAttributes);
+                if (this.multiDatabase) {
+                    updatedResult = yield MultiQueryBuilder_1.MultiQueryBuilder.query(new (this.getClass())).update(newAttributes, this._meta._period);
+                }
+                else {
+                    updatedResult = yield this.getClass().repo().update(newAttributes);
+                }
                 if (this.getClass().afterCreate) {
                     yield this.getClass().afterCreate(this);
                 }
@@ -490,7 +530,13 @@ class BaseModel {
                 yield this.save();
             }
             else {
-                yield this.getClass().repo().deleteOne(this.id);
+                if (this.multiDatabase) {
+                    const periodDbName = `${(0, MutliDatabaseConfig_1.getMainDatabaseName)()}-${this._meta._period}`;
+                    yield QueryBuilder_1.QueryBuilder.query(this, undefined, periodDbName).setPeriod(this._meta._period).deleteOne(this.id);
+                }
+                else {
+                    yield this.getClass().repo().deleteOne(this.id);
+                }
                 Object.keys(this).forEach((key) => delete this[key]);
             }
             if (this.getClass().afterDelete) {
@@ -768,6 +814,7 @@ BaseModel.dbName = 'default';
 BaseModel.readonlyFields = [];
 BaseModel.timestamp = true;
 BaseModel.softDelete = true;
+BaseModel.multiDatabase = false;
 exports.BaseModel = BaseModel;
 exports.Model = BaseModel;
 //# sourceMappingURL=Model.js.map

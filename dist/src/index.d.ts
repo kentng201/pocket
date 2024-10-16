@@ -1,5 +1,7 @@
+import { onDocChange } from './real-time/RealTimeModel';
 import { setEnvironment } from '.';
 import { setRealtime } from '.';
+import { getMainDatabaseName, getPerformanceMode, setMainDatabaseName, setPerformanceMode } from './multi-database/MutliDatabaseConfig';
 export * from './manager/DatabaseManager';
 export * from './manager/RepoManager';
 export * from './model/Model';
@@ -12,4 +14,9 @@ export * from './helpers/Persistor';
 export declare const PocketDefault: {
     setRealtime: typeof setRealtime;
     setEnvironment: typeof setEnvironment;
+    onDocChange: typeof onDocChange;
+    setPerformanceMode: typeof setPerformanceMode;
+    getPerformanceMode: typeof getPerformanceMode;
+    setMainDatabaseName: typeof setMainDatabaseName;
+    getMainDatabaseName: typeof getMainDatabaseName;
 };

@@ -15,8 +15,10 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PocketDefault = void 0;
+const RealTimeModel_1 = require("./real-time/RealTimeModel");
 const _1 = require(".");
 const _2 = require(".");
+const MutliDatabaseConfig_1 = require("./multi-database/MutliDatabaseConfig");
 __exportStar(require("./manager/DatabaseManager"), exports);
 __exportStar(require("./manager/RepoManager"), exports);
 __exportStar(require("./model/Model"), exports);
@@ -29,5 +31,10 @@ __exportStar(require("./helpers/Persistor"), exports);
 exports.PocketDefault = {
     setRealtime: _2.setRealtime,
     setEnvironment: _1.setEnvironment,
+    onDocChange: RealTimeModel_1.onDocChange,
+    setPerformanceMode: MutliDatabaseConfig_1.setPerformanceMode,
+    getPerformanceMode: MutliDatabaseConfig_1.getPerformanceMode,
+    setMainDatabaseName: MutliDatabaseConfig_1.setMainDatabaseName,
+    getMainDatabaseName: MutliDatabaseConfig_1.getMainDatabaseName,
 };
 //# sourceMappingURL=index.js.map

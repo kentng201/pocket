@@ -11,6 +11,7 @@ import uuid from 'short-uuid';
 import { decrypt } from '../encryption/encryption';
 import { DatabaseManager } from '../manager/DatabaseManager';
 import { BaseModel } from '../model/Model';
+import { MultiQueryBuilder } from '../multi-database/MultiQueryBuilder';
 import { convertIdFieldsToDocIds, getForeignIdFields } from '../relationships/RelationshipDecorator';
 import { ApiRepo } from '../repo/ApiRepo';
 const operators = ['=', '>', '>=', '<', '<=', '!=', 'in', 'not in', 'between', 'like',];
@@ -108,6 +109,7 @@ export class QueryBuilder {
         }
         this.dbName = dbName;
         this.model = model;
+        this.isMultiDatabase = this.model.multiDatabase;
         this.relationships = (relationships || []);
         this.queries = { selector: { $and: [], }, };
         this.isOne = isOne;
@@ -314,6 +316,9 @@ export class QueryBuilder {
     getQuery() {
         return this.queries;
     }
+    getRelationships() {
+        return this.relationships;
+    }
     sort(data) {
         if (this.sorters) {
             for (const sort of this.sorters) {
@@ -405,6 +410,10 @@ export class QueryBuilder {
             model = new klass(item);
             model._meta._dirty = {};
             model._meta._before_dirty = {};
+            if (model._tempPeriod) {
+                model._meta._period = model._tempPeriod;
+                delete model._tempPeriod;
+            }
             model = yield this.bindRelationship(model);
             model.setForeignFieldsToModelId();
             return model;
@@ -555,6 +564,18 @@ export class QueryBuilder {
             return result.docs;
         });
     }
+    setQueries(queries) {
+        this.queries = queries;
+        return this;
+    }
+    setIsMultiDatabase(isMultiDatabase) {
+        this.isMultiDatabase = isMultiDatabase;
+        return this;
+    }
+    setPeriod(period) {
+        this.period = period;
+        return this;
+    }
     get() {
         return __awaiter(this, void 0, void 0, function* () {
             this.queries.selector.$and.push({
@@ -572,6 +593,11 @@ export class QueryBuilder {
                     deletedAt: { $exists: true, },
                 });
             }
+            if (this.isMultiDatabase) {
+                const multiQb = new MultiQueryBuilder(this.model, this.relationships);
+                multiQb.setQueryBuilder(this);
+                return multiQb.get();
+            }
             const db = DatabaseManager.get(this.dbName);
             if (!db) {
                 throw new Error(`Database ${this.dbName} not found`);
@@ -588,6 +614,9 @@ export class QueryBuilder {
             const result = [];
             for (const item of data) {
                 const model = yield this.cast(item);
+                if (this.period && (model === null || model === void 0 ? void 0 : model._meta)) {
+                    model._meta._period = this.period;
+                }
                 if (model)
                     result.push(model);
             }

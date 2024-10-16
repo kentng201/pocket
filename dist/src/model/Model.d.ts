@@ -11,9 +11,11 @@ export declare class BaseModel {
     static readonlyFields: string[];
     static timestamp?: boolean;
     static softDelete: boolean;
+    static multiDatabase: boolean;
     getClass(): typeof BaseModel;
     get cName(): string;
     get dName(): string;
+    get multiDatabase(): boolean;
     get needTimestamp(): true;
     get needSoftDelete(): true;
     static apiName?: string;
@@ -39,7 +41,9 @@ export declare class BaseModel {
         };
         _update_callbacks?: Function[];
         _rev: string;
+        _period?: string;
     };
+    _tempPeriod?: string;
     createdAt?: string;
     updatedAt?: string;
     deletedAt?: string;
@@ -77,9 +81,10 @@ export declare class BaseModel {
     /**
      * Create a new model
      * @param attributes attributes of the model
+     * @param databasePeriod period of the database, format YYYY-MM
      * @returns a new model
      */
-    static create<T extends BaseModel>(this: ModelStatic<T>, attributes: NewModelType<T>): Promise<T>;
+    static create<T extends BaseModel>(this: ModelStatic<T>, attributes: NewModelType<T>, databasePeriod?: string): Promise<T>;
     /**
      * Update an existing model
      * @param attributes attributes of the model

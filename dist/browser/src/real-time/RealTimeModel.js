@@ -17,7 +17,7 @@ export const docEvent = new EventEmitter();
 export function emitChangeEvent(_id, doc) {
     docEvent.emit('docChange', _id, doc);
 }
-export function setDocChangeEventListener(listener) {
+export function onDocChange(listener) {
     return docEvent.on('docChange', listener);
 }
 export function setRealtime(realTime) {

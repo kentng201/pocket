@@ -37,6 +37,7 @@ export declare class QueryBuilder<T extends BaseModel, K extends string[] = []> 
     protected localKey?: string;
     protected foreignKey?: string;
     protected softDelete?: 'with' | 'only' | 'none';
+    protected isMultiDatabase?: boolean;
     constructor(model: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string, isOne?: boolean, apiInfo?: APIResourceInfo);
     static query<T extends BaseModel, K extends string[] = []>(model: T, relationships?: ValidDotNotationArray<T, K>, dbName?: string): QueryBuilder<T, K>;
     static where<T extends BaseModel, O extends Operator>(field: ModelKey<T> | string, operator: O, value: OperatorValue<T, ModelKey<T>, O>, model: T): QueryBuilder<T, []>;
@@ -71,6 +72,7 @@ export declare class QueryBuilder<T extends BaseModel, K extends string[] = []> 
             $and: PouchDB.Find.Selector[];
         };
     };
+    getRelationships(): ValidDotNotationArray<T, K> | undefined;
     private sort;
     private bindRelationship;
     protected cast(item?: ModelType<T>): Promise<T | undefined>;
@@ -79,6 +81,14 @@ export declare class QueryBuilder<T extends BaseModel, K extends string[] = []> 
     private checkIfTargetDoc;
     private jsSearch;
     private mangoQuery;
+    setQueries(queries: PouchDB.Find.FindRequest<{}> & {
+        selector: {
+            $and: PouchDB.Find.Selector[];
+        };
+    }): this;
+    setIsMultiDatabase(isMultiDatabase: boolean): this;
+    protected period?: string;
+    setPeriod(period?: string): this;
     get(): Promise<T[]>;
     first(): Promise<T | undefined>;
     last(): Promise<T | undefined>;

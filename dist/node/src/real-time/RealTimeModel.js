@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.needToReload = exports.setRealtime = exports.setDocChangeEventListener = exports.emitChangeEvent = exports.docEvent = exports.isRealTime = void 0;
+exports.needToReload = exports.setRealtime = exports.onDocChange = exports.emitChangeEvent = exports.docEvent = exports.isRealTime = void 0;
 const DatabaseManager_1 = require("../manager/DatabaseManager");
 const Model_1 = require("../model/Model");
 const events_1 = __importDefault(require("events"));
@@ -24,10 +24,10 @@ function emitChangeEvent(_id, doc) {
     exports.docEvent.emit('docChange', _id, doc);
 }
 exports.emitChangeEvent = emitChangeEvent;
-function setDocChangeEventListener(listener) {
+function onDocChange(listener) {
     return exports.docEvent.on('docChange', listener);
 }
-exports.setDocChangeEventListener = setDocChangeEventListener;
+exports.onDocChange = onDocChange;
 function setRealtime(realTime) {
     exports.isRealTime = realTime;
     const onRealTimeChange = (change, name) => __awaiter(this, void 0, void 0, function* () {
